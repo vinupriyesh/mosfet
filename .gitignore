@@ -30,3 +30,13 @@
 *.exe
 *.out
 *.app
+
+# archives
+*.7z
+*.tar.gz
+
+# python
+__pycache__
+
+# extras
+*replay.html
