@@ -1,5 +1,5 @@
 #include <gtest/gtest.h>
-#include "../parser.cc"
+#include "../parser.h"
 
 TEST(ParserTest, SimpleJSONParseTest) {
     // MyClass my_class;

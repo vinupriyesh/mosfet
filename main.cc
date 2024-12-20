@@ -3,7 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include "logger.h"
-#include "parser.cc"
+#include "parser.h"
 
 using json = nlohmann::json;
 

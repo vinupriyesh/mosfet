@@ -13,7 +13,7 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${json_SOURCE_DIR}/include)
 
 # Add test files
-add_executable(test_parser test_parser.cc)
+add_executable(test_parser test_parser.cc ${PROJECT_SOURCE_DIR}/../parser.cc)
 
 # Link libraries
 target_link_libraries(test_parser gtest gtest_main nlohmann_json::nlohmann_json)
