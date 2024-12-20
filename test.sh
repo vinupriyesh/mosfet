@@ -1,2 +1,2 @@
 cd build/tests
-ctest
+ctest --verbose
