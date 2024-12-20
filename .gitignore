@@ -26,6 +26,9 @@
 *.a
 *.lib
 
+# Build directories
+build
+
 # Executables
 *.exe
 *.out
@@ -40,3 +43,4 @@ __pycache__
 
 # extras
 *replay.html
+*application.log
