@@ -4,6 +4,8 @@
 
 #include "logger.h"
 #include "parser.h"
+#include "agent/control_center.h"
+
 
 using json = nlohmann::json;
 
@@ -11,68 +13,46 @@ void log(const std::string& message) {
     Logger::getInstance().log(message);
 }
 
-int main() {
-    log("Daemon started");
-/*
-    // Example JSON string
-    std::string jsonString = R"({
-        "name": "John Doe",
-        "age": 30,
-        "is_student": false,
-        "skills": ["C++", "Python", "JSON"]
-    })";
+int main(int argc, char* argv[]) {
 
-    // Parse JSON string to JSON object
-    json jsonObject = json::parse(jsonString);
+    bool verbose = false;
+    for (int i = 1; i < argc; ++i) {
+        std::string arg = argv[i];
+        if (arg == "--verbose" || arg == "-v") {
+            verbose = true;
+        }
+    }
 
-    // Access JSON data
-    std::string name = jsonObject["name"];
-    int age = jsonObject["age"];
-    bool isStudent = jsonObject["is_student"];
-    std::vector<std::string> skills = jsonObject["skills"];
-
-    // Print the data
-    std::cout << "Name: " << name << std::endl;
-    std::cout << "Age: " << age << std::endl;
-    std::cout << "Is Student: " << (isStudent ? "Yes" : "No") << std::endl;
-    std::cout << "Skills: ";
+    if (verbose) {
+        Logger::getInstance().enableLogging("application.log");
+    }
     
-    log(name);
-    log(std::to_string(age));
-    log("Done with the tests");
-*/
-    //------------
-    
+    log("Mosfet daemon started");    
 
     std::string input;
+    ControlCenter* cc;
+
     int counter = 0;
 
     while (true) {
         log("Waiting for input");
         std::getline(std::cin, input);
-        log(input);
+        log("Input --> " + input);
 
-        try {
-            json jsonObject = json::parse(input);
-            GameState gameState = jsonObject.get<GameState>();
-            log("This is the game state parsed -- ");
-            log(to_string(gameState));
-        } catch (const std::exception& e) {
-            std::cerr << "Caught an unknown exception while parsing " << e.what() << std::endl;
+        json jsonObject = json::parse(input);
+        GameState gameState = jsonObject.get<GameState>();
+
+        if (counter == 0) {
+            cc = new ControlCenter(gameState.info.envCfg["max_units"]);
         }
-        
-
-
-        if (input == "exit") break;
-
-        if (input == "error") {
-            std::cerr << "An error occurred!" << std::endl;
-            continue; 
-        }
-
         counter++;
-        // std::cout << "Processed: " << input << ", Counter: " << counter << std::endl;
-        std::cout << "0 0 0" << std::endl;
+
+        std::vector<std::vector<int>> results = cc->act();
+        json json_results = {{"action", results}};
+        log("Dumping results" + json_results.dump());
+        std::cout << json_results.dump() << std::endl; // Pretty print with indentation of 4 spaces
+
+        // std::cout << "0 0 0" << std::endl;
         std::cout.flush(); // Ensure output is immediately flushed
     }
 

@@ -11,8 +11,14 @@
 class Logger {
 public:
     static Logger& getInstance() {
-        static Logger instance("application.log");
+        static Logger instance;
         return instance;
+    }
+
+    void enableLogging(const std::string& filename) {
+        if (!log_file.is_open()) {
+            log_file.open(filename, std::ios::out | std::ios::app);
+        }
     }
 
     void log(const std::string& message) {
@@ -26,10 +32,7 @@ public:
 private:
     std::ofstream log_file;
 
-    Logger(const std::string& filename) {
-        log_file.open(filename, std::ios::out | std::ios::app);
-    }
-
+    Logger() = default;
     ~Logger() {
         if (log_file.is_open()) {
             log_file.close();

@@ -16,12 +16,17 @@ ARCHIVE_NAME="${DIR_NAME}_${TIMESTAMP}"
 INCLUDE_LIST=$(mktemp)
 
 # Find all files that are NOT ignored by .gitignore
-git ls-files --cached --others --exclude-standard > "$INCLUDE_LIST"
+# git ls-files --cached --others --exclude-standard > "$INCLUDE_LIST"
 
 # Add additional files or folders to the include list
 # Replace "/path/to/your/file_or_directory" with the paths you want to include
 # echo "/path/to/your/file1" >> "$INCLUDE_LIST"
 # echo "/path/to/your/folder2" >> "$INCLUDE_LIST"
+
+chmod +x mosfet
+echo "LICENSE" >> "$INCLUDE_LIST"
+echo "main.py" >> "$INCLUDE_LIST"
+echo "mosfet" >> "$INCLUDE_LIST"
 
 # Read the list of files into an array
 readarray -t FILES < "$INCLUDE_LIST"

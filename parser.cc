@@ -2,7 +2,9 @@
 
 // Define from_json for Info
 void from_json(const json& j, Info& i) {
-    j.at("env_cfg").get_to(i.envCfg);
+    if (j.contains("env_cfg")) {
+        j.at("env_cfg").get_to(i.envCfg);
+    }
 }
 
 void from_json(const json &j, Units &u) {
@@ -62,9 +64,7 @@ std::ostream &operator<<(std::ostream &os, const Units &units) {
     for (const auto& e1 : units.energy) {
         os << "\t\t[";
         for (const auto& e2 : e1) {
-            // for (const auto& e3 : e2) {
             os << e2 << ", ";
-            // }
         }
         os << "], ";
     }
