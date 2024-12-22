@@ -10,7 +10,7 @@
 
 using json = nlohmann::json;
 
-ControlCenter* cc;
+ControlCenter* cc = new ControlCenter();
 
 void process(std::string& input, int counter) {
     std::getline(std::cin, input);
@@ -19,21 +19,13 @@ void process(std::string& input, int counter) {
         json jsonObject = json::parse(input);
         GameState gameState = jsonObject.get<GameState>();
 
-        log("before checking counter");
-        if (counter == 0) {
-            log("Creating new CC");
-            cc = new ControlCenter(gameState.info.envCfg["max_units"]);
-        }        
-
-        log("Before calling ACT");
+        cc->update(gameState);        
         std::vector<std::vector<int>> results = cc->act();
-        log("Got results");
+        
         json json_results = {{"action", results}};
-        log("Dumping results" + json_results.dump());
-        std::cout << json_results.dump() << std::endl; // Pretty print with indentation of 4 spaces
-
-        // std::cout << "0 0 0" << std::endl;
-        std::cout.flush(); // Ensure output is immediately flushed
+        log("Output --> " + json_results.dump());
+        std::cout << json_results.dump() << std::endl; 
+        std::cout.flush();
 }
 
 int main(int argc, char* argv[]) {
@@ -70,5 +62,6 @@ int main(int argc, char* argv[]) {
         }
     }
 
+    delete cc;
     return 0;
 }
