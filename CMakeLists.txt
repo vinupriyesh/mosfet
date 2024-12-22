@@ -7,6 +7,9 @@ project(mosfet)
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED True)
 
+# Enable static linking
+set(BUILD_SHARED_LIBS OFF)
+
 # Include FetchContent module
 include(FetchContent)
 
@@ -39,4 +42,4 @@ target_include_directories(mosfet PUBLIC ${PROJECT_SOURCE_DIR})
 
 
 # Link nlohmann/json to your executable
-target_link_libraries(mosfet PRIVATE nlohmann_json::nlohmann_json)
+target_link_libraries(mosfet PRIVATE nlohmann_json::nlohmann_json -static)

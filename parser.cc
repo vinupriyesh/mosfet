@@ -8,34 +8,70 @@ void from_json(const json& j, Info& i) {
 }
 
 void from_json(const json &j, Units &u) {
-    j.at("position").get_to(u.position);
-    j.at("energy").get_to(u.energy);
+    if (j.contains("position")) {
+        j.at("position").get_to(u.position);
+    }
+    if (j.contains("energy")) {
+        j.at("energy").get_to(u.energy);
+    }
 }
 
 void from_json(const json &j, MapFeatures &m) {
-    j.at("energy").get_to(m.energy);
-    j.at("tile_type").get_to(m.tileType);
+    if (j.contains("energy")) {
+        j.at("energy").get_to(m.energy);
+    }
+    if (j.contains("tile_type")) {
+        j.at("tile_type").get_to(m.tileType);
+    }
 }
 
 void from_json(const json &j, Obs &m) {
-    j.at("units").get_to(m.units);
-    j.at("units_mask").get_to(m.unitsMask);
-    j.at("sensor_mask").get_to(m.sensorMask);
-    j.at("map_features").get_to(m.mapFeatures);
-    j.at("relic_nodes_mask").get_to(m.relicNodesMask);
-    j.at("relic_nodes").get_to(m.relicNodes);
-    j.at("team_points").get_to(m.teamPoints);
-    j.at("team_wins").get_to(m.teamWins);
-    j.at("steps").get_to(m.steps);
-    j.at("match_steps").get_to(m.matchSteps);
+    if (j.contains("units")) {
+        j.at("units").get_to(m.units);
+    }
+    if (j.contains("units_mask")) {
+        j.at("units_mask").get_to(m.unitsMask);
+    }
+    if (j.contains("sensor_mask")) {
+        j.at("sensor_mask").get_to(m.sensorMask);
+    }
+    if (j.contains("map_features")) {
+        j.at("map_features").get_to(m.mapFeatures);
+    }
+    if (j.contains("relic_nodes_mask")) {
+        j.at("relic_nodes_mask").get_to(m.relicNodesMask);
+    }
+    if (j.contains("relic_nodes")) {
+        j.at("relic_nodes").get_to(m.relicNodes);
+    }
+    if (j.contains("team_points")) {
+        j.at("team_points").get_to(m.teamPoints);
+    }
+    if (j.contains("team_wins")) {
+        j.at("team_wins").get_to(m.teamWins);
+    }
+    if (j.contains("steps")) {
+        j.at("steps").get_to(m.steps);
+    }
+    if (j.contains("match_steps")) {
+        j.at("match_steps").get_to(m.matchSteps);
+    }
 }
 
 // Define from_json for GameState
 void from_json(const json& j, GameState& g) {
-    j.at("obs").get_to(g.obs);
-    j.at("remainingOverageTime").get_to(g.remainingOverageTime);
-    j.at("player").get_to(g.player);
-    j.at("info").get_to(g.info);
+    if (j.contains("obs")) {
+        j.at("obs").get_to(g.obs);
+    }
+    if (j.contains("remainingOverageTime")) {
+        j.at("remainingOverageTime").get_to(g.remainingOverageTime);
+    }
+    if (j.contains("player")) {
+        j.at("player").get_to(g.player);
+    }
+    if (j.contains("info")) {
+        j.at("info").get_to(g.info);
+    }
 }
 
 // Define output operator for Info
