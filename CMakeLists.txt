@@ -35,7 +35,7 @@ FetchContent_MakeAvailable(googletest)
 add_subdirectory(tests)
 
 # Add your executable
-add_executable(mosfet main.cc parser.cc agent/control_center.cc agent/shuttle.cc)
+add_executable(mosfet main.cc parser.cc agent/control_center.cc agent/shuttle.cc agent/relic.cc)
 
 # Include directories for header files 
 target_include_directories(mosfet PUBLIC ${PROJECT_SOURCE_DIR})

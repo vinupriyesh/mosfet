@@ -3,15 +3,34 @@
 
 #include "shuttle.h"
 #include "parser.h"
+#include "relic.h"
 #include <vector>
 #include <string>
 
+class Shuttle; //Forward declaration
+
 class ControlCenter {
 private:
+    
+    // one time constants
     std::string playerName;
-    int N;
+    int maxUnits;
+    int teamId;
+    int relicCount;
+    int enemyTeamId;    
+    int unitMoveCost;
+    int unitSapCost;
+    int unitSapRange;
+    int unitSensorRange;
+
+    // dynamic objects
     Shuttle** shuttles; 
-    void log(std::string message);   
+    Shuttle** enemyShuttles;
+    Relic** relics;
+
+    // private methods
+    void log(std::string message);
+    void init(GameState &gameState);
 
 public:    
     ControlCenter();
