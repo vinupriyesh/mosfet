@@ -26,6 +26,10 @@ public:
         }
     }
 
+    bool isDebugEnabled() {
+        return log_file.is_open();
+    }
+
     void log(const std::string& message) {
         if (log_file.is_open()) {
             auto now = std::chrono::system_clock::now();

@@ -4,15 +4,13 @@
 #include "shuttle.h"
 #include "parser.h"
 #include "relic.h"
+#include "logger.h"
 #include <vector>
 #include <string>
 
 class Shuttle; //Forward declaration
 
-class ControlCenter {
-private:
-    
-    // one time constants
+struct GameEnvConfig {
     std::string playerName;
     int maxUnits;
     int teamId;
@@ -22,6 +20,42 @@ private:
     int unitSapCost;
     int unitSapRange;
     int unitSensorRange;
+    int matchCountPerEpisode;
+    int maxStepsInMatch;
+    int mapHeight;
+    int mapWidth;
+
+    // Constructor
+    GameEnvConfig(GameState& gameState) {
+           // Player ID and team ID
+    playerName = gameState.player;
+    Logger::getInstance().setPlayerName(playerName);
+
+    if (playerName == "player_0") {
+        teamId = 0;
+        enemyTeamId = 1;
+    } else {
+        teamId = 1;
+        enemyTeamId = 0;
+    }
+
+    // Game info
+    matchCountPerEpisode = gameState.info.envCfg["match_count_per_episode"];
+    maxStepsInMatch = gameState.info.envCfg["max_steps_in_match"];
+    mapHeight = gameState.info.envCfg["map_height"];
+    mapWidth = gameState.info.envCfg["map_width"];
+    maxUnits = gameState.info.envCfg["max_units"];
+    unitMoveCost = gameState.info.envCfg["unit_move_cost"];
+    unitSapCost = gameState.info.envCfg["unit_sap_cost"];
+    unitSapRange = gameState.info.envCfg["unit_sap_range"];
+    unitSensorRange = gameState.info.envCfg["unit_sensor_range"];
+    relicCount = gameState.obs.relicNodesMask.size();
+    }
+};
+
+class ControlCenter {
+private:
+    GameEnvConfig* gameEnvConfig;
 
     // dynamic objects
     Shuttle** shuttles; 

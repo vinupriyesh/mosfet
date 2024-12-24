@@ -3,6 +3,7 @@
 #include <string>
 #include "logger.h"
 #include "relic.h"
+#include "visualizer/visualizer_client.h"
 
 void ControlCenter::log(std::string message) {
     Logger::getInstance().log("ControlCenter -> " + message);
@@ -14,33 +15,18 @@ void ControlCenter::log(std::string message) {
 void ControlCenter::init(GameState& gameState) {
     log("Initializing the control center");
     
-    // Player ID and team ID
-    playerName = gameState.player;
-    Logger::getInstance().setPlayerName(playerName);
-
-    if (playerName == "player_0") {
-        teamId = 0;
-        enemyTeamId = 1;
-    } else {
-        teamId = 1;
-        enemyTeamId = 0;
-    }
-
-    // Max units in the game
-    maxUnits = gameState.info.envCfg["max_units"];
+    gameEnvConfig = new GameEnvConfig(gameState);
 
     // Shuttles (player and enemy).  This is created once and reused.
-    shuttles = new Shuttle*[maxUnits];
-    enemyShuttles = new Shuttle*[maxUnits];
-    for (int i = 0; i < maxUnits; ++i) {
+    shuttles = new Shuttle*[gameEnvConfig->maxUnits];
+    enemyShuttles = new Shuttle*[gameEnvConfig->maxUnits];
+    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
         shuttles[i] = new Shuttle(i, ShuttleType::player, this);
         enemyShuttles[i] = new Shuttle(i, ShuttleType::enemy, this);
     }
 
-    relicCount = gameState.obs.relicNodesMask.size();
-
-    relics = new Relic*[relicCount];
-    for (int i = 0; i < relicCount; ++i) {
+    relics = new Relic*[gameEnvConfig->relicCount];
+    for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
         relics[i] = new Relic(i);     
     }
 }
@@ -54,17 +40,17 @@ void ControlCenter::update(GameState& gameState) {
         init(gameState);
     }
 
-    for (int i = 0; i < maxUnits; ++i) {
-        shuttles[i]->updateUnitsData(gameState.obs.units.position[teamId][i],
-                                     gameState.obs.units.energy[teamId][i]);
-        enemyShuttles[i]->updateUnitsData(gameState.obs.units.position[enemyTeamId][i],
-                                          gameState.obs.units.energy[enemyTeamId][i]);
+    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+        shuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->teamId][i],
+                                     gameState.obs.units.energy[gameEnvConfig->teamId][i]);
+        enemyShuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->enemyTeamId][i],
+                                          gameState.obs.units.energy[gameEnvConfig->enemyTeamId][i]);
                                           
-        shuttles[i]->updateVisbility(gameState.obs.unitsMask[teamId][i]);
-        enemyShuttles[i]->updateVisbility(gameState.obs.unitsMask[enemyTeamId][i]);        
+        shuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->teamId][i]);
+        enemyShuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->enemyTeamId][i]);        
     }
 
-    for (int i = 0; i < relicCount; ++i) {
+    for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
         relics[i]->updateRelicData(gameState.obs.relicNodes[i], gameState.obs.relicNodesMask[i]);
     }
 }
@@ -75,17 +61,23 @@ ControlCenter::ControlCenter() {
 }
 
 ControlCenter::~ControlCenter() {
-    for (int i = 0; i < maxUnits; ++i) {
+    delete gameEnvConfig;
+    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
         delete shuttles[i];
     }
     delete[] shuttles;
 }
 
+
 std::vector<std::vector<int>> ControlCenter::act() {
     log("inside act for shuttle");
     std::vector<std::vector<int>> results;
-    for (int i = 0; i < maxUnits; ++i) {
+    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
         results.push_back(shuttles[i]->act());
     }
+    if (Logger::getInstance().isDebugEnabled()) {
+        send_game_data();
+    }
+    std::cerr<< "test cc" << std::endl;
     return results;
 }
