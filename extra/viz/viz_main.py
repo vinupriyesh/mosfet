@@ -1,3 +1,4 @@
+from time import sleep
 import pygame
 import sys
 import json
@@ -30,7 +31,9 @@ class RequestHandler(BaseHTTPRequestHandler):
         visualizer.update_display()
 
         # Wait for the user's input before sending a response
-        response = response_queue.get()
+        # response = response_queue.get()
+        sleep(0.25)
+        response = 'success'
 
         self._set_headers()
         self.wfile.write(json.dumps({'status': response}).encode('utf-8'))
@@ -81,7 +84,7 @@ def main():
                         text += event.unicode
 
         screen.fill((255, 255, 255))
-        draw_text(screen, 'Enter Port Number:', (50, 50), font)
+        draw_text(screen, 'Port No:', (50, 50), font)
         txt_surface = font.render(text, True, color)
         width = max(200, txt_surface.get_width()+10)
         input_box.w = width

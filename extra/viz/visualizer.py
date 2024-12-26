@@ -13,7 +13,7 @@ class Visualizer:
         self.button_rect = pygame.Rect(20, self.screen_height + 10, 100, 40)
         pygame.init()
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height + 60))
-        pygame.display.set_caption('Grid Game Visualizer')
+        pygame.display.set_caption('LuxS3 Visualizer')
         self.font = pygame.font.Font(None, 32)
         self.asteroid_image = pygame.image.load('img/asteroid.png')
         self.asteroid_image = pygame.transform.scale(self.asteroid_image, (self.cell_size, self.cell_size))

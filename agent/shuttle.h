@@ -17,8 +17,7 @@ class Shuttle {
 private:
     int id;
     bool isVisible;
-    ShuttleType type;
-    std::vector<int> position;
+    ShuttleType type;    
     int energy;
     ControlCenter* cc;
 
@@ -26,6 +25,7 @@ private:
     std::uniform_int_distribution<> dis; // Uniform distribution
 
 public:
+    std::vector<int> position;
     std::vector<int> act();
     void updateUnitsData(std::vector<int> position, int energy);
     void updateVisbility(bool isVisible);
