@@ -56,8 +56,7 @@ struct GameEnvConfig {
 
 class ControlCenter {
 private:
-    GameEnvConfig* gameEnvConfig;
-    GameMap* gameMap;
+    GameEnvConfig* gameEnvConfig;    
 
     // dynamic objects
     Shuttle** shuttles; 
@@ -69,6 +68,12 @@ private:
     void init(GameState &gameState);
 
 public: 
+    int currentStep;
+    int currentMatchStep;
+    int remainingOverageTime;
+
+    GameMap* gameMap;
+
     ControlCenter();
     ~ControlCenter();
     void update(GameState &gameState);

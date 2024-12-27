@@ -41,6 +41,11 @@ void ControlCenter::update(GameState& gameState) {
         init(gameState);
     }
 
+    currentStep = gameState.obs.steps;
+    currentMatchStep = gameState.obs.matchSteps;
+    remainingOverageTime = gameState.remainingOverageTime;
+
+    // Exploring all units
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
         shuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->teamId][i],
                                      gameState.obs.units.energy[gameEnvConfig->teamId][i]);
@@ -48,11 +53,27 @@ void ControlCenter::update(GameState& gameState) {
                                           gameState.obs.units.energy[gameEnvConfig->enemyTeamId][i]);
                                           
         shuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->teamId][i]);
-        enemyShuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->enemyTeamId][i]);        
+        enemyShuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->enemyTeamId][i]);     
+
+        gameMap->getTile(shuttles[i]->getX(), shuttles[i]->getY()).setVisited(true, currentStep);  
     }
 
+    // Exploring all relics
     for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
         relics[i]->updateRelicData(gameState.obs.relicNodes[i], gameState.obs.relicNodesMask[i]);
+    }
+
+    // Exploring contents of each tile
+    for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
+        for (int j = 0; j < gameEnvConfig->mapWidth; ++j) {
+            GameTile& currentTile = gameMap->getTile(j, i);
+            currentTile.setType(gameState.obs.mapFeatures.tileType[i][j], currentStep);
+            currentTile.setEnergy(gameState.obs.mapFeatures.tileType[i][j], currentStep);
+
+            if (gameState.obs.sensorMask[i][j]) {
+                currentTile.setExplored(true, currentStep);
+            }
+        }
     }
 }
 
@@ -76,6 +97,8 @@ std::vector<std::vector<int>> ControlCenter::act() {
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
         results.push_back(shuttles[i]->act());
     }
+
+    // Send data to live play visualizer
     if (Logger::getInstance().isDebugEnabled() && gameEnvConfig->playerName == "player_0") {
         send_game_data(shuttles, enemyShuttles, relics, gameEnvConfig);
     }
