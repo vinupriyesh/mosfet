@@ -5,6 +5,7 @@
 #include "parser.h"
 #include "relic.h"
 #include "logger.h"
+#include "game_map.h"
 #include <vector>
 #include <string>
 
@@ -56,17 +57,18 @@ struct GameEnvConfig {
 class ControlCenter {
 private:
     GameEnvConfig* gameEnvConfig;
+    GameMap* gameMap;
 
     // dynamic objects
     Shuttle** shuttles; 
     Shuttle** enemyShuttles;
-    Relic** relics;
+    Relic** relics;    
 
     // private methods
     void log(std::string message);
     void init(GameState &gameState);
 
-public:    
+public: 
     ControlCenter();
     ~ControlCenter();
     void update(GameState &gameState);

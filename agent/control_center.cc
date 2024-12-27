@@ -1,9 +1,8 @@
 #include "control_center.h"
 #include <iostream>
-#include <string>
 #include "logger.h"
-#include "relic.h"
 #include "visualizer/visualizer_client.h"
+#include "game_map.h"
 
 void ControlCenter::log(std::string message) {
     Logger::getInstance().log("ControlCenter -> " + message);
@@ -29,6 +28,8 @@ void ControlCenter::init(GameState& gameState) {
     for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
         relics[i] = new Relic(i);     
     }
+
+    gameMap = new GameMap(gameEnvConfig->mapWidth, gameEnvConfig->mapHeight);
 }
 
 /**
