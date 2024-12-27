@@ -55,7 +55,10 @@ void ControlCenter::update(GameState& gameState) {
         shuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->teamId][i]);
         enemyShuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->enemyTeamId][i]);     
 
-        gameMap->getTile(shuttles[i]->getX(), shuttles[i]->getY()).setVisited(true, currentStep);  
+        if (gameMap->isValidTile(shuttles[i]->getX(), shuttles[i]->getY())) {
+            log("Updating visited for tile " + std::to_string(shuttles[i]->getX()) + ", " + std::to_string(shuttles[i]->getY()));
+            gameMap->getTile(shuttles[i]->getX(), shuttles[i]->getY()).setVisited(true, currentStep); 
+        }            
     }
 
     // Exploring all relics
@@ -66,7 +69,7 @@ void ControlCenter::update(GameState& gameState) {
     // Exploring contents of each tile
     for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig->mapWidth; ++j) {
-            GameTile& currentTile = gameMap->getTile(j, i);
+            GameTile& currentTile = gameMap->getTile(i, j);
             currentTile.setType(gameState.obs.mapFeatures.tileType[i][j], currentStep);
             currentTile.setEnergy(gameState.obs.mapFeatures.tileType[i][j], currentStep);
 
@@ -92,7 +95,7 @@ ControlCenter::~ControlCenter() {
 
 
 std::vector<std::vector<int>> ControlCenter::act() {
-    log("inside act for shuttle");
+    log("--- Acting step " + std::to_string(currentStep) + "/" + std::to_string(currentMatchStep) + " ---");
     std::vector<std::vector<int>> results;
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
         results.push_back(shuttles[i]->act());
@@ -102,6 +105,6 @@ std::vector<std::vector<int>> ControlCenter::act() {
     if (Logger::getInstance().isDebugEnabled() && gameEnvConfig->playerName == "player_0") {
         send_game_data(shuttles, enemyShuttles, relics, gameEnvConfig);
     }
-    std::cerr<< "test cc" << std::endl;
+    // std::cerr<< "test cc" << std::endl;
     return results;
 }

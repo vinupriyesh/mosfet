@@ -5,13 +5,22 @@
 
 #include <tuple>
 
+
+void Shuttle::log(std::string message) {
+    std::string visibilityMark = "";
+    if (!this->visible) {
+        visibilityMark = "~";
+    }
+    Logger::getInstance().log(visibilityMark + "Shuttle-" + std::to_string(this->id) + " -> " + message);
+}
+
 void Shuttle::updateUnitsData(std::vector<int> position, int energy) {
     this->position = position;
     this->energy = energy;
 }
 
 void Shuttle::updateVisbility(bool isVisible) {
-    this->isVisible = isVisible;
+    this->visible = isVisible;
 }
 
 int Shuttle::getX() {
@@ -24,7 +33,7 @@ int Shuttle::getY() {
 
 Shuttle::Shuttle(int id, ShuttleType type, ControlCenter* cc) {
     this->id = id;
-    this->isVisible = false;
+    this->visible = false;
     this->type = type;
     this->cc = cc;
 
@@ -36,18 +45,28 @@ Shuttle::Shuttle(int id, ShuttleType type, ControlCenter* cc) {
 
 bool Shuttle::isTileUnvisited(Direction direction) {
     GameTile& shuttleTile = this->cc->gameMap->getTile(position[0], position[1]);
+
     std::tuple<bool, GameTile&> result = this->cc->gameMap->isMovable(shuttleTile, direction);
     bool movable = std::get<0>(result);    
     GameTile& toTile = std::get<1>(result);
     
-    return movable && !toTile.isVisited();
+    if (movable) {
+        log("Tile (" + std::to_string(toTile.x) + ", " + std::to_string(toTile.y) + ") is visited? " + std::to_string(toTile.isVisited()));
+    } else {
+        log("Tile is not movable - (" + std::to_string(toTile.x) + ", " + std::to_string(toTile.y) + ") in direction " + std::to_string(direction));
+    }
+
+    return movable && !toTile.isVisited();    
 }
 
-std::vector<int> Shuttle::act() {
-    if (!isVisible) {
+std::vector<int> Shuttle::act() {    
+    if (!visible) {
+        // log("Shuttle is not visible" + std::to_string(id));
         // Check if we can still move invisible shuttle (If it is inside Nebula!)
         return {0, 0, 0};
     }
+
+    log("Shuttle acting - (" + std::to_string(position[0]) + ", " + std::to_string(position[1]) + ")");
 
     if (isTileUnvisited(Direction::UP)) {
         return {1, 0, 0};
@@ -65,12 +84,11 @@ std::vector<int> Shuttle::act() {
         return {4, 0, 0};
     }
 
+    log("No actions possible for shuttle" + std::to_string(id));
+    // return {0, 0, 0};
 
-    // int random_number = dis(gen); // Generate a random number in the range
-
-
-    // return {random_number, 0, 0};
-    return {0, 0, 0};
+    int random_number = dis(gen); // Generate a random number in the range
+    return {random_number, 0, 0};
 }
 
 Shuttle::~Shuttle() {

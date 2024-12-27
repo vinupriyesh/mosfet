@@ -1,13 +1,14 @@
 #ifndef GAMEMAP_H
 #define GAMEMAP_H
 
+#include "logger.h"
 #include <vector>
 
 enum Direction {
     UP,
+    RIGHT,
     DOWN,
-    LEFT,
-    RIGHT
+    LEFT
 };
 
 enum TileType {
@@ -17,16 +18,18 @@ enum TileType {
 };
     
 class GameTile {    
-    
-    TileType type;
-    bool visited;
-    bool explored;
-    int energy;
 
-    int lastVisitedTime;
-    int lastExploredTime;
-    int lastEnergyUpdateTime;
-    int lastTypeUpdateTime; 
+    private:    
+        void log(std::string message);
+        TileType type;
+        bool visited;
+        bool explored;
+        int energy;
+
+        int lastVisitedTime;
+        int lastExploredTime;
+        int lastEnergyUpdateTime;
+        int lastTypeUpdateTime; 
 
     public:
         int x;
@@ -48,14 +51,18 @@ class GameTile {
 
 class GameMap {
     private:
+        void log(std::string message);
         int width;
         int height;
         std::vector<std::vector<GameTile>> map;
-    public:    
+
+    public:
+        
         GameMap(int width, int height);
+        bool isValidTile(int x, int y);
         GameTile& getTile(int x, int y);
 
-        GameTile &getTile(GameTile &fromTile, Direction direction);
+        GameTile& getTile(GameTile &fromTile, Direction direction);
 
         std::tuple<bool, GameTile&> isMovable(GameTile& fromTile, Direction direction);
 };

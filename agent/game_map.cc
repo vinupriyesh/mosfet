@@ -1,6 +1,17 @@
+
 #include "game_map.h"
 #include <stdexcept>
 #include <tuple>
+#include <iostream>
+
+
+void GameMap::log(std::string message) {
+    Logger::getInstance().log("GameMap -> " + message);
+}
+
+void GameTile::log(std::string message) {
+    Logger::getInstance().log("GameMap -> " + message);
+}
 
 GameMap::GameMap(int width, int height) : width(width), height(height) {
     map.resize(height);
@@ -12,9 +23,13 @@ GameMap::GameMap(int width, int height) : width(width), height(height) {
     }
 }
 
-GameTile &GameMap::getTile(int x, int y){
+bool GameMap::isValidTile(int x, int y) {
+    return x >= 0 && x < width && y >= 0 && y < height;
+}
+
+GameTile& GameMap::getTile(int x, int y){
     if (x < 0 || x >= width || y < 0 || y >= height) {
-        throw std::out_of_range("Tile coordinates out of range");
+        throw std::out_of_range("Tile coordinates out of range - " + std::to_string(x) + ", " + std::to_string(y));
     }
     return map[y][x];
 }
@@ -36,13 +51,21 @@ GameTile &GameMap::getTile(GameTile &fromTile, Direction direction) {
             x += 1;
             break;
     }
-    return this->getTile(x, y);
+
+    try {
+        return this->getTile(x, y);
+    } catch (std::out_of_range& e) {
+        log("Tile coordinates out of range - " + std::to_string(x) + ", " + std::to_string(y));
+        throw e;
+    }
+    
 }
 
 std::tuple<bool, GameTile&> GameMap::isMovable(GameTile &fromTile, Direction direction) {
     try {
         GameTile& toTile = this->getTile(fromTile, direction);
         if (toTile.getType() == TileType::ASTEROID) {
+            log("Tile is an asteroid - (" + std::to_string(toTile.x) + ", " + std::to_string(toTile.y) + ")");
             return std::make_tuple(false, std::ref(fromTile));
         } else {
             // The tile exist and not an asteroid            

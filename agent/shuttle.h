@@ -3,6 +3,8 @@
 
 #include <vector>
 #include <random>
+
+#include "logger.h"
 #include "agent/control_center.h"
 #include "agent/game_map.h"
 
@@ -17,7 +19,7 @@ class Shuttle {
 
 private:
     int id;
-    bool isVisible;
+    bool visible;
     ShuttleType type;    
     int energy;
     ControlCenter* cc;
@@ -29,6 +31,7 @@ public:
     std::vector<int> position;
     bool isTileUnvisited(Direction direction);
     std::vector<int> act();
+    void log(std::string message);
     void updateUnitsData(std::vector<int> position, int energy);
     void updateVisbility(bool isVisible);
     int getX();
