@@ -6,11 +6,11 @@
 class Relic {
 
 private:
-    int id;
-    bool isVisible;
-    std::vector<int> position;
+    int id;    
 
 public:
+    bool visible;
+    std::vector<int> position;
     Relic(int id);    
     void updateRelicData(std::vector<int> position, bool isVisible);
 };

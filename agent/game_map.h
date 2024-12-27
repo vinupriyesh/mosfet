@@ -12,6 +12,7 @@ enum Direction {
 };
 
 enum TileType {
+    UNKNOWN,
     EMPTY,
     NEBULA,
     ASTEROID

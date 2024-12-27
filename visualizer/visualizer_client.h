@@ -7,6 +7,6 @@
 #include <string>
 
 std::string exec(const char* cmd);
-int send_game_data(Shuttle** shuttle, Shuttle** enemyShuttle, Relic** relic, GameEnvConfig* gameEnvConfig);
+int send_game_data(Shuttle** shuttle, Shuttle** enemyShuttle, Relic** relic, GameEnvConfig* gameEnvConfig, GameMap* gameMap);
 
 #endif // GAME_DATA_SENDER_H

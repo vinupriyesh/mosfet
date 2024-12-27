@@ -17,6 +17,12 @@ class Visualizer:
         self.font = pygame.font.Font(None, 32)
         self.asteroid_image = pygame.image.load('img/asteroid.png')
         self.asteroid_image = pygame.transform.scale(self.asteroid_image, (self.cell_size, self.cell_size))
+        self.nebula_image = pygame.image.load('img/nebula.png')
+        self.nebula_image = pygame.transform.scale(self.nebula_image, (self.cell_size, self.cell_size))
+        self.relic_image = pygame.image.load('img/relic.png')
+        self.relic_image = pygame.transform.scale(self.relic_image, (self.cell_size, self.cell_size))
+        self.vantage_point_image = pygame.image.load('img/vantage_point.png')
+        self.vantage_point_image = pygame.transform.scale(self.vantage_point_image, (self.cell_size, self.cell_size))
 
     def update_display(self):
         self.screen.fill((255, 255, 255))
@@ -38,6 +44,21 @@ class Visualizer:
             self.draw_shuttle(shuttle, (0, 0, 255))
         for shuttle in self.game_state.red_shuttles:
             self.draw_shuttle(shuttle, (255, 0, 0))
+        for nebula in self.game_state.nebula:
+            self.draw_nebula(nebula)
+        for relic in self.game_state.relics:
+            self.draw_relic(relic)
+
+
+    def draw_relic(self, position):
+        x, y = position
+        rect = self.relic_image.get_rect(center=(x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2))
+        self.screen.blit(self.relic_image, rect.topleft)
+
+    def draw_nebula(self, position):
+        x, y = position
+        rect = self.nebula_image.get_rect(center=(x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2))
+        self.screen.blit(self.nebula_image, rect.topleft)
 
     def draw_asteroid(self, position):
         x, y = position

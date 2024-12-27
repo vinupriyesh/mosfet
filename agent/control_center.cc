@@ -103,7 +103,7 @@ std::vector<std::vector<int>> ControlCenter::act() {
 
     // Send data to live play visualizer
     if (Logger::getInstance().isDebugEnabled() && gameEnvConfig->playerName == "player_0") {
-        send_game_data(shuttles, enemyShuttles, relics, gameEnvConfig);
+        send_game_data(shuttles, enemyShuttles, relics, gameEnvConfig, gameMap);
     }
     // std::cerr<< "test cc" << std::endl;
     return results;

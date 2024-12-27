@@ -2,10 +2,10 @@
 
 Relic::Relic(int id) {
     this->id = id;
-    this->isVisible = false;
+    this->visible = false;
 }
 
-void Relic::updateRelicData(std::vector<int> position, bool isVisible) {
+void Relic::updateRelicData(std::vector<int> position, bool visible) {
     this->position = position;
-    this->isVisible = isVisible;
+    this->visible = visible;
 }

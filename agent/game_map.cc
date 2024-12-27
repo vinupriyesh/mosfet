@@ -92,13 +92,16 @@ void GameTile::setExplored(bool explored, int time) {
 }
 
 TileType GameTile::setType(int tileTypeCode, int time) {
-    if (tileTypeCode == 0) {
+     if (tileTypeCode == 0) {
         type = TileType::EMPTY;
     } else if (tileTypeCode == 1) {
         type = TileType::NEBULA;
-    } else {
+    } else if (tileTypeCode == 2) {
         type = TileType::ASTEROID;
+    } else {
+        type = TileType::UNKNOWN;
     }
+    
     lastTypeUpdateTime = time;
     return type;
 }
