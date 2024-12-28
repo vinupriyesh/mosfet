@@ -8,8 +8,20 @@ enum Direction {
     UP,
     RIGHT,
     DOWN,
-    LEFT
+    LEFT,
+    CENTER
 };
+
+/**
+ * Overload the ++ operator for the Direction enum to be used in loops
+ * 
+ * Usage:for (Direction direction = Direction::UP; direction < Direction::CENTER; ++direction) {
+ * 
+ */
+inline Direction& operator++(Direction& c) {
+    c = static_cast<Direction>(static_cast<int>(c) + 1);
+    return c; 
+}
 
 enum TileType {
     UNKNOWN,
@@ -53,12 +65,12 @@ class GameTile {
 class GameMap {
     private:
         void log(std::string message);
-        int width;
-        int height;
         std::vector<std::vector<GameTile>> map;
 
     public:
         
+        int width;
+        int height;
         GameMap(int width, int height);
         bool isValidTile(int x, int y);
         GameTile& getTile(int x, int y);
