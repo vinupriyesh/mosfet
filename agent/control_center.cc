@@ -63,12 +63,11 @@ void ControlCenter::update(GameState& gameState) {
         }            
     }
 
-    // Exploring all relics
-    for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
-        relics[i]->updateRelicData(gameState.obs.relicNodes[i], gameState.obs.relicNodesMask[i]);
-    }
-
     // Exploring contents of each tile
+    allTilesExplored = true;
+    allTilesVisited = true;
+    tilesVisited = gameEnvConfig->mapHeight * gameEnvConfig->mapWidth;
+    tilesExplored = gameEnvConfig->mapHeight * gameEnvConfig->mapWidth;
     for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig->mapWidth; ++j) {
             GameTile& currentTile = gameMap->getTile(i, j);
@@ -78,7 +77,42 @@ void ControlCenter::update(GameState& gameState) {
             if (gameState.obs.sensorMask[i][j]) {
                 currentTile.setExplored(true, currentStep);
             }
+
+            if (!currentTile.isVisited()) {
+                allTilesVisited = false;
+                tilesVisited--;
+            }
+
+            if (!currentTile.isExplored()) {
+                allTilesExplored = false;
+                tilesExplored--;
+            }
         }
+    }
+
+    if (allTilesExplored) {
+        log("All tiles explored :)");
+    }
+
+    // Exploring all relics
+    allRelicsFound = true;
+    relicsFound = 0;
+    for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
+        bool firstTimeRevealed = relics[i]->updateRelicData(gameState.obs.relicNodes[i], gameState.obs.relicNodesMask[i]);
+        if (firstTimeRevealed) {
+            log("Relic " + std::to_string(i) + " found at " + std::to_string(relics[i]->position[0]) + ", " + std::to_string(relics[i]->position[1]));
+            gameMap->addRelic(relics[i]);
+        }
+
+        if (!relics[i]->revealed) {
+            allRelicsFound = false;
+        } else {
+            relicsFound++;
+        }
+    }
+
+    if (allRelicsFound) {
+        log("All relics found :)");
     }
 }
 

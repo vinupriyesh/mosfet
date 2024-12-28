@@ -6,13 +6,17 @@ Relic::Relic(int id) {
     this->revealed = false;
 }
 
-void Relic::updateRelicData(std::vector<int> position, bool visible) {
+bool Relic::updateRelicData(std::vector<int> position, bool visible) {
+
+    bool firstTimeReveal = false;
 
     // Relics dont change positions.  So once found, dont forget them!
-    if (position[0] != -1 && position[1] != -1) {
+    if (position[0] != -1 && position[1] != -1 && !this->revealed) {
         this->position = position;
         this->revealed = true;  
+        firstTimeReveal = true;
     }
     
     this->visible = visible;
+    return firstTimeReveal;
 }

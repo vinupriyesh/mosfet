@@ -63,34 +63,70 @@ bool Shuttle::isTileUnvisited(Direction direction) {
 
 std::vector<int> Shuttle::act() {    
     if (!visible) {
-        // log("Shuttle is not visible" + std::to_string(id));
-        // Check if we can still move invisible shuttle (If it is inside Nebula!)
+        //TODO: Check if we can still move invisible shuttle (If it is inside Nebula!)
         return {0, 0, 0};
     }
 
     log("Shuttle acting - (" + std::to_string(position[0]) + ", " + std::to_string(position[1]) + ")");
 
-    // Explore the unexplored tiles
-    PathingConfig config = {};
-    config.stopAtUnexploredTiles = true;
-    config.captureUnexploredTileDestinations = true;
-
-    Pathing pathing(this->cc->gameMap, config);
-
     GameTile& startTile = this->cc->gameMap->getTile(position[0], position[1]);
-    pathing.findAllPaths(startTile);
 
-    // Get the closest unexplored tile
-    if (!pathing.unexploredDestinations.empty()) {
-        auto [distance, destinationTile] = pathing.unexploredDestinations.top();
-        log("Closest unexplored tile - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
+    int totalTile = this->cc->gameEnvConfig->mapHeight * this->cc->gameEnvConfig->mapWidth;
+    float percentageExplored = static_cast<float>(this->cc->tilesExplored) / totalTile;
 
-        // Move towards the destination tile
-        std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
-        Direction direction = getDirectionTo(*pathToDestination[1]);
+    //If we are already at a halo tile, then move to a random tile
+    if (startTile.isHaloTile() && percentageExplored >= 0.33) {
+        log("Moving random from a halo tile");
+        int random_number = dis(gen);
+        return {random_number, 0, 0};
+    }
 
-        return {directionToInt(direction), 0, 0};
-    } 
+    // If all relics are found, then move towards halo nodes
+    if (cc->allRelicsFound || cc->allTilesExplored || percentageExplored >= 0.7) {
+        log("Going to explore the tiles");
+        PathingConfig config = {};
+        config.stopAtHaloTiles = true;
+        config.captureHaloTileDestinations = true;
+
+        Pathing pathing(this->cc->gameMap, config);
+        
+        pathing.findAllPaths(startTile);
+
+        // Get the closest unexplored tile
+        if (!pathing.haloDestinations.empty()) {
+            auto [distance, destinationTile] = pathing.haloDestinations.top();
+            log("Closest halo tile - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
+
+            // Move towards the destination tile
+            std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
+            Direction direction = getDirectionTo(*pathToDestination[1]);
+
+            return {directionToInt(direction), 0, 0};
+        }
+    }
+
+    // Explore the unexplored tiles
+    if (!cc->allTilesExplored) {
+        PathingConfig config = {};
+        config.stopAtUnexploredTiles = true;
+        config.captureUnexploredTileDestinations = true;
+
+        Pathing pathing(this->cc->gameMap, config);
+
+        pathing.findAllPaths(startTile);
+
+        // Get the closest unexplored tile
+        if (!pathing.unexploredDestinations.empty()) {
+            auto [distance, destinationTile] = pathing.unexploredDestinations.top();
+            log("Closest unexplored tile - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
+
+            // Move towards the destination tile
+            std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
+            Direction direction = getDirectionTo(*pathToDestination[1]);
+
+            return {directionToInt(direction), 0, 0};
+        }
+    }
 
     log("No actions possible for shuttle" + std::to_string(id));
     // return {0, 0, 0};

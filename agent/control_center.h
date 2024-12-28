@@ -56,7 +56,7 @@ struct GameEnvConfig {
 
 class ControlCenter {
 private:
-    GameEnvConfig* gameEnvConfig;    
+       
 
     // dynamic objects
     Shuttle** shuttles; 
@@ -72,6 +72,15 @@ public:
     int currentMatchStep;
     int remainingOverageTime;
 
+    bool allRelicsFound = false;
+    bool allTilesExplored = false;
+    bool allTilesVisited = false;
+
+    int relicsFound = 0;
+    int tilesExplored = 0;
+    int tilesVisited = 0;
+
+    GameEnvConfig* gameEnvConfig; 
     GameMap* gameMap;
 
     ControlCenter();

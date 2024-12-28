@@ -2,6 +2,7 @@
 #define GAMEMAP_H
 
 #include "logger.h"
+#include "relic.h"
 #include <vector>
 
 enum Direction {
@@ -45,6 +46,8 @@ class GameTile {
         TileType lastKnownTileType;
         bool visited;
         bool explored;
+        bool haloTile;
+        Relic* relic;
         int energy;
 
         int lastVisitedTime;
@@ -56,15 +59,18 @@ class GameTile {
         int x;
         int y;
         
-        GameTile(int x, int y) : x(x), y(y), visited(false), explored(false) {};
+        GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), relic(nullptr) {};
         bool isVisited() { return visited; };
         bool isExplored() { return explored; };
+        bool isHaloTile() { return haloTile; };
 
         TileType getType() const;
         TileType getLastKnownType() const;
 
         void setVisited(bool visited, int time);
         void setExplored(bool explored, int time);
+        void setHaloTile(bool haloTile) { this->haloTile = haloTile; };
+        void setRelic(Relic* relic) { this->relic = relic; };
 
         TileType setType(int tileTypeCode, int time);
         void setEnergy(int energy, int time);
@@ -81,12 +87,14 @@ class GameMap {
         int width;
         int height;
         GameMap(int width, int height);
+        void addRelic(Relic* relic);
         bool isValidTile(int x, int y);
         GameTile& getTile(int x, int y);
 
         GameTile& getTile(GameTile &fromTile, Direction direction);
 
         std::tuple<bool, GameTile&> isMovable(GameTile& fromTile, Direction direction);
+        
 };
 
 #endif // GAMEMAP_H

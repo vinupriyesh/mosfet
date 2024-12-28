@@ -13,7 +13,7 @@ public:
     bool revealed;
     std::vector<int> position;
     Relic(int id);    
-    void updateRelicData(std::vector<int> position, bool isVisible);
+    bool updateRelicData(std::vector<int> position, bool isVisible);
 };
 
 #endif // RELIC_H

@@ -5,8 +5,10 @@
 #include "datastructures/iterable_priority_queue.h"
 
 struct PathingConfig {
+    bool stopAtHaloTiles; // Halo tiles are not explored
     bool stopAtUnexploredTiles; // Unexplored tiles can be at the leaf node, but they will not be explored further
     bool stopAtVisitedTiles; // Visited tiles can be at the leaf node, but they will not be explored further
+    bool captureHaloTileDestinations; // Captures halo tiles destinations
     bool captureUnexploredTileDestinations; // Captures unexplored tiles destinations
     bool captureUnVisitedTileDestinations; // Captures unvisited tiles destinations
 };
@@ -42,6 +44,11 @@ class Pathing : public PathingBase {
         IterablePriorityQueue<TileDistancePair> unvisitedDestinations;
 
         /**
+         * Will be populated only if captureHaloTileDestinations is true, closest tiles first
+         */
+        IterablePriorityQueue<TileDistancePair> haloDestinations;
+
+        /**
          * The main output having all the distances and paths
          */
         std::unordered_map<GameTile*, std::pair<int, std::vector<GameTile*>>> distances;
@@ -52,4 +59,4 @@ class Pathing : public PathingBase {
 
 };
 
-#endif //PATHING_H
+#endif // PATHING_H

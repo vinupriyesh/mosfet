@@ -37,6 +37,11 @@ void Pathing::findAllPaths(GameTile &startTile) {
             unvisitedDestinations.push({currentDistance, currentTile});
         }
 
+        // Record this tile if it is a halo tile
+        if (config.captureHaloTileDestinations && currentTile->isHaloTile()) {
+            haloDestinations.push({currentDistance, currentTile});
+        }
+
         // Skip if the current distance is greater than the recorded distance
         if (currentDistance > distances[currentTile].first) {
             continue;
@@ -49,6 +54,11 @@ void Pathing::findAllPaths(GameTile &startTile) {
 
         //Do not explore further if the tile is visited and the config is set to stop at visited tiles
         if (config.stopAtVisitedTiles && currentTile->isVisited()) {
+            continue;
+        }
+
+        //Do not explore further if the tile is a halo tile and the config is set to stop at halo tiles
+        if (config.stopAtHaloTiles && currentTile->isHaloTile()) {
             continue;
         }
 

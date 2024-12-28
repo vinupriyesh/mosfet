@@ -1,5 +1,6 @@
 
 #include "game_map.h"
+
 #include <stdexcept>
 #include <tuple>
 #include <iostream>
@@ -19,6 +20,19 @@ GameMap::GameMap(int width, int height) : width(width), height(height) {
         map[y].reserve(width);
         for (int x = 0; x < width; ++x) {
             map[y].emplace_back(x, y);
+        }
+    }
+}
+
+void GameMap::addRelic(Relic *relic) {
+    int x = relic->position[0];
+    int y = relic->position[1];
+    map[y][x].setRelic(relic);
+    for (int i = x-2;i <= x+2; ++i) {
+        for (int j = y-2; j <= y+2; ++j) {
+            if (isValidTile(i, j)) {
+                map[j][i].setHaloTile(true);                
+            }
         }
     }
 }
