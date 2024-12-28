@@ -45,7 +45,7 @@ std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic,
 
     // Add relics
     for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
-        if (!relic[i]->visible) {
+        if (!relic[i]->revealed) {
             continue;
         }
         jsonObject["relics"].push_back(relic[i]->position);
@@ -54,10 +54,10 @@ std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic,
     // Add asteroids
     for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig->mapWidth; ++j) {
-            if (gameMap->getTile(i, j).getType() == TileType::ASTEROID) {
+            if (gameMap->getTile(i, j).getLastKnownType() == TileType::ASTEROID) {
                 jsonObject["asteroids"].push_back({i, j});
             }
-            if (gameMap->getTile(i, j).getType() == TileType::NEBULA) {
+            if (gameMap->getTile(i, j).getLastKnownType() == TileType::NEBULA) {
                 jsonObject["nebula"].push_back({i, j});
             }   
         }

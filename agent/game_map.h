@@ -42,6 +42,7 @@ class GameTile {
     private:    
         void log(std::string message);
         TileType type;
+        TileType lastKnownTileType;
         bool visited;
         bool explored;
         int energy;
@@ -60,6 +61,7 @@ class GameTile {
         bool isExplored() { return explored; };
 
         TileType getType() const;
+        TileType getLastKnownType() const;
 
         void setVisited(bool visited, int time);
         void setExplored(bool explored, int time);

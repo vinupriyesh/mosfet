@@ -17,6 +17,10 @@ N = 16
 
 verbose = False
 
+def generate_no_action_string(N):
+    actions = [[0, 0, 0] for _ in range(N)]
+    return {"action": actions}    
+
 def generate_random_action_string(N):
     actions = [[random.randint(0, 4), 0, 0] for _ in range(N)]
     return {"action": actions}    
@@ -71,7 +75,7 @@ def agent(observation, configuration):
             else:
                 print(line.decode(), file=sys.stderr, end='')
         if agent_res == "":
-            return {}
+            raise Exception("Agent response is empty")
         return json.loads(agent_res)
     except Exception as e:
         print("ERR:{}".format(repr(e)), file=sys.stderr)

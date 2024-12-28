@@ -60,7 +60,7 @@ std::tuple<bool, GameTile&> GameMap::isMovable(GameTile &fromTile, Direction dir
     try {
         GameTile& toTile = this->getTile(fromTile, direction);
         if (toTile.getType() == TileType::ASTEROID) {
-            log("Tile is an asteroid - (" + std::to_string(toTile.x) + ", " + std::to_string(toTile.y) + ")");
+            // log("Tile is an asteroid - (" + std::to_string(toTile.x) + ", " + std::to_string(toTile.y) + ")");
             return std::make_tuple(false, std::ref(fromTile));
         } else {
             // The tile exist and not an asteroid            
@@ -74,6 +74,10 @@ std::tuple<bool, GameTile&> GameMap::isMovable(GameTile &fromTile, Direction dir
 
 TileType GameTile::getType() const {
     return type;
+}
+
+TileType GameTile::getLastKnownType() const {
+    return lastKnownTileType;
 }
 
 void GameTile::setVisited(bool visited, int time) {
@@ -97,6 +101,10 @@ TileType GameTile::setType(int tileTypeCode, int time) {
         type = TileType::UNKNOWN;
     }
     
+    if (type != TileType::UNKNOWN) {
+        lastKnownTileType = type;
+    }
+
     lastTypeUpdateTime = time;
     return type;
 }

@@ -58,7 +58,7 @@ void ControlCenter::update(GameState& gameState) {
         enemyShuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->enemyTeamId][i]);     
 
         if (gameMap->isValidTile(shuttles[i]->getX(), shuttles[i]->getY())) {
-            log("Updating visited for tile " + std::to_string(shuttles[i]->getX()) + ", " + std::to_string(shuttles[i]->getY()));
+            // log("Updating visited for tile " + std::to_string(shuttles[i]->getX()) + ", " + std::to_string(shuttles[i]->getY()));
             gameMap->getTile(shuttles[i]->getX(), shuttles[i]->getY()).setVisited(true, currentStep); 
         }            
     }
