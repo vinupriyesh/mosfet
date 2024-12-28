@@ -5,12 +5,19 @@
 #include <vector>
 
 enum Direction {
+    CENTER,
     UP,
     RIGHT,
     DOWN,
-    LEFT,
-    CENTER
+    LEFT    
 };
+
+/**
+ Function to convert Direction to int
+*/
+inline int directionToInt(Direction direction) {
+    return static_cast<int>(direction);
+}
 
 /**
  * Overload the ++ operator for the Direction enum to be used in loops

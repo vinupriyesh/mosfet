@@ -20,6 +20,10 @@ public:
         player_name = name;
     }
 
+    void setStepId(const std::string& id) {
+        step_id = id;
+    }
+
     void enableLogging(const std::string& filename) {
         if (!log_file.is_open()) {
             log_file.open(filename, std::ios::out | std::ios::app);
@@ -37,13 +41,15 @@ public:
             auto ms = std::chrono::duration_cast<std::chrono::milliseconds>(now.time_since_epoch()) % 1000;
 
             std::tm tm = *std::localtime(&in_time_t);
-            log_file << std::put_time(&tm, "%Y-%m-%d %H:%M:%S")
+            log_file << std::put_time(&tm, "%M:%S")
                      << '.' << std::setfill('0') << std::setw(3) << ms.count()
-                     << " - " << player_name << " - " << message << std::endl;
+                     << " : " << step_id
+                     << " : " << player_name << " - " << message << std::endl;
         }
     }
 
 private:
+    std::string step_id = "init";
     std::string player_name = "Unknown";
     std::ofstream log_file;
 

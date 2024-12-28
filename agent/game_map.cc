@@ -52,12 +52,7 @@ GameTile &GameMap::getTile(GameTile &fromTile, Direction direction) {
             break;
     }
 
-    try {
-        return this->getTile(x, y);
-    } catch (std::out_of_range& e) {
-        log("Tile coordinates out of range - " + std::to_string(x) + ", " + std::to_string(y));
-        throw e;
-    }
+    return this->getTile(x, y);    
     
 }
 

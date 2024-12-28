@@ -45,6 +45,8 @@ void ControlCenter::update(GameState& gameState) {
     currentMatchStep = gameState.obs.matchSteps;
     remainingOverageTime = gameState.remainingOverageTime;
 
+    Logger::getInstance().setStepId(std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));
+    
     // Exploring all units
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
         shuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->teamId][i],

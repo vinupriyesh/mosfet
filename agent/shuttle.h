@@ -26,11 +26,14 @@ private:
 
     std::mt19937 gen; // Mersenne Twister random number generator 
     std::uniform_int_distribution<> dis; // Uniform distribution
-
+    Direction getDirectionTo(const GameTile &destinationTile);
 public:
     std::vector<int> position;
     bool isTileUnvisited(Direction direction);
     std::vector<int> act();
+
+    
+
     void log(std::string message);
     void updateUnitsData(std::vector<int> position, int energy);
     void updateVisbility(bool isVisible);

@@ -2,6 +2,8 @@
 
 #include "shuttle.h"
 #include "control_center.h"
+#include "pathing.h"
+#include "game_map.h"
 
 #include <tuple>
 
@@ -68,27 +70,52 @@ std::vector<int> Shuttle::act() {
 
     log("Shuttle acting - (" + std::to_string(position[0]) + ", " + std::to_string(position[1]) + ")");
 
-    if (isTileUnvisited(Direction::UP)) {
-        return {1, 0, 0};
-    }
+    // Explore the unexplored tiles
+    PathingConfig config = {};
+    config.stopAtUnexploredTiles = true;
+    config.captureUnexploredTileDestinations = true;
 
-    if (isTileUnvisited(Direction::RIGHT)) {
-        return {2, 0, 0};
-    }
+    Pathing pathing(this->cc->gameMap, config);
 
-    if (isTileUnvisited(Direction::DOWN)) {
-        return {3, 0, 0};
-    }
+    GameTile& startTile = this->cc->gameMap->getTile(position[0], position[1]);
+    pathing.findAllPaths(startTile);
 
-    if (isTileUnvisited(Direction::LEFT)) {
-        return {4, 0, 0};
-    }
+    // Get the closest unexplored tile
+    if (!pathing.unexploredDestinations.empty()) {
+        auto [distance, destinationTile] = pathing.unexploredDestinations.top();
+        log("Closest unexplored tile - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
+
+        // Move towards the destination tile
+        std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
+        Direction direction = getDirectionTo(*pathToDestination[1]);
+
+        return {directionToInt(direction), 0, 0};
+    } 
 
     log("No actions possible for shuttle" + std::to_string(id));
     // return {0, 0, 0};
 
     int random_number = dis(gen); // Generate a random number in the range
     return {random_number, 0, 0};
+}
+
+Direction Shuttle::getDirectionTo(const GameTile& destinationTile) {
+    int currentX = position[0];
+    int currentY = position[1];
+    int destinationX = destinationTile.x;
+    int destinationY = destinationTile.y;
+
+    if (destinationX < currentX) {
+        return LEFT;
+    } else if (destinationX > currentX) {
+        return RIGHT;
+    } else if (destinationY < currentY) {
+        return UP;
+    } else if (destinationY > currentY) {
+        return DOWN;
+    } else {
+        return CENTER; // If the destination is the same as the current position
+    }
 }
 
 Shuttle::~Shuttle() {

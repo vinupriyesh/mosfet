@@ -6,8 +6,7 @@ class PathingTest : public ::testing::Test {
 protected:
     void SetUp() override {
         // Initialize the game map with a simple 3x3 grid
-        gameMap = new GameMap(3, 3);
-        pathing = new Pathing(gameMap);
+        gameMap = new GameMap(3, 3);        
 
         // Set up the tiles (for simplicity, all tiles are empty and movable)
         for (int y = 0; y < 3; ++y) {
@@ -18,17 +17,18 @@ protected:
     }
 
     void TearDown() override {
-        delete pathing;
         delete gameMap;
     }
 
     GameMap* gameMap;
-    Pathing* pathing;
+    
 };
 
 TEST_F(PathingTest, FindAllPaths) {
+    Pathing* pathing = new Pathing(gameMap, {false, false});
     GameTile* startTile = &gameMap->getTile(0, 0);
-    auto distances = pathing->findAllPaths(*startTile);
+    pathing->findAllPaths(*startTile);
+    auto distances = pathing->distances;
 
     // Check the distances from the start tile to all other tiles
     EXPECT_EQ(distances[&gameMap->getTile(0, 0)].first, 0);
@@ -44,6 +44,38 @@ TEST_F(PathingTest, FindAllPaths) {
     // Check the paths from the start tile to a specific tile
     std::vector<GameTile*> expectedPath = {startTile, &gameMap->getTile(1, 0), &gameMap->getTile(2, 0)};
     EXPECT_EQ(distances[&gameMap->getTile(2, 0)].second, expectedPath);
+    delete pathing;
+}
+
+TEST_F(PathingTest, FindAllPathsWithStopAtExploredTiles) {
+    // Set the stopAtExploredTiles flag
+    Pathing* pathing = new Pathing(gameMap, {true, false});
+
+    // Mark some tiles as explored
+    gameMap->getTile(0, 0).setExplored(true, 0);
+    gameMap->getTile(1, 0).setExplored(true, 0);
+    gameMap->getTile(1, 1).setExplored(true, 0);
+
+    GameTile* startTile = &gameMap->getTile(0, 0);
+    pathing->findAllPaths(*startTile);
+    auto distances = pathing->distances;
+
+    // Find the shortest tile that has explored == false
+    GameTile* shortestUnexploredTile = nullptr;
+    int shortestDistance = std::numeric_limits<int>::max();
+
+    for (const auto& [tile, distancePathPair] : distances) {
+        if (!tile->isExplored() && distancePathPair.first < shortestDistance) {
+            shortestUnexploredTile = tile;
+            shortestDistance = distancePathPair.first;
+        }
+    }
+
+    // Check that the shortest unexplored tile is correct
+    ASSERT_NE(shortestUnexploredTile, nullptr);
+    EXPECT_EQ(shortestUnexploredTile, &gameMap->getTile(0, 1));
+    EXPECT_EQ(shortestDistance, 1);
+    delete pathing;
 }
 
 int main(int argc, char **argv) {
