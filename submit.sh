@@ -27,6 +27,7 @@ chmod +x mosfet
 echo "LICENSE" >> "$INCLUDE_LIST"
 echo "main.py" >> "$INCLUDE_LIST"
 echo "mosfet" >> "$INCLUDE_LIST"
+echo "config-prod.properties" >> "$INCLUDE_LIST"
 
 # Read the list of files into an array
 readarray -t FILES < "$INCLUDE_LIST"

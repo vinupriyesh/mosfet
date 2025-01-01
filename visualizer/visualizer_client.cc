@@ -82,8 +82,8 @@ std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic,
     return jsonObject.dump();
 }
 
-int send_game_data(Shuttle** shuttle, Shuttle** enemyShuttle, Relic** relic, GameEnvConfig* gameEnvConfig, GameMap* gameMap) {
-    std::string url = "http://localhost:8088/";
+int send_game_data(Shuttle** shuttle, Shuttle** enemyShuttle, Relic** relic, GameEnvConfig* gameEnvConfig, GameMap* gameMap, int port) {
+    std::string url = "http://localhost:" + std::to_string(port) + "/";
     std::string data = get_data(shuttle, enemyShuttle, relic, gameEnvConfig, gameMap);
     std::string command = "curl -s --request POST --url " + url + " --header 'content-type: application/json' --data '"+ data + "'";
     Logger::getInstance().log("Command: " + command);            
@@ -92,7 +92,7 @@ int send_game_data(Shuttle** shuttle, Shuttle** enemyShuttle, Relic** relic, Gam
         std::string response = exec(command.c_str());
         Logger::getInstance().log("Response: " + response);
     } catch (const std::exception& e) {
-        Logger::getInstance().log("Exception: " + std::string(e.what()));
+        Logger::getInstance().log("Exception while sending live play data: " + std::string(e.what()));
     }
 
     return 0;

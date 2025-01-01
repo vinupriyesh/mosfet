@@ -53,7 +53,7 @@ def agent(observation, configuration):
             os.chmod(os.path.join(cwd, "mosfet"),0o755)
             command = [os.path.join(cwd, "mosfet")]
             if verbose:
-                command.append("-v")
+                command.append("config-test.properties")
             agent_process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)
             agent_processes[observation.player] = agent_process
             atexit.register(cleanup_process)

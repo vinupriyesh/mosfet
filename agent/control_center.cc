@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "visualizer/visualizer_client.h"
 #include "game_map.h"
+#include "config.h"
 
 void ControlCenter::log(std::string message) {
     Logger::getInstance().log("ControlCenter -> " + message);
@@ -138,8 +139,11 @@ std::vector<std::vector<int>> ControlCenter::act() {
     }
 
     // Send data to live play visualizer
-    if (Logger::getInstance().isDebugEnabled() && gameEnvConfig->playerName == "player_0") {
-        send_game_data(shuttles, enemyShuttles, relics, gameEnvConfig, gameMap);
+    if (Config::livePlayPlayer0 && gameEnvConfig->teamId == 0) {
+        send_game_data(shuttles, enemyShuttles, relics, gameEnvConfig, gameMap, Config::portPlayer0);
+    }
+    if (Config::livePlayPlayer1 && gameEnvConfig->teamId == 1) {
+        send_game_data(shuttles, enemyShuttles, relics, gameEnvConfig, gameMap, Config::portPlayer1);
     }
     // std::cerr<< "test cc" << std::endl;
     return results;

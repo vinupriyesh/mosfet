@@ -4,6 +4,7 @@
 
 #include "logger.h"
 #include "parser.h"
+#include "config.h"
 #include "agent/control_center.h"
 
 #define log(message) Logger::getInstance().log(message)
@@ -28,21 +29,38 @@ void process(std::string& input, int counter) {
         std::cout.flush();
 }
 
+void parseConfig(const std::string& filename, std::map<std::string, std::string>& configMap) {
+    std::ifstream configFile(filename);
+    std::string line;
+
+    if (configFile.is_open()) {
+        while (getline(configFile, line)) {
+            if (line[0] == '#' || line.empty()) { // Skip comments and empty lines
+                continue;
+            }
+            std::istringstream lineStream(line);
+            std::string key, value;
+            if (getline(lineStream, key, '=') && getline(lineStream, value)) {
+                configMap[key] = value;
+            }
+        }
+        configFile.close();
+    } else {
+        std::cerr << "Unable to open config file: " << filename << std::endl;
+    }
+}
+
 int main(int argc, char* argv[]) {
 
-    bool verbose = false;
-    for (int i = 1; i < argc; ++i) {
-        std::string arg = argv[i];
-        if (arg == "--verbose" || arg == "-v") {
-            verbose = true;
-        }
-    }
+    std::string configFile = (argc > 1) ? argv[1] : "config-prod.properties";
+    Config::parseConfig(configFile);
 
-    if (verbose) {
+
+    if (Config::enableLogging) {
         Logger::getInstance().enableLogging("application.log");
     }
     
-    log("Mosfet daemon started");    
+    log("Mosfet daemon started with config " + configFile);    
 
     std::string input;
     
@@ -65,3 +83,4 @@ int main(int argc, char* argv[]) {
     delete cc;
     return 0;
 }
+
