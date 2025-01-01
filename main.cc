@@ -3,6 +3,7 @@
 #include <nlohmann/json.hpp>
 
 #include "logger.h"
+#include "metrics.h"
 #include "parser.h"
 #include "config.h"
 #include "agent/control_center.h"
@@ -59,6 +60,10 @@ int main(int argc, char* argv[]) {
     if (Config::enableLogging) {
         Logger::getInstance().enableLogging("application.log");
     }
+
+    if (Config::enableMetrics) {
+        Metrics::getInstance().enableMetrics("metrics.csv");
+    }
     
     log("Mosfet daemon started with config " + configFile);    
 
@@ -69,7 +74,13 @@ int main(int argc, char* argv[]) {
 
     while (true) {
         try{
+            auto start = std::chrono::high_resolution_clock::now();
+
             process(input, counter++);
+            
+            auto end = std::chrono::high_resolution_clock::now();
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+            Metrics::getInstance().add("step_duration", duration.count());
         } catch (const std::exception& e) {
             log("Exception caught: " + std::string(e.what()));
             std::cerr << "CC ERR:" << e.what() << std::endl;

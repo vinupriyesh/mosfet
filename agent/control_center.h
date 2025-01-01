@@ -5,6 +5,7 @@
 #include "parser.h"
 #include "relic.h"
 #include "logger.h"
+#include "metrics.h"
 #include "game_map.h"
 #include <vector>
 #include <string>
@@ -31,6 +32,7 @@ struct GameEnvConfig {
            // Player ID and team ID
     playerName = gameState.player;
     Logger::getInstance().setPlayerName(playerName);
+    Metrics::getInstance().setPlayerName(playerName);
 
     if (playerName == "player_0") {
         teamId = 0;
