@@ -17,7 +17,7 @@ struct GameEnvConfig {
     int maxUnits;
     int teamId;
     int relicCount;
-    int enemyTeamId;    
+    int opponentTeamId;    
     int unitMoveCost;
     int unitSapCost;
     int unitSapRange;
@@ -36,10 +36,10 @@ struct GameEnvConfig {
 
     if (playerName == "player_0") {
         teamId = 0;
-        enemyTeamId = 1;
+        opponentTeamId = 1;
     } else {
         teamId = 1;
-        enemyTeamId = 0;
+        opponentTeamId = 0;
     }
 
     // Game info
@@ -62,7 +62,7 @@ private:
 
     // dynamic objects
     Shuttle** shuttles; 
-    Shuttle** enemyShuttles;
+    Shuttle** opponentShuttles;
     Relic** relics;    
 
     // private methods
@@ -70,6 +70,8 @@ private:
     void init(GameState &gameState);
 
 public: 
+    int teamPoints;
+    int opponentTeamPoints;
     int currentStep;
     int currentMatchStep;
     int remainingOverageTime;

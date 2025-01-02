@@ -12,7 +12,7 @@ class ControlCenter; // Forward declaration
 
 enum ShuttleType {
     player,
-    enemy
+    opponent
 };
 
 class Shuttle {

@@ -17,12 +17,12 @@ void ControlCenter::init(GameState& gameState) {
     
     gameEnvConfig = new GameEnvConfig(gameState);
 
-    // Shuttles (player and enemy).  This is created once and reused.
+    // Shuttles (player and opponent).  This is created once and reused.
     shuttles = new Shuttle*[gameEnvConfig->maxUnits];
-    enemyShuttles = new Shuttle*[gameEnvConfig->maxUnits];
+    opponentShuttles = new Shuttle*[gameEnvConfig->maxUnits];
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
         shuttles[i] = new Shuttle(i, ShuttleType::player, this);
-        enemyShuttles[i] = new Shuttle(i, ShuttleType::enemy, this);
+        opponentShuttles[i] = new Shuttle(i, ShuttleType::opponent, this);
     }
 
     relics = new Relic*[gameEnvConfig->relicCount];
@@ -45,6 +45,8 @@ void ControlCenter::update(GameState& gameState) {
     currentStep = gameState.obs.steps;
     currentMatchStep = gameState.obs.matchSteps;
     remainingOverageTime = gameState.remainingOverageTime;
+    teamPoints = gameState.obs.teamPoints[gameEnvConfig->teamId];
+    opponentTeamPoints = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId];
 
     Logger::getInstance().setStepId(std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));
     
@@ -52,11 +54,11 @@ void ControlCenter::update(GameState& gameState) {
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
         shuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->teamId][i],
                                      gameState.obs.units.energy[gameEnvConfig->teamId][i]);
-        enemyShuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->enemyTeamId][i],
-                                          gameState.obs.units.energy[gameEnvConfig->enemyTeamId][i]);
+        opponentShuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->opponentTeamId][i],
+                                          gameState.obs.units.energy[gameEnvConfig->opponentTeamId][i]);
                                           
         shuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->teamId][i]);
-        enemyShuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->enemyTeamId][i]);     
+        opponentShuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->opponentTeamId][i]);     
 
         if (gameMap->isValidTile(shuttles[i]->getX(), shuttles[i]->getY())) {
             // log("Updating visited for tile " + std::to_string(shuttles[i]->getX()) + ", " + std::to_string(shuttles[i]->getY()));
@@ -140,10 +142,10 @@ std::vector<std::vector<int>> ControlCenter::act() {
 
     // Send data to live play visualizer
     if (Config::livePlayPlayer0 && gameEnvConfig->teamId == 0) {
-        send_game_data(shuttles, enemyShuttles, relics, gameEnvConfig, gameMap, Config::portPlayer0);
+        send_game_data(shuttles, opponentShuttles, relics, gameEnvConfig, gameMap, Config::portPlayer0);
     }
     if (Config::livePlayPlayer1 && gameEnvConfig->teamId == 1) {
-        send_game_data(shuttles, enemyShuttles, relics, gameEnvConfig, gameMap, Config::portPlayer1);
+        send_game_data(shuttles, opponentShuttles, relics, gameEnvConfig, gameMap, Config::portPlayer1);
     }
     // std::cerr<< "test cc" << std::endl;
     return results;
