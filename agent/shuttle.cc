@@ -100,6 +100,10 @@ std::vector<int> Shuttle::act() {
 
             // Move towards the destination tile
             std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
+            if (pathToDestination.size() < 2) {
+                log("We are already in the closest halo tile");
+                return {Direction::CENTER, 0, 0};
+            }
             Direction direction = getDirectionTo(*pathToDestination[1]);
 
             return {directionToInt(direction), 0, 0};
@@ -123,6 +127,10 @@ std::vector<int> Shuttle::act() {
 
             // Move towards the destination tile
             std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
+            if (pathToDestination.size() < 2) {
+                log("We are already in the closest unexplored tile");
+                return {Direction::CENTER, 0, 0};
+            }
             Direction direction = getDirectionTo(*pathToDestination[1]);
 
             return {directionToInt(direction), 0, 0};

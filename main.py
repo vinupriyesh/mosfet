@@ -79,6 +79,20 @@ def agent(observation, configuration):
         return json.loads(agent_res)
     except Exception as e:
         print("ERR:{}".format(repr(e)), file=sys.stderr)
+        
+        # Trying to get the exit code
+        try:            
+            agent_process = agent_processes[observation.player]
+            if agent_process is not None:
+                agent_process.wait(1)
+                exit_code = agent_process.returncode
+                print("ERR:Exit code:{}".format(exit_code), file=sys.stderr)
+            
+        except Exception as e2:
+            print("ERR2:{}".format(repr(e2)), file=sys.stderr)
+
+        if verbose:
+            raise e        
         return generate_random_action_string(N)
 
 
