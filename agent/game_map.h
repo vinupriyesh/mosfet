@@ -63,6 +63,7 @@ class GameTile {
         int y;
         
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), relic(nullptr), shuttle(nullptr) {};
+        int getId(int width);
         bool isVisited() { return visited; };
         bool isExplored() { return explored; };
         bool isHaloTile() { return haloTile; };
@@ -95,6 +96,7 @@ class GameMap {
         int height;
         GameMap(int width, int height);
         void addRelic(Relic* relic, int currentStep);
+        bool hasPotentialInvisibleRelicNode(GameTile &gameTile);
         bool isValidTile(int x, int y);
         GameTile& getTile(int x, int y);
 

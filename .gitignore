@@ -45,5 +45,6 @@ __pycache__
 # extras
 *replay.html
 *application.log
+*test.log
 
 metrics.csv

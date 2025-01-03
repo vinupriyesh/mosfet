@@ -36,7 +36,7 @@ add_subdirectory(tests)
 
 # Add your executable
 add_executable(mosfet main.cc parser.cc config.cc agent/control_center.cc agent/shuttle.cc agent/relic.cc agent/game_map.cc
-               agent/pathing.cc visualizer/visualizer_client.cc)
+               agent/pathing.cc visualizer/visualizer_client.cc datastructures/constraint_set.cc)
 
 # Include directories for header files
 target_include_directories(mosfet PUBLIC ${PROJECT_SOURCE_DIR})

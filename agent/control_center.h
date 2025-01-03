@@ -7,6 +7,7 @@
 #include "metrics.h"
 #include "agent/game_map.h"
 #include "agent/shuttle.h"
+#include "datastructures/constraint_set.h"
 #include <vector>
 #include <string>
 
@@ -59,7 +60,7 @@ struct GameEnvConfig {
 
 class ControlCenter {
 private:
-       
+    ConstraintSet* haloConstraints;       
 
     // dynamic objects
     Shuttle** shuttles; 

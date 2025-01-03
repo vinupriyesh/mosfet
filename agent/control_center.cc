@@ -31,6 +31,7 @@ void ControlCenter::init(GameState& gameState) {
 
     gameMap = new GameMap(gameEnvConfig->mapWidth, gameEnvConfig->mapHeight);
 
+    haloConstraints = new ConstraintSet();
     log("Initialization complete");
 }
 
@@ -162,9 +163,25 @@ void ControlCenter::update(GameState& gameState) {
 
 
     // Monitor change in points to observe the relic capture
+    // Collect all positions that are on a halo node or possibly on a halo node with an invisible relic
     if (teamPointsDelta > 0) {
-        // Collect all positions that are on a halo node or possibly on a halo node with an invisible relic
-        //TODO: Implement this   
+        
+        // Constraint tile ids
+        std::set<int> constraintTiles;
+        
+        for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
+            for (int j = 0; j < gameEnvConfig->mapWidth; ++j) { 
+                GameTile& currentTile = gameMap->getTile(i, j);
+                
+                if (currentTile.isOccupied() && (currentTile.isHaloTile() || gameMap->hasPotentialInvisibleRelicNode(currentTile))) {
+                    // This is a halo tile, and is occupied.  This is a needed for constraint resolution
+                    currentTile.setHaloTile(true);  //Setting if it is not already set                   
+                    constraintTiles.insert(currentTile.getId(gameEnvConfig->mapWidth));
+                }
+            }
+        }
+
+        haloConstraints->addConstraint(teamPointsDelta, constraintTiles);
     }
 }
 
@@ -179,6 +196,7 @@ ControlCenter::~ControlCenter() {
         delete shuttles[i];
     }
     delete[] shuttles;
+    delete haloConstraints;
 }
 
 

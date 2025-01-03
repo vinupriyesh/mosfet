@@ -22,9 +22,14 @@ target_link_libraries(test_parser gtest gtest_main nlohmann_json::nlohmann_json)
 add_executable(test_pathing test_pathing.cc ${PROJECT_SOURCE_DIR}/../agent/pathing.cc ${PROJECT_SOURCE_DIR}/../agent/game_map.cc)
 target_link_libraries(test_pathing gtest gtest_main pthread)
 
+# Add test executable for test_pathing
+add_executable(test_constraint_set test_constraint_set.cc ${PROJECT_SOURCE_DIR}/../datastructures/constraint_set.cc)
+target_link_libraries(test_constraint_set gtest gtest_main pthread)
+
 # Enable testing
 enable_testing()
 
 # Add test
 gtest_discover_tests(test_parser)
 gtest_discover_tests(test_pathing)
+gtest_discover_tests(test_constraint_set)

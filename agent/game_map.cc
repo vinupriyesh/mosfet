@@ -32,7 +32,7 @@ void GameMap::addRelic(Relic *relic, int currentStep) {
     for (int i = x-2;i <= x+2; ++i) {
         for (int j = y-2; j <= y+2; ++j) {            
             if (isValidTile(i, j)) {
-                auto tile = getTile(i, j);
+                auto& tile = getTile(i, j);
                 // If the tile is already visited in the past and not set as halo yet, that only means this relic node was invisible
                 // due to a nebula that time.  In such cases, we handle the marking of halo tile in the points-constraints
                 // evaluation
@@ -46,6 +46,23 @@ void GameMap::addRelic(Relic *relic, int currentStep) {
             }
         }
     }
+}
+
+bool GameMap::hasPotentialInvisibleRelicNode(GameTile& gameTile) {
+    int x = gameTile.x;
+    int y = gameTile.y;
+    for (int i = x-2;i <= x+2; ++i) {
+        for (int j = y-2; j <= y+2; ++j) {
+            if (isValidTile(i, j)) {
+                auto& tile = getTile(i, j);
+                if (!tile.isExplored()) {
+                    // There is atleaast one tile that is not explored, meaning it is a potential invisible relic node
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 bool GameMap::isValidTile(int x, int y) {
@@ -97,7 +114,12 @@ std::tuple<bool, GameTile&> GameMap::isMovable(GameTile &fromTile, Direction dir
     }
 }
 
-TileType GameTile::getType() const {
+int GameTile::getId(int width){
+    return y * width + x;
+}
+
+TileType GameTile::getType() const
+{
     return type;
 }
 
