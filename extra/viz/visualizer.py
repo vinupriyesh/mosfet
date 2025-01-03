@@ -2,6 +2,12 @@ import pygame
 import sys
 import random
 
+white = (255, 255, 255)
+black = (0, 0, 0)
+blue = (0, 0, 255)
+red = (255, 0, 0)
+gold_with_transparency = (255, 215, 0, 128)  # RGBA format with alpha value for transparency
+
 class Visualizer:
     def __init__(self, game_state, response_queue):
         self.game_state = game_state
@@ -12,7 +18,7 @@ class Visualizer:
         self.screen_height = self.grid_height * self.cell_size
         self.button_rect = pygame.Rect(20, self.screen_height + 10, 100, 40)
         pygame.init()
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height + 60))
+        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height + 60), pygame.SRCALPHA)
         pygame.display.set_caption('LuxS3 Visualizer')
         self.font = pygame.font.Font(None, 32)
         self.asteroid_image = pygame.image.load('img/asteroid.png')
@@ -25,7 +31,7 @@ class Visualizer:
         self.vantage_point_image = pygame.transform.scale(self.vantage_point_image, (self.cell_size, self.cell_size))
 
     def update_display(self):
-        self.screen.fill((255, 255, 255))
+        self.screen.fill(white)
         self.draw_grid()
         self.draw_elements()
         self.draw_button()
@@ -35,19 +41,21 @@ class Visualizer:
         for x in range(0, self.screen_width, self.cell_size):
             for y in range(0, self.screen_height, self.cell_size):
                 rect = pygame.Rect(x, y, self.cell_size, self.cell_size)
-                pygame.draw.rect(self.screen, (0, 0, 0), rect, 1)
+                pygame.draw.rect(self.screen, black, rect, 1)
 
     def draw_elements(self):
         for asteroid in self.game_state.asteroids:
-            self.draw_asteroid(asteroid)
+            self.draw_asteroid(asteroid)        
         for shuttle in self.game_state.blue_shuttles:
-            self.draw_shuttle(shuttle, (0, 0, 255))
+            self.draw_shuttle(shuttle, blue)
         for shuttle in self.game_state.red_shuttles:
-            self.draw_shuttle(shuttle, (255, 0, 0))
+            self.draw_shuttle(shuttle, red)
         for nebula in self.game_state.nebula:
             self.draw_nebula(nebula)
         for relic in self.game_state.relics:
             self.draw_relic(relic)
+        for halo_tile in self.game_state.halo_tiles:
+            self.draw_halo(halo_tile, gold_with_transparency)    
 
 
     def draw_relic(self, position):
@@ -70,6 +78,19 @@ class Visualizer:
         x, y = position
         rect = pygame.Rect(x * self.cell_size, y * self.cell_size, self.cell_size, self.cell_size)
         pygame.draw.rect(self.screen, color, rect)
+    
+
+    def draw_halo(self, position, color):
+        x, y = position
+        center = (x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2)
+        radius = self.cell_size // 2
+
+        # Create a temporary surface with per-pixel alpha
+        halo_surface = pygame.Surface((self.cell_size, self.cell_size), pygame.SRCALPHA)
+        pygame.draw.circle(halo_surface, color, (radius, radius), radius)
+
+        # Blit the halo surface onto the main screen
+        self.screen.blit(halo_surface, (x * self.cell_size, y * self.cell_size))
 
     def draw_button(self):
         pygame.draw.rect(self.screen, (0, 0, 255), self.button_rect)

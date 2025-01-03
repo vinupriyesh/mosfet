@@ -45,12 +45,14 @@ void ControlCenter::update(GameState& gameState) {
     currentStep = gameState.obs.steps;
     currentMatchStep = gameState.obs.matchSteps;
     remainingOverageTime = gameState.remainingOverageTime;
+    teamPointsDelta = gameState.obs.teamPoints[gameEnvConfig->teamId] - teamPoints;
     teamPoints = gameState.obs.teamPoints[gameEnvConfig->teamId];
+    opponentTeamPointsDelta = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId] - opponentTeamPoints;
     opponentTeamPoints = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId];
 
-    Logger::getInstance().setStepId(std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));
-    
-    // Exploring all units
+    Logger::getInstance().setStepId(std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));    
+
+    // Exploring all units (cost 16)
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
         shuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->teamId][i],
                                      gameState.obs.units.energy[gameEnvConfig->teamId][i]);
@@ -66,7 +68,43 @@ void ControlCenter::update(GameState& gameState) {
         }            
     }
 
-    // Exploring contents of each tile
+    
+    // Exploring all relics (cost 8)
+    allRelicsFound = true;
+    relicsFound = 0;
+    for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
+        bool firstTimeRevealed = relics[i]->updateRelicData(gameState.obs.relicNodes[i], gameState.obs.relicNodesMask[i]);
+        if (firstTimeRevealed) {
+            log("Relic " + std::to_string(i) + " found at " + std::to_string(relics[i]->position[0]) + ", " + std::to_string(relics[i]->position[1]));
+            gameMap->addRelic(relics[i], currentStep);
+        }
+
+        if (!relics[i]->revealed) {
+            allRelicsFound = false;
+        } else {
+            relicsFound++;
+        }
+    }
+
+    if (allRelicsFound) {
+        log("All relics found :)");
+    }
+
+    // If team did not score points, clear halo nodes where the shuttle is currently in (Cost 16)
+    if (teamPointsDelta == 0) {
+        for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+            int x = shuttles[i]->getX();
+            int y = shuttles[i]->getY();
+            if (gameMap->isValidTile(x, y)) {
+                GameTile& currentTile = gameMap->getTile(x, y);
+                if (currentTile.isHaloTile()) {
+                    currentTile.setHaloTile(false);
+                }
+            }
+        }
+    }
+
+    // Exploring contents of each tile (cost 24x24)
     allTilesExplored = true;
     allTilesVisited = true;
     tilesVisited = gameEnvConfig->mapHeight * gameEnvConfig->mapWidth;
@@ -90,6 +128,7 @@ void ControlCenter::update(GameState& gameState) {
                 allTilesExplored = false;
                 tilesExplored--;
             }
+            
         }
     }
 
@@ -97,25 +136,11 @@ void ControlCenter::update(GameState& gameState) {
         log("All tiles explored :)");
     }
 
-    // Exploring all relics
-    allRelicsFound = true;
-    relicsFound = 0;
-    for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
-        bool firstTimeRevealed = relics[i]->updateRelicData(gameState.obs.relicNodes[i], gameState.obs.relicNodesMask[i]);
-        if (firstTimeRevealed) {
-            log("Relic " + std::to_string(i) + " found at " + std::to_string(relics[i]->position[0]) + ", " + std::to_string(relics[i]->position[1]));
-            gameMap->addRelic(relics[i]);
-        }
 
-        if (!relics[i]->revealed) {
-            allRelicsFound = false;
-        } else {
-            relicsFound++;
-        }
-    }
-
-    if (allRelicsFound) {
-        log("All relics found :)");
+    // Monitor change in points to observe the relic capture
+    if (teamPointsDelta > 0) {
+        // Collect all positions that are on a halo node or possibly on a halo node with an invisible relic
+        //TODO: Implement this   
     }
 }
 

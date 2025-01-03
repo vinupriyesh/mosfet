@@ -9,6 +9,7 @@ bool Config::livePlayPlayer0 = false;
 bool Config::livePlayPlayer1 = false;
 int Config::portPlayer0 = 0;
 int Config::portPlayer1 = 0;
+int Config::seed = 0;
 
 void Config::parseConfig(const std::string& filename) {
     std::ifstream configFile(filename);
@@ -38,4 +39,5 @@ void Config::parseConfig(const std::string& filename) {
     livePlayPlayer1 = (configMap["live_play_player1"] == "true");
     portPlayer0 = livePlayPlayer0 ? std::stoi(configMap["port_player0"]) : 0;
     portPlayer1 = livePlayPlayer1 ? std::stoi(configMap["port_player1"]) : 0;
+    seed = std::stoi(configMap["seed"]);
 }

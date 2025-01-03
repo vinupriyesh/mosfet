@@ -63,6 +63,7 @@ class GameTile {
         bool isVisited() { return visited; };
         bool isExplored() { return explored; };
         bool isHaloTile() { return haloTile; };
+        int getLastVisitedTime() { return lastVisitedTime; };
 
         TileType getType() const;
         TileType getLastKnownType() const;
@@ -87,7 +88,7 @@ class GameMap {
         int width;
         int height;
         GameMap(int width, int height);
-        void addRelic(Relic* relic);
+        void addRelic(Relic* relic, int currentStep);
         bool isValidTile(int x, int y);
         GameTile& getTile(int x, int y);
 

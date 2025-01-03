@@ -28,6 +28,7 @@ private:
     std::uniform_int_distribution<> dis; // Uniform distribution
     Direction getDirectionTo(const GameTile &destinationTile);
 public:
+    std::vector<int> previousPosition = {-1, -1};
     std::vector<int> position;
     bool isTileUnvisited(Direction direction);
     std::vector<int> act();

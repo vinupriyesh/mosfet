@@ -12,6 +12,7 @@ public:
     static bool livePlayPlayer1;
     static int portPlayer0;
     static int portPlayer1;
+    static int seed;
 
     static void parseConfig(const std::string& filename);
 };

@@ -7,6 +7,7 @@ class GameState:
         self.nebula = []
         self.relics = []
         self.vantage_points = []
+        self.halo_tiles = []
 
     def update_state(self, data):
         self.asteroids = data.get('asteroids', [])
@@ -15,3 +16,4 @@ class GameState:
         self.nebula = data.get('nebula', [])
         self.relics = data.get('relics', [])
         self.vantage_points = data.get('vantage_points', [])
+        self.halo_tiles = data.get('halo_tiles', [])

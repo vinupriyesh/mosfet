@@ -24,14 +24,24 @@ GameMap::GameMap(int width, int height) : width(width), height(height) {
     }
 }
 
-void GameMap::addRelic(Relic *relic) {
+void GameMap::addRelic(Relic *relic, int currentStep) {
     int x = relic->position[0];
     int y = relic->position[1];
     map[y][x].setRelic(relic);
     for (int i = x-2;i <= x+2; ++i) {
-        for (int j = y-2; j <= y+2; ++j) {
+        for (int j = y-2; j <= y+2; ++j) {            
             if (isValidTile(i, j)) {
-                map[j][i].setHaloTile(true);                
+                auto tile = getTile(i, j);
+                // If the tile is already visited in the past and not set as halo yet, that only means this relic node was invisible
+                // due to a nebula that time.  In such cases, we handle the marking of halo tile in the points-constraints
+                // evaluation
+                if (!tile.isVisited() || tile.getLastVisitedTime() == currentStep) {
+                    if (map[j][i].isHaloTile()) {
+                        // This can never happen!
+                        std::cerr<<"Problem:Halo tile already set for ("<<i<<", "<<j<<")"<<std::endl;
+                    }
+                    map[j][i].setHaloTile(true);
+                }
             }
         }
     }

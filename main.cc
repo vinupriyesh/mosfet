@@ -56,6 +56,7 @@ int main(int argc, char* argv[]) {
     std::string configFile = (argc > 1) ? argv[1] : "config-prod.properties";
     Config::parseConfig(configFile);
 
+    std::srand(Config::seed);
 
     if (Config::enableLogging) {
         Logger::getInstance().enableLogging("application.log");
@@ -83,7 +84,7 @@ int main(int argc, char* argv[]) {
             Metrics::getInstance().add("step_duration", duration.count());
         } catch (const std::exception& e) {
             log("Exception caught: " + std::string(e.what()));
-            std::cerr << "CC ERR:" << e.what() << std::endl;
+            std::cerr << "Fatal:" << e.what() << std::endl;
             
             //Print something so that python can handle this
             // std::cout << "unable" << std::endl;

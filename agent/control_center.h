@@ -72,6 +72,8 @@ private:
 public: 
     int teamPoints;
     int opponentTeamPoints;
+    int teamPointsDelta;
+    int opponentTeamPointsDelta;
     int currentStep;
     int currentMatchStep;
     int remainingOverageTime;

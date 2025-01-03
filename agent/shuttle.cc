@@ -17,6 +17,7 @@ void Shuttle::log(std::string message) {
 }
 
 void Shuttle::updateUnitsData(std::vector<int> position, int energy) {
+    this->previousPosition = this->position;
     this->position = position;
     this->energy = energy;
 }
