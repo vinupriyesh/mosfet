@@ -2,6 +2,7 @@
 #define GAME_DATA_SENDER_H
 
 #include "agent/control_center.h"
+#include "agent/game_map.h"
 #include "agent/shuttle.h"
 
 #include <string>

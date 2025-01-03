@@ -84,7 +84,7 @@ std::vector<int> Shuttle::act() {
 
     // If all relics are found, then move towards halo nodes
     if (cc->allRelicsFound || cc->allTilesExplored || percentageExplored >= 0.7) {
-        log("Going to explore the tiles");
+        log("Going to halo the tiles");
         PathingConfig config = {};
         config.stopAtHaloTiles = true;
         config.captureHaloTileDestinations = true;
@@ -93,21 +93,28 @@ std::vector<int> Shuttle::act() {
         
         pathing.findAllPaths(startTile);
 
-        // Get the closest unexplored tile
         if (!pathing.haloDestinations.empty()) {
-            auto [distance, destinationTile] = pathing.haloDestinations.top();
-            log("Closest halo tile - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
+            int idx = -1;
+            for (const auto [distance, destinationTile] : pathing.haloDestinations) {
+                idx++;
+                log(std::to_string(idx) + "/" + std::to_string(pathing.haloDestinations.size()) + " - Halo tile - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
+                if (destinationTile->isOccupied()) {
+                    log("Tile is occupied");
+                    continue;
+                }
 
-            // Move towards the destination tile
-            std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
-            if (pathToDestination.size() < 2) {
-                log("We are already in the closest halo tile");
-                return {Direction::CENTER, 0, 0};
+                // Move towards the destination tile
+                std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
+                if (pathToDestination.size() < 2) {
+                    log("We are already in the closest halo tile");
+                    return {Direction::CENTER, 0, 0};
+                }
+                Direction direction = getDirectionTo(*pathToDestination[1]);
+
+                return {directionToInt(direction), 0, 0};
             }
-            Direction direction = getDirectionTo(*pathToDestination[1]);
-
-            return {directionToInt(direction), 0, 0};
         }
+
     }
 
     // Explore the unexplored tiles

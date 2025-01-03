@@ -1,7 +1,7 @@
 #ifndef PATHING_H
 #define PATHING_H
 
-#include "game_map.h"
+#include "agent/game_map.h"
 #include "datastructures/iterable_priority_queue.h"
 
 struct PathingConfig {

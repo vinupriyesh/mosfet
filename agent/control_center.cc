@@ -2,7 +2,6 @@
 #include <iostream>
 #include "logger.h"
 #include "visualizer/visualizer_client.h"
-#include "game_map.h"
 #include "config.h"
 
 void ControlCenter::log(std::string message) {
@@ -31,6 +30,8 @@ void ControlCenter::init(GameState& gameState) {
     }
 
     gameMap = new GameMap(gameEnvConfig->mapWidth, gameEnvConfig->mapHeight);
+
+    log("Initialization complete");
 }
 
 /**
@@ -44,18 +45,32 @@ void ControlCenter::update(GameState& gameState) {
 
     currentStep = gameState.obs.steps;
     currentMatchStep = gameState.obs.matchSteps;
+
+    Logger::getInstance().setStepId(std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));    
+    log("Updating for step " + std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));
+
     remainingOverageTime = gameState.remainingOverageTime;
     teamPointsDelta = gameState.obs.teamPoints[gameEnvConfig->teamId] - teamPoints;
     teamPoints = gameState.obs.teamPoints[gameEnvConfig->teamId];
     opponentTeamPointsDelta = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId] - opponentTeamPoints;
     opponentTeamPoints = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId];
-
-    Logger::getInstance().setStepId(std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));    
-
+    
+    log("Exploring all units");
     // Exploring all units (cost 16)
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+
+        // log("Getting old position for unit " + std::to_string(i));
+        // Get the unit's older position 
+        int oldX = shuttles[i]->getX();
+        int oldY = shuttles[i]->getY();
+
+        // log("OldTile positions for unit " + std::to_string(i) + " - " + std::to_string(oldX) + ", " + std::to_string(oldY));
+
+        // Update unit's current position and energy
         shuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->teamId][i],
                                      gameState.obs.units.energy[gameEnvConfig->teamId][i]);
+
+                                         
         opponentShuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->opponentTeamId][i],
                                           gameState.obs.units.energy[gameEnvConfig->opponentTeamId][i]);
                                           
@@ -64,11 +79,18 @@ void ControlCenter::update(GameState& gameState) {
 
         if (gameMap->isValidTile(shuttles[i]->getX(), shuttles[i]->getY())) {
             // log("Updating visited for tile " + std::to_string(shuttles[i]->getX()) + ", " + std::to_string(shuttles[i]->getY()));
-            gameMap->getTile(shuttles[i]->getX(), shuttles[i]->getY()).setVisited(true, currentStep); 
-        }            
+            GameTile& shuttleTile = gameMap->getTile(shuttles[i]->getX(), shuttles[i]->getY());
+            shuttleTile.setVisited(true, currentStep);
+
+            if (gameMap->isValidTile(oldX, oldY)) {
+                GameTile& oldShuttleTile = gameMap->getTile(oldX, oldY);
+                oldShuttleTile.clearShuttle(shuttles[i]);
+            }
+            shuttleTile.setShuttle(shuttles[i]);
+        }    
     }
 
-    
+    log("Exploring all relics");
     // Exploring all relics (cost 8)
     allRelicsFound = true;
     relicsFound = 0;
@@ -90,6 +112,7 @@ void ControlCenter::update(GameState& gameState) {
         log("All relics found :)");
     }
 
+    log("Clearing the halo nodes");
     // If team did not score points, clear halo nodes where the shuttle is currently in (Cost 16)
     if (teamPointsDelta == 0) {
         for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
@@ -104,6 +127,7 @@ void ControlCenter::update(GameState& gameState) {
         }
     }
 
+    log("Exploring contents of each tile");
     // Exploring contents of each tile (cost 24x24)
     allTilesExplored = true;
     allTilesVisited = true;

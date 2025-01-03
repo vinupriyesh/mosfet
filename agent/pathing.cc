@@ -2,8 +2,7 @@
 #include <vector>
 #include <unordered_map>
 #include <limits>
-#include "pathing.h"
-#include "game_map.h"
+#include "agent/pathing.h"
 
 void Pathing::findAllPaths(GameTile &startTile) {
     // Define a priority queue to store tiles with their distances    

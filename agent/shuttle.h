@@ -5,10 +5,11 @@
 #include <random>
 
 #include "logger.h"
-#include "agent/control_center.h"
 #include "agent/game_map.h"
+#include "agent/control_center.h"
 
 class ControlCenter; // Forward declaration
+class GameMap; // Forward declaration
 
 enum ShuttleType {
     player,
@@ -17,8 +18,7 @@ enum ShuttleType {
 
 class Shuttle {
 
-private:
-    int id;
+private:    
     bool visible;
     ShuttleType type;    
     int energy;
@@ -28,11 +28,11 @@ private:
     std::uniform_int_distribution<> dis; // Uniform distribution
     Direction getDirectionTo(const GameTile &destinationTile);
 public:
+    int id;
     std::vector<int> previousPosition = {-1, -1};
-    std::vector<int> position;
+    std::vector<int> position = {-1, -1};
     bool isTileUnvisited(Direction direction);
     std::vector<int> act();
-
     
 
     void log(std::string message);

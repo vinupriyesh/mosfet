@@ -2,8 +2,10 @@
 #define GAMEMAP_H
 
 #include "logger.h"
-#include "relic.h"
+#include "agent/relic.h"
 #include <vector>
+
+class Shuttle; //Forward declaration
 
 enum Direction {
     CENTER,
@@ -48,6 +50,7 @@ class GameTile {
         bool explored;
         bool haloTile;
         Relic* relic;
+        Shuttle* shuttle;
         int energy;
 
         int lastVisitedTime;
@@ -59,7 +62,7 @@ class GameTile {
         int x;
         int y;
         
-        GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), relic(nullptr) {};
+        GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), relic(nullptr), shuttle(nullptr) {};
         bool isVisited() { return visited; };
         bool isExplored() { return explored; };
         bool isHaloTile() { return haloTile; };
@@ -72,6 +75,9 @@ class GameTile {
         void setExplored(bool explored, int time);
         void setHaloTile(bool haloTile) { this->haloTile = haloTile; };
         void setRelic(Relic* relic) { this->relic = relic; };
+        void setShuttle(Shuttle* shuttle);
+        bool isOccupied() { return shuttle != nullptr; };
+        void clearShuttle(Shuttle *shuttle);
 
         TileType setType(int tileTypeCode, int time);
         void setEnergy(int energy, int time);

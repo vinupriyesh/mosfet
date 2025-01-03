@@ -1,16 +1,17 @@
 #ifndef CONTROLCENTER_H
 #define CONTROLCENTER_H
 
-#include "shuttle.h"
 #include "parser.h"
-#include "relic.h"
+#include "agent/relic.h"
 #include "logger.h"
 #include "metrics.h"
-#include "game_map.h"
+#include "agent/game_map.h"
+#include "agent/shuttle.h"
 #include <vector>
 #include <string>
 
 class Shuttle; //Forward declaration
+
 
 struct GameEnvConfig {
     std::string playerName;

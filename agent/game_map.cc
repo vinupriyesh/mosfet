@@ -1,5 +1,6 @@
 
 #include "game_map.h"
+#include "shuttle.h"
 
 #include <stdexcept>
 #include <tuple>
@@ -11,7 +12,7 @@ void GameMap::log(std::string message) {
 }
 
 void GameTile::log(std::string message) {
-    Logger::getInstance().log("GameMap -> " + message);
+    Logger::getInstance().log("GameTile -> " + message);
 }
 
 GameMap::GameMap(int width, int height) : width(width), height(height) {
@@ -37,8 +38,8 @@ void GameMap::addRelic(Relic *relic, int currentStep) {
                 // evaluation
                 if (!tile.isVisited() || tile.getLastVisitedTime() == currentStep) {
                     if (map[j][i].isHaloTile()) {
-                        // This can never happen!
-                        std::cerr<<"Problem:Halo tile already set for ("<<i<<", "<<j<<")"<<std::endl;
+                        // If multiple relics are seen, this can happen.  This is a overlap
+                        log("Halo Overlap detected for (" + std::to_string(i) + ", " + std::to_string(j) + ")");
                     }
                     map[j][i].setHaloTile(true);
                 }
@@ -107,6 +108,18 @@ TileType GameTile::getLastKnownType() const {
 void GameTile::setVisited(bool visited, int time) {
     this->visited = visited;
     this->lastVisitedTime = time;
+}
+
+void GameTile::setShuttle(Shuttle* shuttle)  {
+    // log("Setting shuttle at (" + std::to_string(x) + ", " + std::to_string(y) + "), id=" + std::to_string(shuttle->id));
+    this->shuttle = shuttle;
+}
+
+void GameTile::clearShuttle(Shuttle* shuttle) {
+    if (this->shuttle == shuttle) {
+        // log("Cleared shuttle at (" + std::to_string(x) + ", " + std::to_string(y) + "), id=" + std::to_string(shuttle->id));
+        this->shuttle = nullptr;
+    }
 }
 
 void GameTile::setExplored(bool explored, int time) {
