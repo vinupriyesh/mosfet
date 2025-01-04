@@ -38,8 +38,8 @@ class ConstraintSet {
         void deleteObservation(const ConstraintObservation &observation);
         void addConstraint(const ConstraintObservation &observation);
     public:
-        std::vector<int> identifiedVantagePoints;
-        std::vector<int> identifiedRegularTiles;
+        std::set<int> identifiedVantagePoints;
+        std::set<int> identifiedRegularTiles;
 
         void clear();        
         void addConstraint(int, const std::set<int>&);

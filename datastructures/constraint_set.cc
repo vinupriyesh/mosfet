@@ -68,13 +68,11 @@ void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
 
     if (pointsValue == 0) {
         log("Regular tiles found: " + setToString(haloPointSet));
-        identifiedRegularTiles.insert(identifiedRegularTiles.end(), 
-                                      observation.haloPointSet.begin(), 
+        identifiedRegularTiles.insert(observation.haloPointSet.begin(), 
                                       observation.haloPointSet.end());
     } else if (pointsValue == haloPointSet.size()) {
         log("Vantage points found: " + setToString(haloPointSet));
-        identifiedVantagePoints.insert(identifiedVantagePoints.end(), 
-                                       observation.haloPointSet.begin(), 
+        identifiedVantagePoints.insert(observation.haloPointSet.begin(), 
                                        observation.haloPointSet.end());
         
     }
@@ -124,14 +122,16 @@ void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
             ++it; 
         }
     }
+    
+    if (haloPointSet.size() != pointsValue && pointsValue != 0) {
+        log("This observation is not a terminal, adding it to set " + setToString(haloPointSet));
+        addSet(pointsValue, haloPointSet);
+    }
 
     if (isSubsetFound || isSupersetFound) {        
         for (auto& record : nextRecursionCycle) {
             addConstraint(record);
         }
-    } else if (haloPointSet.size() != pointsValue && pointsValue != 0) {
-        log("No subset or superset found, adding new set " + setToString(haloPointSet));
-        addSet(pointsValue, haloPointSet);
     }
 }
 
