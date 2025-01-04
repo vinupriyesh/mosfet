@@ -57,6 +57,44 @@ void removeValue(std::set<int>& haloPointSet, int value) {
     haloPointSet.erase(value);
 }
 
+void ConstraintSet::pruneConstratins() {
+    log("Pruning constraints");
+    auto it = masterSet.begin();
+    std::vector<ConstraintObservation> nextRecursionCycle;
+    while (it != masterSet.end()) {
+        auto itPoints = it->haloPointSet.begin();
+        while (itPoints != it->haloPointSet.end()) {
+            int value = *itPoints;
+            if (identifiedRegularTiles.find(value) != identifiedRegularTiles.end()) {
+                log("Found values to prune from regular tiles -- " + std::to_string(value));
+                itPoints = it->haloPointSet.erase(itPoints); // Erase and get the next valid iterator
+            } else if (identifiedVantagePoints.find(value) != identifiedVantagePoints.end()) {
+                log("Found values to prune from vantage point " + std::to_string(value));
+                itPoints = it->haloPointSet.erase(itPoints); // Erase and get the next valid iterator
+                it->pointsValue--;
+            } else {
+                ++itPoints; // Move to the next element
+            }
+        }
+
+        if (it->haloPointSet.empty()) {
+            log("Empty halo point set, removing the constraint");
+            it = masterSet.erase(it); // Erase and get the next valid iterator
+        } else if(it->haloPointSet.size() == it->pointsValue || it->pointsValue == 0) {
+            log("Constraint is terminal, removing the constraint");
+            nextRecursionCycle.push_back(ConstraintObservation(it->pointsValue, std::move(it->haloPointSet)));
+            it = masterSet.erase(it); // Erase and get the next valid iterator
+            
+        }else {
+            ++it; // Move to the next element
+        }
+    }
+
+    for (auto& record : nextRecursionCycle) {
+        addConstraint(record);
+    }
+}
+
 void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) {
     log("Entry constraint with points value " + std::to_string(pointsValue) + " and halo point set" + setToString(haloPointSet));
 
@@ -77,6 +115,10 @@ void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) 
 
     ConstraintObservation observation(pointsValue, haloPointSet);
     addConstraint(std::move(observation));
+
+    pruneConstratins();
+
+    Metrics::getInstance().add("constraint_set_size", masterSet.size());
 }
 
 void ConstraintSet::addConstraint(const ConstraintObservation& observation) {

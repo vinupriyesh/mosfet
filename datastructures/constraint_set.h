@@ -8,6 +8,7 @@
 #include <tuple>
 #include <sstream>
 
+#include "metrics.h"
 #include "logger.h"
 
 
@@ -27,7 +28,7 @@ struct ConstraintObservation {
 class ConstraintSet {
     private:
         void log(const std::string message) const;
-      
+        void pruneConstratins();
 
         std::vector<ConstraintObservation> masterSet;
 

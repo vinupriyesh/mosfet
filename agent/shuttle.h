@@ -20,6 +20,7 @@ class Shuttle {
 
 private:    
     bool visible;
+    bool ghost;
     ShuttleType type;    
     int energy;
     ControlCenter* cc;
@@ -32,6 +33,7 @@ public:
     std::vector<int> previousPosition = {-1, -1};
     std::vector<int> position = {-1, -1};
     bool isTileUnvisited(Direction direction);
+    bool isGhost();
     std::vector<int> act();
     
 

@@ -26,8 +26,9 @@ void process(std::string& input, int counter) {
         
         json json_results = {{"action", results}};
         log("Output --> " + json_results.dump());
-        std::cout << json_results.dump() << std::endl; 
-        std::cout.flush();
+        std::cout << json_results.dump() << std::endl;
+        std::cerr.flush();
+        std::cout.flush();        
 }
 
 void parseConfig(const std::string& filename, std::map<std::string, std::string>& configMap) {
@@ -80,7 +81,7 @@ int main(int argc, char* argv[]) {
             process(input, counter++);
             
             auto end = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);            
             Metrics::getInstance().add("step_duration", duration.count());
         } catch (const std::exception& e) {
             log("Exception caught: " + std::string(e.what()));

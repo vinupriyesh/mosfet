@@ -20,6 +20,15 @@ void Shuttle::updateUnitsData(std::vector<int> position, int energy) {
     this->previousPosition = this->position;
     this->position = position;
     this->energy = energy;
+    if (energy < 0) {
+        this->ghost = true;
+    } else {
+        this->ghost = false;
+    }
+}
+
+bool Shuttle::isGhost() {
+    return this->ghost;
 }
 
 void Shuttle::updateVisbility(bool isVisible) {
@@ -39,6 +48,7 @@ Shuttle::Shuttle(int id, ShuttleType type, ControlCenter* cc) {
     this->visible = false;
     this->type = type;
     this->cc = cc;
+    this->ghost = false;
 
     std::random_device rd;
     gen = std::mt19937(rd()); // Initialize the random number generator 
@@ -74,12 +84,46 @@ std::vector<int> Shuttle::act() {
 
     int totalTile = this->cc->gameEnvConfig->mapHeight * this->cc->gameEnvConfig->mapWidth;
     float percentageExplored = static_cast<float>(this->cc->tilesExplored) / totalTile;
+    int unexploitedVantagePoints = this->cc->vantagePointsFound - this->cc->vantagePointsOccupied;
 
-
-    // If we are already at the vantage point, then stay there
+    // If we are already at the vantage point, then stay there if you are the first shuttle
     if (startTile.isVantagePoint() && startTile.getShuttles()[0]->id == this->id) {
         log("Staying at the vantage point");
         return {Direction::CENTER, 0, 0};
+    }
+
+    // If there are unexploited tiles, exploit them first
+    if (unexploitedVantagePoints > 0) {
+        log("Moving to the vantage point");
+        PathingConfig config = {};
+        config.stopAtVantagePointTiles = true;
+        config.captureVantagePointTileDestinations = true;
+
+        Pathing pathing(this->cc->gameMap, config);
+        
+        pathing.findAllPaths(startTile);
+
+        if (!pathing.vantagePointDestinations.empty()) {
+            int idx = -1;
+            for (const auto [distance, destinationTile] : pathing.vantagePointDestinations) {
+                idx++;
+                log(std::to_string(idx) + "/" + std::to_string(pathing.vantagePointDestinations.size()) + " - Vantage point - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
+                if (destinationTile->isOccupied()) {
+                    log("Tile is occupied");
+                    continue;
+                }
+
+                // Move towards the destination tile
+                std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
+                if (pathToDestination.size() < 2) {
+                    log("We are already in the closest vantage point");
+                    return {Direction::CENTER, 0, 0};
+                }
+                Direction direction = getDirectionTo(*pathToDestination[1]);
+
+                return {directionToInt(direction), 0, 0};
+            }
+        }
     }
 
     //If we are already at a halo tile, then move to a random tile

@@ -41,6 +41,10 @@ void Pathing::findAllPaths(GameTile &startTile) {
             haloDestinations.push({currentDistance, currentTile});
         }
 
+        if (config.captureVantagePointTileDestinations && currentTile->isVantagePoint()) {
+            vantagePointDestinations.push({currentDistance, currentTile});
+        }
+
         // Skip if the current distance is greater than the recorded distance
         if (currentDistance > distances[currentTile].first) {
             continue;
@@ -61,6 +65,11 @@ void Pathing::findAllPaths(GameTile &startTile) {
             continue;
         }
 
+        //Do not explore further if the tile is a vantage point and the config is set to stop at vantage point tiles
+        if (config.stopAtVantagePointTiles && currentTile->isVantagePoint()) {
+            continue;
+        }
+
         // Explore neighbors
         for (Direction direction = Direction::UP; direction <= Direction::LEFT; ++direction) {
             std::tuple<bool, GameTile&> result = gameMap->isMovable(*currentTile, direction);
@@ -72,6 +81,7 @@ void Pathing::findAllPaths(GameTile &startTile) {
             }
 
             GameTile& neighbor = std::get<1>(result);
+            
             int newDistance = currentDistance + 1; // Assuming uniform cost as it is a timestep
 
             // If a shorter path to the neighbor is found

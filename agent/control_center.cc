@@ -52,6 +52,12 @@ void ControlCenter::update(GameState& gameState) {
 
     remainingOverageTime = gameState.remainingOverageTime;
     teamPointsDelta = gameState.obs.teamPoints[gameEnvConfig->teamId] - teamPoints;
+
+    // At the start of each set, the team points delta is 0
+    if (currentMatchStep == 0) {
+        teamPointsDelta = 0;
+    }
+
     teamPoints = gameState.obs.teamPoints[gameEnvConfig->teamId];
     opponentTeamPointsDelta = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId] - opponentTeamPoints;
     opponentTeamPoints = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId];
@@ -115,8 +121,7 @@ void ControlCenter::update(GameState& gameState) {
     allTilesVisited = true;
     tilesVisited = gameEnvConfig->mapHeight * gameEnvConfig->mapWidth;
     tilesExplored = gameEnvConfig->mapHeight * gameEnvConfig->mapWidth;
-    vantagePointsFound = 0;
-    vantagePointsOccupied = 0;
+
     for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig->mapWidth; ++j) {
             GameTile& currentTile = gameMap->getTile(i, j);
@@ -129,7 +134,7 @@ void ControlCenter::update(GameState& gameState) {
 
             currentTile.clearShuttles();
             for (int s = 0; s < gameEnvConfig->maxUnits; ++s) {
-                if (shuttles[s]->getX() == i && shuttles[s]->getY() == j) {
+                if (shuttles[s]->getX() == i && shuttles[s]->getY() == j && !shuttles[s]->isGhost()) {
                     currentTile.addShuttle(shuttles[s]);
                 }
             }
@@ -144,47 +149,12 @@ void ControlCenter::update(GameState& gameState) {
                 tilesExplored--;
             }
             
-            if (currentTile.isVantagePoint()) {
-                vantagePointsFound++;
-                if (currentTile.isOccupied()) {
-                    vantagePointsOccupied++;
-                }
-            }
         }
     }
 
     if (allTilesExplored) {
         log("All tiles explored :)");
     }
-
-    if (teamPointsDelta - vantagePointsOccupied < 0) {
-        log("Problem: Team points delta is less than vantage points occupied");
-        std::cerr<<"Problem: Team points delta is less than vantage points occupied";
-    }
-    
-    // log("Clearing the halo nodes");
-    // // If team did not score points, clear halo nodes where the shuttle is currently in (Cost 16)
-    // // REQUIREMENTS:
-    // // 1. Halo nodes should've been identified
-    // // 2. Visited nodes should be updated. i.e. Unit movements should've already happened   
-    // if (teamPointsDelta - vantagePointsOccupied == 0) {
-    //     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
-    //         int x = shuttles[i]->getX();
-    //         int y = shuttles[i]->getY();
-    //         if (gameMap->isValidTile(x, y)) {
-    //             GameTile& currentTile = gameMap->getTile(x, y);
-    //             if (currentTile.isHaloTile()) {
-    //                 if (currentTile.isVantagePoint()) {
-    //                     log("Problem: The tile with 0 point is already a vantage tile - " + std::to_string(x) + ", " + std::to_string(y));
-    //                     std::cerr<<"Problem: The tile with 0 point is already a vantage tile - " + std::to_string(x) + ", " + std::to_string(y);
-    //                 }
-    //                 currentTile.setForcedRegularTile(true);
-    //                 currentTile.setHaloTile(false);
-    //             }
-    //         }
-    //     }
-    // }
-
 
     log("Checking for constraints");
     // Monitor change in points to observe the relic capture
@@ -194,70 +164,68 @@ void ControlCenter::update(GameState& gameState) {
     // 2. Visited nodes should be updated. i.e. Unit movements should've already happened
     // 3. Halo node updates should've already happened
     // 4. Occupied shuttles should be populated already. i.e isOccupied() should work
-    // if (teamPointsDelta - vantagePointsOccupied > 0) {
         
-        // Constraint tile ids
-        std::set<int> constraintTiles;
-        
-        for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
-            for (int j = 0; j < gameEnvConfig->mapWidth; ++j) { 
-                GameTile& currentTile = gameMap->getTile(i, j);
-                
-                if (currentTile.isOccupied() && (currentTile.isHaloTile() || gameMap->hasPotentialInvisibleRelicNode(currentTile))) {
-                    // This is a halo tile, and is occupied.  This is a needed for constraint resolution
-                    if (!currentTile.isHaloTile()) {
-                        for (auto& shuttle : currentTile.getShuttles()) {
-                            log("Shuttles - " + std::to_string(i) + ", " + std::to_string(j) + " - Shuttle " + std::to_string(shuttle->id));
-                        }
-                        log("Force setting halo tile for " + std::to_string(i) + ", " + std::to_string(j));
-                        currentTile.setHaloTile(true);  //Setting if it is not already set
-                    }
-                    if (currentTile.isVantagePoint()) {
-                        log("Problem: The tile is already a vantage point - " + std::to_string(i) + ", " + std::to_string(j));
-                        std::cerr<<"Problem: The tile is already a vantage point - " + std::to_string(i) + ", " + std::to_string(j);
-                    } else {
-                        constraintTiles.insert(currentTile.getId(gameEnvConfig->mapWidth));
-                    }
-                }
+    // Constraint tile ids
+    std::set<int> constraintTiles;
+    
+    for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
+        for (int j = 0; j < gameEnvConfig->mapWidth; ++j) { 
+            GameTile& currentTile = gameMap->getTile(i, j);
+            
+            if (currentTile.isOccupied() && (currentTile.isVantagePoint() || currentTile.isHaloTile() || gameMap->hasPotentialInvisibleRelicNode(currentTile))) {
+                // This is a halo tile, and is occupied.  This is a needed for constraint resolution
+                if (!currentTile.isHaloTile() && !currentTile.isVantagePoint()) {
+                    // for (auto& shuttle : currentTile.getShuttles()) {
+                    //     log("Shuttles - " + std::to_string(i) + ", " + std::to_string(j) + " - Shuttle " + std::to_string(shuttle->id));
+                    // }
+                    log("Force setting halo tile for " + std::to_string(i) + ", " + std::to_string(j));
+                    currentTile.setHaloTile(true);  //Setting if it is not already set
+                }                
+                constraintTiles.insert(currentTile.getId(gameEnvConfig->mapWidth));                
             }
         }
+    }
 
-        // Make sure the constraintTiles are not in the vantage points
-        if (constraintTiles.size() >0) {
-            haloConstraints->addConstraint(teamPointsDelta - vantagePointsOccupied, constraintTiles);
+    // Make sure the constraintTiles are not in the vantage points
+    if (constraintTiles.size() >0) {
+        haloConstraints->addConstraint(teamPointsDelta, constraintTiles);
+    }
+    // Collect information from the constraint set and clear it
+
+    for (auto& regularTile : haloConstraints->identifiedRegularTiles) {
+        int x = regularTile % gameEnvConfig->mapWidth;
+        int y = regularTile / gameEnvConfig->mapWidth;
+        log("Marking regular tile at " + std::to_string(x) + ", " + std::to_string(y));
+        GameTile& currentTile = gameMap->getTile(x, y);
+        currentTile.setHaloTile(false);
+        currentTile.setForcedRegularTile(true);
+    }
+
+    vantagePointsFound = haloConstraints->identifiedVantagePoints.size();
+    vantagePointsOccupied = 0;
+
+    for (auto& vantagePoint : haloConstraints->identifiedVantagePoints) {
+        int x = vantagePoint % gameEnvConfig->mapWidth;
+        int y = vantagePoint / gameEnvConfig->mapWidth;
+        log("Marking vantage point at " + std::to_string(x) + ", " + std::to_string(y));
+        GameTile& currentTile = gameMap->getTile(x, y);
+
+        currentTile.setVantagePoint(true);
+        currentTile.setHaloTile(false);     
+
+        if (currentTile.isOccupied()) {
+            vantagePointsOccupied++;
         }
-        // Collect information from the constraint set and clear it
+    }
 
-        for (auto& regularTile : haloConstraints->identifiedRegularTiles) {
-            int x = regularTile % gameEnvConfig->mapWidth;
-            int y = regularTile / gameEnvConfig->mapWidth;
-            log("Marking regular tile at " + std::to_string(x) + ", " + std::to_string(y));
-            GameTile& currentTile = gameMap->getTile(x, y);
-            currentTile.setHaloTile(false);
-            currentTile.setForcedRegularTile(true);
-        }
 
-        for (auto& vantagePoint : haloConstraints->identifiedVantagePoints) {
-            int x = vantagePoint % gameEnvConfig->mapWidth;
-            int y = vantagePoint / gameEnvConfig->mapWidth;
-            log("Marking vantage point at " + std::to_string(x) + ", " + std::to_string(y));
-            GameTile& currentTile = gameMap->getTile(x, y);
-            // if (currentTile.isVantagePoint()) {
-            //     log("Problem: The tile is already a vantage point - " + std::to_string(x) + ", " + std::to_string(y));
-            //     std::cerr<<"Problem: The tile is already a vantage point - " + std::to_string(x) + ", " + std::to_string(y);
-            // } else {
-                // vantagePointsFound++;
-                // if (currentTile.isOccupied()) {
-                //     vantagePointsOccupied++;
-                // }
-            // }
+    Metrics::getInstance().add("unexploited_vantage_points", vantagePointsFound - vantagePointsOccupied);
 
-            currentTile.setVantagePoint(true);
-            currentTile.setHaloTile(false);            
-        }
+    if (teamPointsDelta - vantagePointsOccupied < 0) {
+        log("Problem: Team points delta is less than vantage points occupied = " + std::to_string(teamPointsDelta) + " & " + std::to_string(vantagePointsOccupied));
+        std::cerr<<"Problem: Team points delta < vantage points occupied"<<std::endl;
+    }
 
-        // haloConstraints->clear();
-    // }
 }
 
 ControlCenter::ControlCenter() {

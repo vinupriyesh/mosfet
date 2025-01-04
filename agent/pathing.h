@@ -8,9 +8,11 @@ struct PathingConfig {
     bool stopAtHaloTiles; // Halo tiles are not explored
     bool stopAtUnexploredTiles; // Unexplored tiles can be at the leaf node, but they will not be explored further
     bool stopAtVisitedTiles; // Visited tiles can be at the leaf node, but they will not be explored further
+    bool stopAtVantagePointTiles; // Vantage point tiles are not explored
     bool captureHaloTileDestinations; // Captures halo tiles destinations
     bool captureUnexploredTileDestinations; // Captures unexplored tiles destinations
     bool captureUnVisitedTileDestinations; // Captures unvisited tiles destinations
+    bool captureVantagePointTileDestinations; // Captures vantage point tiles destinations
 };
 
 class PathingBase {
@@ -47,6 +49,11 @@ class Pathing : public PathingBase {
          * Will be populated only if captureHaloTileDestinations is true, closest tiles first
          */
         IterablePriorityQueue<TileDistancePair> haloDestinations;
+
+        /**
+         * Will be populated only if captureVantagePointTileDestinations is true, closest tiles first
+         */
+        IterablePriorityQueue<TileDistancePair> vantagePointDestinations;
 
         /**
          * The main output having all the distances and paths
