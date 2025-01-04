@@ -65,7 +65,7 @@ class GameTile {
         int y;
         
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
-                forcedRegularTile(false), relic(nullptr), shuttles({}) {};
+                forcedRegularTile(false), relic(nullptr), shuttles({}), lastKnownTileType(UNKNOWN) {};
         int getId(int width);
         bool isVisited() { return visited; };
         bool isExplored() { return explored; };
@@ -90,7 +90,9 @@ class GameTile {
         void clearShuttles();
 
         TileType setType(int tileTypeCode, int time);
+        TileType getLastKnownTileType();
         void setEnergy(int energy, int time);
+        int getEnergy();
         
 };
 

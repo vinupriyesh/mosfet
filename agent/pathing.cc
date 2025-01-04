@@ -81,8 +81,21 @@ void Pathing::findAllPaths(GameTile &startTile) {
             }
 
             GameTile& neighbor = std::get<1>(result);
-            
-            int newDistance = currentDistance + 1; // Assuming uniform cost as it is a timestep
+
+            // Loss calculation for each step
+            int energyLoss = neighbor.getEnergy();
+            if (energyLoss < -10) {
+                // log("Capping the -ve energy loss to -10" + std::to_string(energyLoss));
+                energyLoss = -10;
+            } else if (energyLoss > 10) {
+                energyLoss = 10;
+            }
+
+            if (neighbor.getLastKnownTileType() == TileType::NEBULA) {
+                energyLoss -= 10;
+            }
+
+            int newDistance = currentDistance + 11 - energyLoss; // 10 (bias of negative energy) + 4 move_cost - max(tile energy_cost)
 
             // If a shorter path to the neighbor is found
             if (newDistance < distances[&neighbor].first) {

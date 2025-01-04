@@ -134,7 +134,7 @@ void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
 
     if (pointsValue < 0) {
         log("Problem:Points value is negative");
-        std::cerr<<"Problem:Points value is negative";
+        std::cerr<<"Problem:Points value is negative"<<std::endl;
         return;
     }
 
@@ -167,7 +167,7 @@ void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
                  + std::to_string(pointsValue) + " vs " + std::to_string(it->pointsValue));
 
                 std::cerr<<"Problem:The constraint already exists with a different points value"
-                 + std::to_string(pointsValue) + " vs " + std::to_string(it->pointsValue);
+                 + std::to_string(pointsValue) + " vs " + std::to_string(it->pointsValue)<<std::endl;
             }
 
             log("Constraint already existing, no action");

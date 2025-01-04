@@ -178,7 +178,15 @@ TileType GameTile::setType(int tileTypeCode, int time) {
     return type;
 }
 
+TileType GameTile::getLastKnownTileType() {
+    return lastKnownTileType;
+}
+
 void GameTile::setEnergy(int energyValue, int time) {
     energy = energyValue;
     lastEnergyUpdateTime = time;
+}
+
+int GameTile::getEnergy() {
+    return energy;
 }
