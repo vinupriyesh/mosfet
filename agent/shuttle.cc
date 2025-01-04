@@ -75,6 +75,13 @@ std::vector<int> Shuttle::act() {
     int totalTile = this->cc->gameEnvConfig->mapHeight * this->cc->gameEnvConfig->mapWidth;
     float percentageExplored = static_cast<float>(this->cc->tilesExplored) / totalTile;
 
+
+    // If we are already at the vantage point, then stay there
+    if (startTile.isVantagePoint()) {
+        log("Staying at the vantage point");
+        return {Direction::CENTER, 0, 0};
+    }
+
     //If we are already at a halo tile, then move to a random tile
     if (startTile.isHaloTile() && percentageExplored >= 0.33) {
         log("Moving random from a halo tile");

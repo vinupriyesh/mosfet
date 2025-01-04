@@ -35,14 +35,13 @@ class ConstraintSet {
         // std::tuple<bool, ConstraintObservation&> isSubset(const std::set<int> &querySet);
 
         // std::tuple<bool, ConstraintObservation&> isSuperset(const std::set<int> &querySet);
-        void deleteObservation(const ConstraintObservation &observation);
         void addConstraint(const ConstraintObservation &observation);
     public:
         std::set<int> identifiedVantagePoints;
         std::set<int> identifiedRegularTiles;
 
         void clear();        
-        void addConstraint(int, const std::set<int>&);
+        void addConstraint(int, std::set<int>&);
 
         std::vector<ConstraintObservation> getMasterSet() {
             return masterSet;

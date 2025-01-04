@@ -49,6 +49,8 @@ class GameTile {
         bool visited;
         bool explored;
         bool haloTile;
+        bool vantagePoint;
+        bool forcedRegularTile;
         Relic* relic;
         Shuttle* shuttle;
         int energy;
@@ -62,11 +64,14 @@ class GameTile {
         int x;
         int y;
         
-        GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), relic(nullptr), shuttle(nullptr) {};
+        GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
+                forcedRegularTile(false), relic(nullptr), shuttle(nullptr) {};
         int getId(int width);
         bool isVisited() { return visited; };
         bool isExplored() { return explored; };
         bool isHaloTile() { return haloTile; };
+        bool isVantagePoint() { return vantagePoint; };
+        bool isForcedRegularTile() { return forcedRegularTile; };
         int getLastVisitedTime() { return lastVisitedTime; };
 
         TileType getType() const;
@@ -75,6 +80,8 @@ class GameTile {
         void setVisited(bool visited, int time);
         void setExplored(bool explored, int time);
         void setHaloTile(bool haloTile) { this->haloTile = haloTile; };
+        void setVantagePoint(bool vantagePoint) { this->vantagePoint = vantagePoint; };
+        void setForcedRegularTile(bool forcedRegularTile) { this->forcedRegularTile = forcedRegularTile; };
         void setRelic(Relic* relic) { this->relic = relic; };
         void setShuttle(Shuttle* shuttle);
         bool isOccupied() { return shuttle != nullptr; };

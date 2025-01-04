@@ -49,8 +49,29 @@ void ConstraintSet::clear() {
     identifiedRegularTiles.clear();
 }
 
-void ConstraintSet::addConstraint(int pointsValue, const std::set<int>& haloPointSet) {
+bool contains(const std::set<int>& haloPointSet, int value) {
+    return haloPointSet.find(value) != haloPointSet.end();
+}
+
+void removeValue(std::set<int>& haloPointSet, int value) {
+    haloPointSet.erase(value);
+}
+
+void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) {
     log("Entry constraint with points value " + std::to_string(pointsValue) + " and halo point set" + setToString(haloPointSet));
+
+    for (int value : haloPointSet) {
+        if (identifiedRegularTiles.find(value) != identifiedRegularTiles.end()) {
+            log("Found as regular tile " + std::to_string(value));
+            haloPointSet.erase(value);            
+        }
+        if (identifiedVantagePoints.find(value) != identifiedVantagePoints.end()) {
+            log("Found as vantage point " + std::to_string(value));
+            haloPointSet.erase(value);
+            pointsValue--;
+        }
+    }
+
     ConstraintObservation observation(pointsValue, haloPointSet);
     addConstraint(std::move(observation));
 }
@@ -61,8 +82,14 @@ void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
     const std::set<int>& haloPointSet = observation.haloPointSet;
 
     if (haloPointSet.empty()) {
-        log("Problem:Empty halo point set");
-        std::cerr<<"Problem:Empty halo point set";
+        log("Empty halo point set");
+        // std::cerr<<"Problem:Empty halo point set";
+        return;
+    }
+
+    if (pointsValue < 0) {
+        log("Problem:Points value is negative");
+        std::cerr<<"Problem:Points value is negative";
         return;
     }
 

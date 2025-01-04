@@ -58,6 +58,7 @@ void ControlCenter::update(GameState& gameState) {
     
     log("Exploring all units");
     // Exploring all units (cost 16)
+    // REQUIREMENTS: NONE
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
 
         // log("Getting old position for unit " + std::to_string(i));
@@ -93,8 +94,11 @@ void ControlCenter::update(GameState& gameState) {
 
     log("Exploring all relics");
     // Exploring all relics (cost 8)
+    // REQUIREMENTS:
+    // 1. Visited nodes should be updated. i.e. Unit movements should've already happened
     allRelicsFound = true;
     relicsFound = 0;
+
     for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
         bool firstTimeRevealed = relics[i]->updateRelicData(gameState.obs.relicNodes[i], gameState.obs.relicNodesMask[i]);
         if (firstTimeRevealed) {
@@ -113,27 +117,17 @@ void ControlCenter::update(GameState& gameState) {
         log("All relics found :)");
     }
 
-    log("Clearing the halo nodes");
-    // If team did not score points, clear halo nodes where the shuttle is currently in (Cost 16)
-    if (teamPointsDelta == 0) {
-        for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
-            int x = shuttles[i]->getX();
-            int y = shuttles[i]->getY();
-            if (gameMap->isValidTile(x, y)) {
-                GameTile& currentTile = gameMap->getTile(x, y);
-                if (currentTile.isHaloTile()) {
-                    currentTile.setHaloTile(false);
-                }
-            }
-        }
-    }
 
     log("Exploring contents of each tile");
     // Exploring contents of each tile (cost 24x24)
+    // REQUIREMENTS:
+    // 1. Visited nodes should be updated. i.e. Unit movements should've already happened
     allTilesExplored = true;
     allTilesVisited = true;
     tilesVisited = gameEnvConfig->mapHeight * gameEnvConfig->mapWidth;
     tilesExplored = gameEnvConfig->mapHeight * gameEnvConfig->mapWidth;
+    vantagePointsFound = 0;
+    vantagePointsOccupied = 0;
     for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig->mapWidth; ++j) {
             GameTile& currentTile = gameMap->getTile(i, j);
@@ -154,6 +148,12 @@ void ControlCenter::update(GameState& gameState) {
                 tilesExplored--;
             }
             
+            if (currentTile.isVantagePoint()) {
+                vantagePointsFound++;
+                if (currentTile.isOccupied()) {
+                    vantagePointsOccupied++;
+                }
+            }
         }
     }
 
@@ -161,10 +161,43 @@ void ControlCenter::update(GameState& gameState) {
         log("All tiles explored :)");
     }
 
+    if (teamPointsDelta - vantagePointsOccupied < 0) {
+        log("Problem: Team points delta is less than vantage points occupied");
+        std::cerr<<"Problem: Team points delta is less than vantage points occupied";
+    }
+    
+    // log("Clearing the halo nodes");
+    // // If team did not score points, clear halo nodes where the shuttle is currently in (Cost 16)
+    // // REQUIREMENTS:
+    // // 1. Halo nodes should've been identified
+    // // 2. Visited nodes should be updated. i.e. Unit movements should've already happened   
+    // if (teamPointsDelta - vantagePointsOccupied == 0) {
+    //     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+    //         int x = shuttles[i]->getX();
+    //         int y = shuttles[i]->getY();
+    //         if (gameMap->isValidTile(x, y)) {
+    //             GameTile& currentTile = gameMap->getTile(x, y);
+    //             if (currentTile.isHaloTile()) {
+    //                 if (currentTile.isVantagePoint()) {
+    //                     log("Problem: The tile with 0 point is already a vantage tile - " + std::to_string(x) + ", " + std::to_string(y));
+    //                     std::cerr<<"Problem: The tile with 0 point is already a vantage tile - " + std::to_string(x) + ", " + std::to_string(y);
+    //                 }
+    //                 currentTile.setForcedRegularTile(true);
+    //                 currentTile.setHaloTile(false);
+    //             }
+    //         }
+    //     }
+    // }
 
+
+    log("Checking for constraints");
     // Monitor change in points to observe the relic capture
     // Collect all positions that are on a halo node or possibly on a halo node with an invisible relic
-    if (teamPointsDelta > 0) {
+    //REQUIREMENTS: 
+    // 1. The exploration update should've already happened
+    // 2. Visited nodes should be updated. i.e. Unit movements should've already happened
+    // 3. Halo node updates should've already happened
+    // if (teamPointsDelta - vantagePointsOccupied > 0) {
         
         // Constraint tile ids
         std::set<int> constraintTiles;
@@ -175,14 +208,56 @@ void ControlCenter::update(GameState& gameState) {
                 
                 if (currentTile.isOccupied() && (currentTile.isHaloTile() || gameMap->hasPotentialInvisibleRelicNode(currentTile))) {
                     // This is a halo tile, and is occupied.  This is a needed for constraint resolution
-                    currentTile.setHaloTile(true);  //Setting if it is not already set                   
-                    constraintTiles.insert(currentTile.getId(gameEnvConfig->mapWidth));
+                    if (!currentTile.isHaloTile()) {
+                        log("Force setting halo tile for " + std::to_string(i) + ", " + std::to_string(j));
+                        currentTile.setHaloTile(true);  //Setting if it is not already set
+                    }
+                    if (currentTile.isVantagePoint()) {
+                        log("Problem: The tile is already a vantage point - " + std::to_string(i) + ", " + std::to_string(j));
+                        std::cerr<<"Problem: The tile is already a vantage point - " + std::to_string(i) + ", " + std::to_string(j);
+                    } else {
+                        constraintTiles.insert(currentTile.getId(gameEnvConfig->mapWidth));
+                    }
                 }
             }
         }
 
-        haloConstraints->addConstraint(teamPointsDelta, constraintTiles);
-    }
+        // Make sure the constraintTiles are not in the vantage points
+        if (constraintTiles.size() >0) {
+            haloConstraints->addConstraint(teamPointsDelta - vantagePointsOccupied, constraintTiles);
+        }
+        // Collect information from the constraint set and clear it
+
+        for (auto& regularTile : haloConstraints->identifiedRegularTiles) {
+            int x = regularTile % gameEnvConfig->mapWidth;
+            int y = regularTile / gameEnvConfig->mapWidth;
+            log("Marking regular tile at " + std::to_string(x) + ", " + std::to_string(y));
+            GameTile& currentTile = gameMap->getTile(x, y);
+            currentTile.setHaloTile(false);
+            currentTile.setForcedRegularTile(true);
+        }
+
+        for (auto& vantagePoint : haloConstraints->identifiedVantagePoints) {
+            int x = vantagePoint % gameEnvConfig->mapWidth;
+            int y = vantagePoint / gameEnvConfig->mapWidth;
+            log("Marking vantage point at " + std::to_string(x) + ", " + std::to_string(y));
+            GameTile& currentTile = gameMap->getTile(x, y);
+            // if (currentTile.isVantagePoint()) {
+            //     log("Problem: The tile is already a vantage point - " + std::to_string(x) + ", " + std::to_string(y));
+            //     std::cerr<<"Problem: The tile is already a vantage point - " + std::to_string(x) + ", " + std::to_string(y);
+            // } else {
+                // vantagePointsFound++;
+                // if (currentTile.isOccupied()) {
+                //     vantagePointsOccupied++;
+                // }
+            // }
+
+            currentTile.setVantagePoint(true);
+            currentTile.setHaloTile(false);            
+        }
+
+        // haloConstraints->clear();
+    // }
 }
 
 ControlCenter::ControlCenter() {

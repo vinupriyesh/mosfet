@@ -87,6 +87,8 @@ public:
     int relicsFound = 0;
     int tilesExplored = 0;
     int tilesVisited = 0;
+    int vantagePointsFound = 0;
+    int vantagePointsOccupied = 0;
 
     GameEnvConfig* gameEnvConfig; 
     GameMap* gameMap;

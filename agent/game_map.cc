@@ -55,7 +55,7 @@ bool GameMap::hasPotentialInvisibleRelicNode(GameTile& gameTile) {
         for (int j = y-2; j <= y+2; ++j) {
             if (isValidTile(i, j)) {
                 auto& tile = getTile(i, j);
-                if (!tile.isExplored()) {
+                if (!tile.isExplored() && !tile.isForcedRegularTile()) {
                     // There is atleaast one tile that is not explored, meaning it is a potential invisible relic node
                     return true;
                 }

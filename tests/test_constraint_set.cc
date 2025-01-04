@@ -15,6 +15,7 @@ protected:
 };
 
 TEST_F(ConstraintSetTest, TestSubsetThatCanResolve) {
+    Logger::getInstance().setPlayerName("TestSubsetThatCanResolve");
     // 1 and 2 are vantage points
     // 3 is a regular tile
     // 4 and 5 is still uncertain, one of them is a vantage point
@@ -42,7 +43,7 @@ TEST_F(ConstraintSetTest, TestSubsetThatCanResolve) {
 }
 
 TEST_F(ConstraintSetTest, TestaSubsetThatCannotResolve) {
-    
+    Logger::getInstance().setPlayerName("TestaSubsetThatCannotResolve");
     std::set<int> haloPointSet1 = {1, 2, 3};
     std::set<int> haloPointSet2 = {2, 1};
     std::set<int> haloPointSet3 = {4, 5};
@@ -70,7 +71,7 @@ TEST_F(ConstraintSetTest, TestaSubsetThatCannotResolve) {
 }
 
 TEST_F(ConstraintSetTest, TestSupersetThatCanResolve) {
-    
+    Logger::getInstance().setPlayerName("TestSupersetThatCanResolve");
     std::set<int> haloPointSet1 = {1, 2, 3}; //1
     std::set<int> haloPointSet2 = {1, 3, 4, 5, 2}; //2
     std::set<int> haloPointSet3 = {4, 5}; //1

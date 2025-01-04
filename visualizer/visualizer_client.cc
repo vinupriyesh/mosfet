@@ -63,6 +63,9 @@ std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic,
             if (gameMap->getTile(i, j).isHaloTile()) {
                 jsonObject["halo_tiles"].push_back({i, j});
             }
+            if (gameMap->getTile(i, j).isVantagePoint()) {
+                jsonObject["vantage_points"].push_back({i, j});
+            }
         }
     }
 

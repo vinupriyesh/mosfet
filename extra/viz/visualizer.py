@@ -52,12 +52,19 @@ class Visualizer:
             self.draw_shuttle(shuttle, red)
         for nebula in self.game_state.nebula:
             self.draw_nebula(nebula)
+        for vantage_point in self.game_state.vantage_points:
+            self.draw_vantage_point(vantage_point)
         for relic in self.game_state.relics:
             self.draw_relic(relic)
         for halo_tile in self.game_state.halo_tiles:
             self.draw_halo(halo_tile, gold_with_transparency)    
 
 
+    def draw_vantage_point(self, position):
+        x, y = position
+        rect = self.vantage_point_image.get_rect(center=(x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2))
+        self.screen.blit(self.vantage_point_image, rect.topleft)
+                         
     def draw_relic(self, position):
         x, y = position
         rect = self.relic_image.get_rect(center=(x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2))
