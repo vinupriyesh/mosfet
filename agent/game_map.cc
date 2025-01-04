@@ -1,4 +1,3 @@
-
 #include "game_map.h"
 #include "shuttle.h"
 
@@ -132,16 +131,27 @@ void GameTile::setVisited(bool visited, int time) {
     this->lastVisitedTime = time;
 }
 
-void GameTile::setShuttle(Shuttle* shuttle)  {
-    // log("Setting shuttle at (" + std::to_string(x) + ", " + std::to_string(y) + "), id=" + std::to_string(shuttle->id));
-    this->shuttle = shuttle;
+void GameTile::addShuttle(Shuttle* shuttle)  {
+    log("Adding shuttle at (" + std::to_string(x) + ", " + std::to_string(y) + "), id=" + std::to_string(shuttle->id));
+    this->shuttles.push_back(shuttle);
+}
+
+bool GameTile::isOccupied() {
+    return shuttles.size() > 0;
 }
 
 void GameTile::clearShuttle(Shuttle* shuttle) {
-    if (this->shuttle == shuttle) {
-        // log("Cleared shuttle at (" + std::to_string(x) + ", " + std::to_string(y) + "), id=" + std::to_string(shuttle->id));
-        this->shuttle = nullptr;
+    for (auto it = shuttles.begin(); it != shuttles.end(); ++it) {
+        if (*it == shuttle) {
+            it = shuttles.erase(it);
+            log("clearShuttle: Shuttle removed from (" + std::to_string(x) + ", " + std::to_string(y) + "), id=" + std::to_string(shuttle->id));
+            break;
+        }
     }
+}
+
+void GameTile::clearShuttles() {
+    this->shuttles.clear();
 }
 
 void GameTile::setExplored(bool explored, int time) {

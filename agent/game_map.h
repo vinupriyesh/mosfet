@@ -52,7 +52,7 @@ class GameTile {
         bool vantagePoint;
         bool forcedRegularTile;
         Relic* relic;
-        Shuttle* shuttle;
+        std::vector<Shuttle*> shuttles;
         int energy;
 
         int lastVisitedTime;
@@ -65,7 +65,7 @@ class GameTile {
         int y;
         
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
-                forcedRegularTile(false), relic(nullptr), shuttle(nullptr) {};
+                forcedRegularTile(false), relic(nullptr), shuttles({}) {};
         int getId(int width);
         bool isVisited() { return visited; };
         bool isExplored() { return explored; };
@@ -83,9 +83,11 @@ class GameTile {
         void setVantagePoint(bool vantagePoint) { this->vantagePoint = vantagePoint; };
         void setForcedRegularTile(bool forcedRegularTile) { this->forcedRegularTile = forcedRegularTile; };
         void setRelic(Relic* relic) { this->relic = relic; };
-        void setShuttle(Shuttle* shuttle);
-        bool isOccupied() { return shuttle != nullptr; };
+        void addShuttle(Shuttle* shuttle);
+        bool isOccupied();
+        std::vector<Shuttle*>& getShuttles() { return shuttles; };
         void clearShuttle(Shuttle *shuttle);
+        void clearShuttles();
 
         TileType setType(int tileTypeCode, int time);
         void setEnergy(int energy, int time);

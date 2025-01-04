@@ -61,11 +61,6 @@ void ControlCenter::update(GameState& gameState) {
     // REQUIREMENTS: NONE
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
 
-        // log("Getting old position for unit " + std::to_string(i));
-        // Get the unit's older position 
-        int oldX = shuttles[i]->getX();
-        int oldY = shuttles[i]->getY();
-
         // log("OldTile positions for unit " + std::to_string(i) + " - " + std::to_string(oldX) + ", " + std::to_string(oldY));
 
         // Update unit's current position and energy
@@ -83,13 +78,7 @@ void ControlCenter::update(GameState& gameState) {
             // log("Updating visited for tile " + std::to_string(shuttles[i]->getX()) + ", " + std::to_string(shuttles[i]->getY()));
             GameTile& shuttleTile = gameMap->getTile(shuttles[i]->getX(), shuttles[i]->getY());
             shuttleTile.setVisited(true, currentStep);
-
-            if (gameMap->isValidTile(oldX, oldY)) {
-                GameTile& oldShuttleTile = gameMap->getTile(oldX, oldY);
-                oldShuttleTile.clearShuttle(shuttles[i]);
-            }
-            shuttleTile.setShuttle(shuttles[i]);
-        }    
+        }
     }
 
     log("Exploring all relics");
@@ -136,6 +125,13 @@ void ControlCenter::update(GameState& gameState) {
 
             if (gameState.obs.sensorMask[i][j]) {
                 currentTile.setExplored(true, currentStep);
+            }
+
+            currentTile.clearShuttles();
+            for (int s = 0; s < gameEnvConfig->maxUnits; ++s) {
+                if (shuttles[s]->getX() == i && shuttles[s]->getY() == j) {
+                    currentTile.addShuttle(shuttles[s]);
+                }
             }
 
             if (!currentTile.isVisited()) {
@@ -197,6 +193,7 @@ void ControlCenter::update(GameState& gameState) {
     // 1. The exploration update should've already happened
     // 2. Visited nodes should be updated. i.e. Unit movements should've already happened
     // 3. Halo node updates should've already happened
+    // 4. Occupied shuttles should be populated already. i.e isOccupied() should work
     // if (teamPointsDelta - vantagePointsOccupied > 0) {
         
         // Constraint tile ids
@@ -209,6 +206,9 @@ void ControlCenter::update(GameState& gameState) {
                 if (currentTile.isOccupied() && (currentTile.isHaloTile() || gameMap->hasPotentialInvisibleRelicNode(currentTile))) {
                     // This is a halo tile, and is occupied.  This is a needed for constraint resolution
                     if (!currentTile.isHaloTile()) {
+                        for (auto& shuttle : currentTile.getShuttles()) {
+                            log("Shuttles - " + std::to_string(i) + ", " + std::to_string(j) + " - Shuttle " + std::to_string(shuttle->id));
+                        }
                         log("Force setting halo tile for " + std::to_string(i) + ", " + std::to_string(j));
                         currentTile.setHaloTile(true);  //Setting if it is not already set
                     }

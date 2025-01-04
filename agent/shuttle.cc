@@ -77,7 +77,7 @@ std::vector<int> Shuttle::act() {
 
 
     // If we are already at the vantage point, then stay there
-    if (startTile.isVantagePoint()) {
+    if (startTile.isVantagePoint() && startTile.getShuttles()[0]->id == this->id) {
         log("Staying at the vantage point");
         return {Direction::CENTER, 0, 0};
     }

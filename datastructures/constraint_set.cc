@@ -60,15 +60,18 @@ void removeValue(std::set<int>& haloPointSet, int value) {
 void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) {
     log("Entry constraint with points value " + std::to_string(pointsValue) + " and halo point set" + setToString(haloPointSet));
 
-    for (int value : haloPointSet) {
+    auto it = haloPointSet.begin();
+    while (it != haloPointSet.end()) {
+        int value = *it;
         if (identifiedRegularTiles.find(value) != identifiedRegularTiles.end()) {
             log("Found as regular tile " + std::to_string(value));
-            haloPointSet.erase(value);            
-        }
-        if (identifiedVantagePoints.find(value) != identifiedVantagePoints.end()) {
+            it = haloPointSet.erase(it); // Erase and get the next valid iterator
+        } else if (identifiedVantagePoints.find(value) != identifiedVantagePoints.end()) {
             log("Found as vantage point " + std::to_string(value));
-            haloPointSet.erase(value);
+            it = haloPointSet.erase(it); // Erase and get the next valid iterator
             pointsValue--;
+        } else {
+            ++it; // Move to the next element
         }
     }
 
@@ -112,6 +115,8 @@ void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
     while (it != masterSet.end()) {
         log("Comparing with existing constraint with points value " + std::to_string(it->pointsValue) + " and halo point set" + setToString(it->haloPointSet));
 
+        bool iterated = false;
+
         if (it->haloPointSet == haloPointSet) {
             // The same constraint already exists
 
@@ -135,6 +140,7 @@ void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
 
             log("Erasing the superset " + setToString(it->haloPointSet));
             it = masterSet.erase(it); // Erase and get the next valid iterator
+            iterated = true;
         } else if (isSuperset(haloPointSet, it->haloPointSet)) {
             log("Superset found: " + setToString(haloPointSet) + " is superset of " + setToString(it->haloPointSet));
             isSupersetFound = true;
@@ -145,7 +151,7 @@ void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
         }
 
         // Move to the next element only if it is not already done during delete
-        if (!isSubsetFound) {
+        if (!iterated) {
             ++it; 
         }
     }
