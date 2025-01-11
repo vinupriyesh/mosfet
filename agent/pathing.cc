@@ -3,6 +3,32 @@
 #include <unordered_map>
 #include <limits>
 #include "agent/pathing.h"
+#include "pathing.h"
+
+float Pathing::getCost(GameTile &neighbor) {
+    if (config.pathingHeuristics == SHORTEST_DISTANCE) {
+        return 1;
+    } 
+
+    if (config.pathingHeuristics == LEAST_ENERGY) {
+        // Loss calculation for each step
+        int energyLoss = neighbor.getEnergy();
+        if (energyLoss < -10) {
+            // log("Capping the -ve energy loss to -10" + std::to_string(energyLoss));
+            energyLoss = -10;
+        } else if (energyLoss > 10) {
+            energyLoss = 10;
+        }
+
+        if (neighbor.getLastKnownTileType() == TileType::NEBULA) {
+            energyLoss -= 10;
+        }
+
+        return 11 - energyLoss;
+    }
+
+    throw std::runtime_error("Unknown heuristic to compute distance");
+}
 
 void Pathing::findAllPaths(GameTile &startTile) {
     // Define a priority queue to store tiles with their distances    
@@ -82,20 +108,7 @@ void Pathing::findAllPaths(GameTile &startTile) {
 
             GameTile& neighbor = std::get<1>(result);
 
-            // Loss calculation for each step
-            int energyLoss = neighbor.getEnergy();
-            if (energyLoss < -10) {
-                // log("Capping the -ve energy loss to -10" + std::to_string(energyLoss));
-                energyLoss = -10;
-            } else if (energyLoss > 10) {
-                energyLoss = 10;
-            }
-
-            if (neighbor.getLastKnownTileType() == TileType::NEBULA) {
-                energyLoss -= 10;
-            }
-
-            int newDistance = currentDistance + 11 - energyLoss; // 10 (bias of negative energy) + 4 move_cost - max(tile energy_cost)
+            int newDistance = currentDistance + getCost(neighbor);
 
             // If a shorter path to the neighbor is found
             if (newDistance < distances[&neighbor].first) {

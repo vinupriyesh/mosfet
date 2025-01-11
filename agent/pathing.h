@@ -4,7 +4,14 @@
 #include "agent/game_map.h"
 #include "datastructures/iterable_priority_queue.h"
 
+
+enum PathingHeuristics {
+    SHORTEST_DISTANCE, //Doesn't worry about enery
+    LEAST_ENERGY //Cannot stay in the same tile to recharge energy
+};
+
 struct PathingConfig {
+    PathingHeuristics pathingHeuristics = SHORTEST_DISTANCE;
     bool stopAtHaloTiles; // Halo tiles are not explored
     bool stopAtUnexploredTiles; // Unexplored tiles can be at the leaf node, but they will not be explored further
     bool stopAtVisitedTiles; // Visited tiles can be at the leaf node, but they will not be explored further
@@ -61,9 +68,10 @@ class Pathing : public PathingBase {
         std::unordered_map<GameTile*, std::pair<int, std::vector<GameTile*>>> distances;
 
         Pathing(GameMap* gameMap, PathingConfig config): PathingBase(gameMap), config(config) {};
-        
-        void findAllPaths(GameTile& startTile);
 
+        float getCost(GameTile &neighbor);
+
+        void findAllPaths(GameTile &startTile);
 };
 
 #endif // PATHING_H

@@ -96,6 +96,7 @@ std::vector<int> Shuttle::act() {
     if (unexploitedVantagePoints > 0) {
         log("Moving to the vantage point");
         PathingConfig config = {};
+        config.pathingHeuristics = LEAST_ENERGY;
         config.stopAtVantagePointTiles = true;
         config.captureVantagePointTileDestinations = true;
 
@@ -137,6 +138,7 @@ std::vector<int> Shuttle::act() {
     if (cc->allRelicsFound || cc->allTilesExplored || percentageExplored >= 0.7) {
         log("Going to halo the tiles");
         PathingConfig config = {};
+        config.pathingHeuristics = LEAST_ENERGY;
         config.stopAtHaloTiles = true;
         config.captureHaloTileDestinations = true;
 
@@ -171,6 +173,7 @@ std::vector<int> Shuttle::act() {
     // Explore the unexplored tiles
     if (!cc->allTilesExplored) {
         PathingConfig config = {};
+        config.pathingHeuristics = LEAST_ENERGY;
         config.stopAtUnexploredTiles = true;
         config.captureUnexploredTileDestinations = true;
 

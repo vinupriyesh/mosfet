@@ -25,7 +25,13 @@ protected:
 };
 
 TEST_F(PathingTest, FindAllPaths) {
-    Pathing* pathing = new Pathing(gameMap, {false, false});
+
+    PathingConfig config = {};
+    config.pathingHeuristics = SHORTEST_DISTANCE;
+    config.stopAtUnexploredTiles = false;
+    config.captureUnexploredTileDestinations = false;
+
+    Pathing* pathing = new Pathing(gameMap, config);
     GameTile* startTile = &gameMap->getTile(0, 0);
     pathing->findAllPaths(*startTile);
     auto distances = pathing->distances;
@@ -49,7 +55,12 @@ TEST_F(PathingTest, FindAllPaths) {
 
 TEST_F(PathingTest, FindAllPathsWithStopAtExploredTiles) {
     // Set the stopAtExploredTiles flag
-    Pathing* pathing = new Pathing(gameMap, {true, false});
+    PathingConfig config = {};
+    config.pathingHeuristics = SHORTEST_DISTANCE;
+    config.stopAtUnexploredTiles = false;
+    config.captureUnexploredTileDestinations = false;
+
+    Pathing* pathing = new Pathing(gameMap, config);
 
     // Mark some tiles as explored
     gameMap->getTile(0, 0).setExplored(true, 0);
