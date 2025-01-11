@@ -26,6 +26,7 @@ public:
     void enableMetrics(const std::string& filename) {
         if (!log_file.is_open()) {
             log_file.open(filename, std::ios::out | std::ios::app);
+            log_file << "timestep,player_id,dimension,value" << std::endl;
         }
     }
 
@@ -40,7 +41,7 @@ public:
     }
 
 private:
-    std::string step_id = "init";
+    std::string step_id = "-1";
     std::string player_name = "Unknown";
     std::ofstream log_file;
 

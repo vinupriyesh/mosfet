@@ -47,20 +47,27 @@ void ControlCenter::update(GameState& gameState) {
     currentStep = gameState.obs.steps;
     currentMatchStep = gameState.obs.matchSteps;
 
-    Logger::getInstance().setStepId(std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));    
+    Logger::getInstance().setStepId(std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));
+    Metrics::getInstance().setStepId(std::to_string(currentStep));  
     log("Updating for step " + std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));
 
     remainingOverageTime = gameState.remainingOverageTime;
     teamPointsDelta = gameState.obs.teamPoints[gameEnvConfig->teamId] - teamPoints;
+    teamPoints = gameState.obs.teamPoints[gameEnvConfig->teamId];
+    opponentTeamPointsDelta = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId] - opponentTeamPoints;
+    opponentTeamPoints = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId];
 
     // At the start of each set, the team points delta is 0
     if (currentMatchStep == 0) {
         teamPointsDelta = 0;
+        opponentTeamPointsDelta = 0;
     }
 
-    teamPoints = gameState.obs.teamPoints[gameEnvConfig->teamId];
-    opponentTeamPointsDelta = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId] - opponentTeamPoints;
-    opponentTeamPoints = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId];
+    Metrics::getInstance().add("points", teamPoints);
+    Metrics::getInstance().add("opponentPoints", opponentTeamPoints);
+
+    Metrics::getInstance().add("teamPointsDelta", teamPointsDelta);
+    Metrics::getInstance().add("opponentTeamPointsDelta", opponentTeamPointsDelta);
     
     log("Exploring all units");
     // Exploring all units (cost 16)

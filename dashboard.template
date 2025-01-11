@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mosfet Dashboard</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
+        .container {
+            margin-bottom: 30px;
+        }
+        .image-row {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .image-item {
+            flex: 1 1 45%;
+            margin: 10px;
+            text-align: center;
+        }
+        .image-item img {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+        }
+        h1, h2 {
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <h1>Mosfet Dashboard</h1>
+    <div id="content"></div>
+    <!-- Embed the JSON data directly in the HTML -->
+    <script type="application/json" id="data-json">
+        %%PLACEHOLDER%%
+    </script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Retrieve the embedded JSON data
+            const jsonData = document.getElementById('data-json').textContent;
+            const data = JSON.parse(jsonData);
+
+            const content = document.getElementById('content');
+            data.headings.forEach(heading => {
+                const container = document.createElement('div');
+                container.classList.add('container');
+                
+                const h2 = document.createElement('h2');
+                h2.textContent = heading.title;
+                container.appendChild(h2);
+                
+                const imageRow = document.createElement('div');
+                imageRow.classList.add('image-row');
+                
+                heading.items.forEach(image => {
+                    const imageItem = document.createElement('div');
+                    imageItem.classList.add('image-item');
+                    
+                    const img = document.createElement('img');
+                    img.src = image;
+                    imageItem.appendChild(img);
+                    
+                    imageRow.appendChild(imageItem);
+                });
+                
+                container.appendChild(imageRow);
+                content.appendChild(container);
+            });
+        });
+    </script>
+</body>
+</html>
