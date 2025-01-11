@@ -233,7 +233,7 @@ void ControlCenter::update(GameState& gameState) {
 
     Metrics::getInstance().add("unexploited_vantage_points", vantagePointsFound - vantagePointsOccupied);
 
-    if (teamPointsDelta - vantagePointsOccupied < 0) {
+    if (teamPointsDelta - vantagePointsOccupied < 0 && currentMatchStep != 0) {
         log("Problem: Team points delta is less than vantage points occupied = " + std::to_string(teamPointsDelta) + " & " + std::to_string(vantagePointsOccupied));
         std::cerr<<"Problem: Team points delta < vantage points occupied"<<std::endl;
     }
