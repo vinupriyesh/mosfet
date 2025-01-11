@@ -1,6 +1,8 @@
 #include <iostream>
 #include <string>
 #include <nlohmann/json.hpp>
+#include <sys/resource.h>
+#include <sys/time.h>
 
 #include "logger.h"
 #include "metrics.h"
@@ -13,6 +15,12 @@
 using json = nlohmann::json;
 
 ControlCenter* cc = new ControlCenter();
+
+void emit_memory_usage_metric() {
+    struct rusage usage;
+    getrusage(RUSAGE_SELF, &usage);
+    Metrics::getInstance().add("memory", usage.ru_maxrss);
+}
 
 void process(std::string& input, int counter) {
     std::getline(std::cin, input);
@@ -32,6 +40,10 @@ void process(std::string& input, int counter) {
     std::cout << json_results.dump() << std::endl;
     std::cerr.flush();
     std::cout.flush();
+
+    if (Metrics::getInstance().isMetricEnabled()) {
+        emit_memory_usage_metric();
+    }
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);            

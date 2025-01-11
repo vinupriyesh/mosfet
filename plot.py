@@ -65,6 +65,7 @@ def prepare_charts(df):
     # Performance    
     images = create_heading("Performance", json_data)
     plot(df, images, "step_duration", "ms")
+    plot(df, images, "memory", "kb")
 
     # Value
     images = create_heading("Value", json_data)
