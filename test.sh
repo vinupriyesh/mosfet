@@ -1,2 +1,2 @@
 cd build/tests
-ctest --verbose
+ctest --verbose --rerun-failed --output-on-failure

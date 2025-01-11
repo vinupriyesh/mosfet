@@ -93,6 +93,8 @@ class GameTile {
         TileType getLastKnownTileType();
         void setEnergy(int energy, int time);
         int getEnergy();
+
+        std::string toString();
         
 };
 

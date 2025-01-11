@@ -2,8 +2,14 @@
 #include <vector>
 #include <unordered_map>
 #include <limits>
+#include "logger.h"
 #include "agent/pathing.h"
 #include "pathing.h"
+
+
+void Pathing::log(std::string message) {
+    Logger::getInstance().log("Pathing -> " + message);
+}
 
 float Pathing::getCost(GameTile &neighbor) {
     if (config.pathingHeuristics == SHORTEST_DISTANCE) {
@@ -12,19 +18,20 @@ float Pathing::getCost(GameTile &neighbor) {
 
     if (config.pathingHeuristics == LEAST_ENERGY) {
         // Loss calculation for each step
-        int energyLoss = neighbor.getEnergy();
-        if (energyLoss < -10) {
+        int energyGain = neighbor.getEnergy();
+        // log(neighbor.toString() + "'s energy - " + std::to_string(energyGain));
+        if (energyGain < -10) {
             // log("Capping the -ve energy loss to -10" + std::to_string(energyLoss));
-            energyLoss = -10;
-        } else if (energyLoss > 10) {
-            energyLoss = 10;
+            energyGain = -10;
+        } else if (energyGain > 10) {
+            energyGain = 10;
         }
 
         if (neighbor.getLastKnownTileType() == TileType::NEBULA) {
-            energyLoss -= 10;
+            energyGain -= 10;
         }
 
-        return 11 - energyLoss;
+        return 10 + 4 - energyGain; // EnergyGainOffset + UnitMoveCost - EnergyGainInNewTile
     }
 
     throw std::runtime_error("Unknown heuristic to compute distance");
@@ -52,6 +59,11 @@ void Pathing::findAllPaths(GameTile &startTile) {
         auto [currentDistance, currentTile] = pq.top();
         pq.pop();
 
+        // Skip if the current distance is greater than the recorded distance
+        if (currentDistance > distances[currentTile].first) {
+            continue;
+        }
+
         // Record this tile if it is explored
         if (config.captureUnexploredTileDestinations && !currentTile->isExplored()) {
             unexploredDestinations.push({currentDistance, currentTile});
@@ -69,11 +81,6 @@ void Pathing::findAllPaths(GameTile &startTile) {
 
         if (config.captureVantagePointTileDestinations && currentTile->isVantagePoint()) {
             vantagePointDestinations.push({currentDistance, currentTile});
-        }
-
-        // Skip if the current distance is greater than the recorded distance
-        if (currentDistance > distances[currentTile].first) {
-            continue;
         }
 
         //Do not explore further if the tile is unexplored and the config is set to stop at unexplored tiles
@@ -108,7 +115,10 @@ void Pathing::findAllPaths(GameTile &startTile) {
 
             GameTile& neighbor = std::get<1>(result);
 
-            int newDistance = currentDistance + getCost(neighbor);
+            int neighborCost = getCost(neighbor);
+            int newDistance = currentDistance + neighborCost;
+
+            // log("distance from " + currentTile->toString() + " to " + neighbor.toString() + " is " + std::to_string(neighborCost));
 
             // If a shorter path to the neighbor is found
             if (newDistance < distances[&neighbor].first) {

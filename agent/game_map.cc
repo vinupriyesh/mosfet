@@ -190,3 +190,7 @@ void GameTile::setEnergy(int energyValue, int time) {
 int GameTile::getEnergy() {
     return energy;
 }
+
+std::string GameTile::toString() {
+    return "(" + std::to_string(x) + "," + std::to_string(y) + ")";
+}

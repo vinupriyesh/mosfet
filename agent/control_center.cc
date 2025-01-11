@@ -138,7 +138,7 @@ void ControlCenter::update(GameState& gameState) {
         for (int j = 0; j < gameEnvConfig->mapWidth; ++j) {
             GameTile& currentTile = gameMap->getTile(i, j);
             currentTile.setType(gameState.obs.mapFeatures.tileType[i][j], currentStep);
-            currentTile.setEnergy(gameState.obs.mapFeatures.tileType[i][j], currentStep);
+            currentTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], currentStep);
 
             if (gameState.obs.sensorMask[i][j]) {
                 currentTile.setExplored(true, currentStep);
@@ -247,6 +247,9 @@ void ControlCenter::update(GameState& gameState) {
 ControlCenter::ControlCenter() {
     // Empty constructor
     log("Starting the game");
+    shuttles = nullptr;
+    opponentShuttles = nullptr;
+    relics = nullptr;
 }
 
 ControlCenter::~ControlCenter() {
