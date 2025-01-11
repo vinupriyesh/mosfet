@@ -16,19 +16,26 @@ ControlCenter* cc = new ControlCenter();
 
 void process(std::string& input, int counter) {
     std::getline(std::cin, input);
-        log("Input --> " + input);
 
-        json jsonObject = json::parse(input);
-        GameState gameState = jsonObject.get<GameState>();
+    auto start = std::chrono::high_resolution_clock::now();
 
-        cc->update(gameState);        
-        std::vector<std::vector<int>> results = cc->act();
-        
-        json json_results = {{"action", results}};
-        log("Output --> " + json_results.dump());
-        std::cout << json_results.dump() << std::endl;
-        std::cerr.flush();
-        std::cout.flush();        
+    log("Input --> " + input);
+
+    json jsonObject = json::parse(input);
+    GameState gameState = jsonObject.get<GameState>();
+
+    cc->update(gameState);        
+    std::vector<std::vector<int>> results = cc->act();
+    
+    json json_results = {{"action", results}};
+    log("Output --> " + json_results.dump());
+    std::cout << json_results.dump() << std::endl;
+    std::cerr.flush();
+    std::cout.flush();
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);            
+    Metrics::getInstance().add("step_duration", duration.count());
 }
 
 void parseConfig(const std::string& filename, std::map<std::string, std::string>& configMap) {
@@ -75,14 +82,8 @@ int main(int argc, char* argv[]) {
     int counter = 0;
 
     while (true) {
-        try{
-            auto start = std::chrono::high_resolution_clock::now();
-
-            process(input, counter++);
-            
-            auto end = std::chrono::high_resolution_clock::now();
-            auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);            
-            Metrics::getInstance().add("step_duration", duration.count());
+        try{            
+            process(input, counter++);                        
         } catch (const std::exception& e) {
             log("Exception caught: " + std::string(e.what()));
             std::cerr << "Fatal:" << e.what() << std::endl;

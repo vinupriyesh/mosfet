@@ -12,6 +12,7 @@ void ControlCenter::log(std::string message) {
  * Initialize the control center object.  This is invoked during the first update.
  */
 void ControlCenter::init(GameState& gameState) {
+    auto start = std::chrono::high_resolution_clock::now();
     log("Initializing the control center");
     
     gameEnvConfig = new GameEnvConfig(gameState);
@@ -32,7 +33,10 @@ void ControlCenter::init(GameState& gameState) {
     gameMap = new GameMap(gameEnvConfig->mapWidth, gameEnvConfig->mapHeight);
 
     haloConstraints = new ConstraintSet();
-    log("Initialization complete");
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    log("Initialization complete " + std::to_string(duration.count()));
 }
 
 /**
@@ -40,6 +44,7 @@ void ControlCenter::init(GameState& gameState) {
  */
 void ControlCenter::update(GameState& gameState) {
 
+    auto start = std::chrono::high_resolution_clock::now();
     if (shuttles == nullptr) {
         init(gameState);
     }
@@ -233,6 +238,10 @@ void ControlCenter::update(GameState& gameState) {
         std::cerr<<"Problem: Team points delta < vantage points occupied"<<std::endl;
     }
 
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    Metrics::getInstance().add("update_duration", duration.count());
 }
 
 ControlCenter::ControlCenter() {
@@ -251,6 +260,7 @@ ControlCenter::~ControlCenter() {
 
 
 std::vector<std::vector<int>> ControlCenter::act() {
+    auto start = std::chrono::high_resolution_clock::now();
     log("--- Acting step " + std::to_string(currentStep) + "/" + std::to_string(currentMatchStep) + " ---");
     std::vector<std::vector<int>> results;
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
@@ -265,5 +275,9 @@ std::vector<std::vector<int>> ControlCenter::act() {
         send_game_data(shuttles, opponentShuttles, relics, gameEnvConfig, gameMap, Config::portPlayer1);
     }
     // std::cerr<< "test cc" << std::endl;
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    Metrics::getInstance().add("act_duration", duration.count());
     return results;
 }

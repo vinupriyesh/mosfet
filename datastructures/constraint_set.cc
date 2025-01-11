@@ -96,6 +96,7 @@ void ConstraintSet::pruneConstratins() {
 }
 
 void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) {
+    auto start = std::chrono::high_resolution_clock::now();
     log("Entry constraint with points value " + std::to_string(pointsValue) + " and halo point set" + setToString(haloPointSet));
 
     auto it = haloPointSet.begin();
@@ -119,6 +120,10 @@ void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) 
     pruneConstratins();
 
     Metrics::getInstance().add("constraint_set_size", masterSet.size());
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);  
+    Metrics::getInstance().add("add_constraint_duration", duration.count());
 }
 
 void ConstraintSet::addConstraint(const ConstraintObservation& observation) {

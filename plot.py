@@ -75,10 +75,17 @@ def prepare_charts(df):
     # Relic exploration
     images = create_heading("Relic Exploration", json_data)
     plot(df, images, "constraint_set_size", "size")
+    plot(df, images, 'add_constraint_duration', "micro seconds")
     
     # Relic exploitation
     images = create_heading("Relic Exploitation", json_data)
     plot(df, images, "unexploited_vantage_points")
+
+    # Timing
+    images = create_heading("Timing", json_data)
+    plot(df, images, "visualizer_overhead", "ms")
+    plot(df, images, "act_duration", "ms")
+    plot(df, images, "update_duration", "micro seconds")
 
     return json.dumps(json_data, indent=4)
 

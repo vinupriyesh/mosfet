@@ -89,6 +89,7 @@ std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic,
 }
 
 int send_game_data(Shuttle** shuttle, Shuttle** enemyShuttle, Relic** relic, GameEnvConfig* gameEnvConfig, GameMap* gameMap, int port) {
+     auto start = std::chrono::high_resolution_clock::now();
     std::string url = "http://localhost:" + std::to_string(port) + "/";
     std::string data = get_data(shuttle, enemyShuttle, relic, gameEnvConfig, gameMap);
     std::string command = "curl -s --request POST --url " + url + " --header 'content-type: application/json' --data '"+ data + "'";
@@ -100,6 +101,8 @@ int send_game_data(Shuttle** shuttle, Shuttle** enemyShuttle, Relic** relic, Gam
     } catch (const std::exception& e) {
         Logger::getInstance().log("Exception while sending live play data: " + std::string(e.what()));
     }
-
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);  
+    Metrics::getInstance().add("visualizer_overhead", duration.count());
     return 0;
 }

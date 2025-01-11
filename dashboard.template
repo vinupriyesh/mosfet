@@ -15,17 +15,24 @@
         .image-row {
             display: flex;
             flex-wrap: wrap;
-            justify-content: center;
+            justify-content: flex-start;
         }
         .image-item {
             flex: 1 1 45%;
             margin: 10px;
             text-align: center;
+            box-sizing: border-box;
         }
         .image-item img {
-            max-width: 100%;
+            width: 100%;
             height: auto;
             border: 1px solid #ccc;
+        }
+        .image-row::after {
+            content: '';
+            flex: 1 1 45%; /* Ensures the right side remains empty */
+            margin: 10px;
+            box-sizing: border-box;
         }
         h1, h2 {
             text-align: center;

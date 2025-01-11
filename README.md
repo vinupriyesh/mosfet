@@ -23,3 +23,7 @@ pip3 install --upgrade luxai-s3
 
 `submit.sh` or
 `tar -czvf submission.tar.gz *`
+
+## Some problematic seeds
+
+- 20060, 13570, 27989 - incorrect vantage point discovery
