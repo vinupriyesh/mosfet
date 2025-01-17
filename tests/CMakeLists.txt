@@ -21,11 +21,13 @@ target_link_libraries(test_parser gtest gtest_main nlohmann_json::nlohmann_json)
 # Add test executable for test_pathing
 # Locate all .cc files in the given directories
 file(GLOB AGENT_SOURCES ${PROJECT_SOURCE_DIR}/../agent/*.cc)
+file(GLOB AGENT_ROLES_SOURCES ${PROJECT_SOURCE_DIR}/../agent/roles/*.cc)
+file(GLOB AGENT_PLANNING_SOURCES ${PROJECT_SOURCE_DIR}/../agent/planning/*.cc)
 file(GLOB DATASTRUCTURE_SOURCES ${PROJECT_SOURCE_DIR}/../datastructures/*.cc)
 file(GLOB VISUALIZER_SOURCES ${PROJECT_SOURCE_DIR}/../visualizer/*.cc)
 
 # Add the executable with all the source files
-add_executable(test_pathing test_pathing.cc ${AGENT_SOURCES} ${DATASTRUCTURE_SOURCES} ${VISUALIZER_SOURCES} ${PROJECT_SOURCE_DIR}/../parser.cc ${PROJECT_SOURCE_DIR}/../config.cc)
+add_executable(test_pathing test_pathing.cc ${AGENT_SOURCES}  ${AGENT_ROLES_SOURCES} ${AGENT_PLANNING_SOURCES} ${DATASTRUCTURE_SOURCES} ${VISUALIZER_SOURCES} ${PROJECT_SOURCE_DIR}/../parser.cc ${PROJECT_SOURCE_DIR}/../config.cc)
 
 target_link_libraries(test_pathing gtest gtest_main pthread)
 

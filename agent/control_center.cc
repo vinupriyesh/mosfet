@@ -3,6 +3,7 @@
 #include "logger.h"
 #include "visualizer/visualizer_client.h"
 #include "config.h"
+#include "agent/planning/planner.h"
 
 void ControlCenter::log(std::string message) {
     Logger::getInstance().log("ControlCenter -> " + message);
@@ -33,6 +34,7 @@ void ControlCenter::init(GameState& gameState) {
     gameMap = new GameMap(gameEnvConfig->mapWidth, gameEnvConfig->mapHeight);
 
     haloConstraints = new ConstraintSet();
+    planner = new Planner(shuttles);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -244,6 +246,16 @@ void ControlCenter::update(GameState& gameState) {
     Metrics::getInstance().add("update_duration", duration.count());
 }
 
+void ControlCenter::plan() {
+    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+        shuttles[i]->computePath();
+    }
+
+    
+
+    planner->plan();
+}
+
 ControlCenter::ControlCenter() {
     // Empty constructor
     log("Starting the game");
@@ -259,6 +271,7 @@ ControlCenter::~ControlCenter() {
     }
     delete[] shuttles;
     delete haloConstraints;
+    delete planner;
 }
 
 

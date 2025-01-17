@@ -20,6 +20,13 @@ struct PathingConfig {
     bool captureUnexploredTileDestinations; // Captures unexplored tiles destinations
     bool captureUnVisitedTileDestinations; // Captures unvisited tiles destinations
     bool captureVantagePointTileDestinations; // Captures vantage point tiles destinations
+
+    void captureEverything() {
+        captureHaloTileDestinations = true;
+        captureUnexploredTileDestinations = true;
+        captureUnVisitedTileDestinations = true;
+        captureVantagePointTileDestinations = true;
+    }
 };
 
 class PathingBase {

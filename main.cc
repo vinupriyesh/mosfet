@@ -32,7 +32,8 @@ void process(std::string& input, int counter) {
     json jsonObject = json::parse(input);
     GameState gameState = jsonObject.get<GameState>();
 
-    cc->update(gameState);        
+    cc->update(gameState);
+    cc->plan();
     std::vector<std::vector<int>> results = cc->act();
     
     json json_results = {{"action", results}};

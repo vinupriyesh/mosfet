@@ -34,9 +34,14 @@ FetchContent_MakeAvailable(googletest)
 # Add the tests directory
 add_subdirectory(tests)
 
+file(GLOB AGENT_SOURCES ${PROJECT_SOURCE_DIR}/agent/*.cc)
+file(GLOB AGENT_ROLES_SOURCES ${PROJECT_SOURCE_DIR}/agent/roles/*.cc)
+file(GLOB AGENT_PLANNING_SOURCES ${PROJECT_SOURCE_DIR}/agent/planning/*.cc)
+file(GLOB VISUALIZER_SOURCES ${PROJECT_SOURCE_DIR}/visualizer/*.cc)
+file(GLOB DATASTRUCTURE_SOURCES ${PROJECT_SOURCE_DIR}/datastructures/*.cc)
+
 # Add your executable
-add_executable(mosfet main.cc parser.cc config.cc agent/control_center.cc agent/shuttle.cc agent/relic.cc agent/game_map.cc
-               agent/pathing.cc visualizer/visualizer_client.cc datastructures/constraint_set.cc)
+add_executable(mosfet main.cc parser.cc config.cc ${AGENT_SOURCES} ${AGENT_ROLES_SOURCES} ${AGENT_PLANNING_SOURCES} ${VISUALIZER_SOURCES} ${DATASTRUCTURE_SOURCES})
 
 # Include directories for header files
 target_include_directories(mosfet PUBLIC ${PROJECT_SOURCE_DIR})

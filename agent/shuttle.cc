@@ -2,7 +2,6 @@
 
 #include "shuttle.h"
 #include "control_center.h"
-#include "pathing.h"
 #include "game_map.h"
 
 #include <tuple>
@@ -43,6 +42,32 @@ int Shuttle::getY() {
     return position[1];
 }
 
+void Shuttle::computePath() {
+
+    if (!visible) {
+        log("Not visible to do anything");
+        return;
+    }
+
+    auto start = std::chrono::high_resolution_clock::now();
+
+    if (pathing != nullptr) {
+        delete pathing;
+    }
+
+    PathingConfig config = {};
+    config.pathingHeuristics = LEAST_ENERGY;
+    config.captureEverything();
+
+    GameTile& startTile = this->cc->gameMap->getTile(position[0], position[1]);
+    pathing = new Pathing(cc->gameMap, config);
+    pathing->findAllPaths(startTile);
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    Metrics::getInstance().add("pathing_duration", duration.count());
+}
+
 Shuttle::Shuttle(int id, ShuttleType type, ControlCenter* cc) {
     this->id = id;
     this->visible = false;
@@ -53,6 +78,23 @@ Shuttle::Shuttle(int id, ShuttleType type, ControlCenter* cc) {
     std::random_device rd;
     gen = std::mt19937(rd()); // Initialize the random number generator 
     dis = std::uniform_int_distribution<>(0, 4); // Initialize the distribution with the range
+
+    pathing = nullptr;
+
+    //Populating Agent role classes
+
+    // Explorers
+    agentRoles["HaloNodeExplorerAgentRole"] = new HaloNodeExplorerAgentRole(this);
+    agentRoles["TrailblazerAgentRole"] = new TrailblazerAgentRole(this);
+
+    // Navigators
+    agentRoles["RelicMiningNavigatorAgentRole"] = new RelicMiningNavigatorAgentRole(this);
+
+    // Miners
+    agentRoles["RelicMinerAgentRole"] = new RelicMinerAgentRole(this);
+
+    // Random
+    agentRoles["RandomAgentRole"] = new RandomAgentRole(this);
 }
 
 

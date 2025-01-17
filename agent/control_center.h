@@ -8,11 +8,12 @@
 #include "agent/game_map.h"
 #include "agent/shuttle.h"
 #include "datastructures/constraint_set.h"
+#include "agent/planning/planner.h"
 #include <vector>
 #include <string>
 
 class Shuttle; //Forward declaration
-
+class Planner; //Forward declaration
 
 struct GameEnvConfig {
     std::string playerName;
@@ -60,7 +61,8 @@ struct GameEnvConfig {
 
 class ControlCenter {
 private:
-    ConstraintSet* haloConstraints;       
+    ConstraintSet* haloConstraints = nullptr; 
+    Planner* planner = nullptr;      
 
     // dynamic objects
     Shuttle** shuttles; 
@@ -96,6 +98,7 @@ public:
     ControlCenter();
     ~ControlCenter();
     void update(GameState &gameState);
+    void plan();
     std::vector<std::vector<int>> act();
 };
 
