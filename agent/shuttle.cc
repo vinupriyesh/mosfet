@@ -42,17 +42,24 @@ int Shuttle::getY() {
     return position[1];
 }
 
+GameTile *Shuttle::getTileAtPosition() {
+    if (this->cc->gameMap->isValidTile(position[0], position[1])) {
+        return &this->cc->gameMap->getTile(position[0], position[1]);
+    } else {
+        return nullptr;
+    }
+}
+
 void Shuttle::computePath() {
 
     if (!visible) {
-        log("Not visible to do anything");
         return;
     }
 
     auto start = std::chrono::high_resolution_clock::now();
 
-    if (pathing != nullptr) {
-        delete pathing;
+    if (leastEnergyPathing != nullptr) {
+        delete leastEnergyPathing;
     }
 
     PathingConfig config = {};
@@ -60,12 +67,32 @@ void Shuttle::computePath() {
     config.captureEverything();
 
     GameTile& startTile = this->cc->gameMap->getTile(position[0], position[1]);
-    pathing = new Pathing(cc->gameMap, config);
-    pathing->findAllPaths(startTile);
+    leastEnergyPathing = new Pathing(cc->gameMap, config);
+    leastEnergyPathing->findAllPaths(startTile);
+
+    for (const auto& pair : agentRoles) {
+        pair.second->setLeastEnergyPathing(leastEnergyPathing);
+    }
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     Metrics::getInstance().add("pathing_duration", duration.count());
+}
+
+void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
+
+    if (!visible) {
+        return;
+    }
+
+    log("Iterating plan - " + std::to_string(planIteration));
+    for (const auto& pair : agentRoles) {
+        log("Checking role possibility " + pair.first);
+        if (pair.second->isRolePossible()) {
+            log("Role possible " + pair.first);
+            pair.second->iteratePlan(planIteration, communicator);
+        }
+    }
 }
 
 Shuttle::Shuttle(int id, ShuttleType type, ControlCenter* cc) {
@@ -79,22 +106,26 @@ Shuttle::Shuttle(int id, ShuttleType type, ControlCenter* cc) {
     gen = std::mt19937(rd()); // Initialize the random number generator 
     dis = std::uniform_int_distribution<>(0, 4); // Initialize the distribution with the range
 
-    pathing = nullptr;
+    leastEnergyPathing = nullptr;
 
     //Populating Agent role classes
 
+    log("Going to create explorer roles");
     // Explorers
-    agentRoles["HaloNodeExplorerAgentRole"] = new HaloNodeExplorerAgentRole(this);
-    agentRoles["TrailblazerAgentRole"] = new TrailblazerAgentRole(this);
+    agentRoles["HaloNodeExplorerAgentRole"] = new HaloNodeExplorerAgentRole(this, cc);
+    log("HaloNodeExplorerAgentRole done");
+    agentRoles["TrailblazerAgentRole"] = new TrailblazerAgentRole(this, cc);
 
     // Navigators
-    agentRoles["RelicMiningNavigatorAgentRole"] = new RelicMiningNavigatorAgentRole(this);
+    agentRoles["RelicMiningNavigatorAgentRole"] = new RelicMiningNavigatorAgentRole(this, cc);
 
     // Miners
-    agentRoles["RelicMinerAgentRole"] = new RelicMinerAgentRole(this);
+    agentRoles["RelicMinerAgentRole"] = new RelicMinerAgentRole(this, cc);
 
     // Random
-    agentRoles["RandomAgentRole"] = new RandomAgentRole(this);
+    agentRoles["RandomAgentRole"] = new RandomAgentRole(this, cc);
+
+    log("Shuttle instance created");
 }
 
 

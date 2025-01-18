@@ -9,10 +9,12 @@
 #include "agent/control_center.h"
 #include "agent/pathing.h"
 #include "agent/roles/agent_role.h"
+#include "agent/roles/communicator.h"
 
 
 class ControlCenter; // Forward declaration
 class GameMap; // Forward declaration
+class AgentRole; //Forward declaration
 
 enum ShuttleType {
     player,
@@ -35,7 +37,7 @@ private:
     std::map<std::string, AgentRole*> agentRoles;
 
     //Transients
-    Pathing* pathing;    
+    Pathing* leastEnergyPathing;    
 
 public:
     int id;
@@ -52,7 +54,10 @@ public:
     int getX();
     int getY();
 
+    GameTile* getTileAtPosition();
+
     void computePath();
+    void iteratePlan(int planIteration, Communicator& communicator);
 
     Shuttle(int id, ShuttleType type, ControlCenter* cc);    
     ~Shuttle();

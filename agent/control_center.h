@@ -9,6 +9,7 @@
 #include "agent/shuttle.h"
 #include "datastructures/constraint_set.h"
 #include "agent/planning/planner.h"
+#include "agent/roles/communicator.h"
 #include <vector>
 #include <string>
 

@@ -23,3 +23,11 @@ pip3 install --upgrade luxai-s3
 
 `submit.sh` or
 `tar -czvf submission.tar.gz *`
+
+## To fix
+
+- Why Shuttle needs CC?  Why agent role needs CC? Fix it by separating data and control logic.
+- There should only be the following data objects
+  - gameMap
+  - gameEnvConfigs (global)
+  - gameState (Can be inside gameMap)

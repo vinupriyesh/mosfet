@@ -31,6 +31,7 @@ void ControlCenter::init(GameState& gameState) {
         relics[i] = new Relic(i);     
     }
 
+    log("creating GameMap");
     gameMap = new GameMap(gameEnvConfig->mapWidth, gameEnvConfig->mapHeight);
 
     haloConstraints = new ConstraintSet();
@@ -247,8 +248,11 @@ void ControlCenter::update(GameState& gameState) {
 }
 
 void ControlCenter::plan() {
+    int planIteration = 0;
+    Communicator communicator;
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
         shuttles[i]->computePath();
+        shuttles[i]->iteratePlan(planIteration, communicator);
     }
 
     
