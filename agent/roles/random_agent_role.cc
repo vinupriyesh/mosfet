@@ -1,6 +1,6 @@
 #include "agent_role.h"
 
-RandomAgentRole::RandomAgentRole(Shuttle *shuttle, ControlCenter *cc) : AgentRole(shuttle, cc) {
+RandomAgentRole::RandomAgentRole(Shuttle *shuttle, GameMap& gameMap) : AgentRole(shuttle, gameMap) {
     roleClassName = "RandomAgentRole";
     std::random_device rd;
     gen = std::mt19937(rd()); // Initialize the random number generator 

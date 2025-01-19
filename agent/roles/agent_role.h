@@ -4,17 +4,16 @@
 #include "logger.h"
 #include "metrics.h"
 #include "agent/shuttle.h"
-#include "agent/control_center.h"
+#include "agent/game_map.h"
+#include "game_env_config.h"
 #include "agent/pathing.h"
 #include "agent/roles/communicator.h"
-
-class ControlCenter; // Forward declaration
 
 class AgentRole {
     protected:
         std::string roleClassName;
         bool unableToAct = false;
-        ControlCenter* cc;
+        GameMap& gameMap;
         Shuttle* shuttle;
         Pathing* leastEnergyPathing;
         Pathing* leastEnergyPathingStopAtHaloTiles;
@@ -28,7 +27,7 @@ class AgentRole {
         void setLeastEnergyPathingStopAtHaloTiles(Pathing *leastEnergyPathingStopAtHaloTiles);
         void setLeastEnergyPathingStopAtVantagePoints(Pathing *leastEnergyPathingStopAtVantagePoints);
         Direction getDirectionTo(const GameTile &destinationTile);
-        AgentRole(Shuttle *shuttle, ControlCenter *cc);
+        AgentRole(Shuttle *shuttle, GameMap& gamemap);
         void reset();
         virtual bool isRolePossible() = 0;
         virtual void iteratePlan(int planIteration, Communicator& communicator) = 0;
@@ -47,7 +46,7 @@ class NavigatorAgentRole: public AgentRole {
 class RelicMinerAgentRole : public AgentRole {
     public:
         using AgentRole::AgentRole;
-        RelicMinerAgentRole(Shuttle *shuttle, ControlCenter *cc);
+        RelicMinerAgentRole(Shuttle *shuttle, GameMap& gamemap);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
@@ -56,7 +55,7 @@ class RelicMinerAgentRole : public AgentRole {
 class RelicMiningNavigatorAgentRole: public NavigatorAgentRole {
     public:
         using NavigatorAgentRole::NavigatorAgentRole;
-        RelicMiningNavigatorAgentRole(Shuttle *shuttle, ControlCenter *cc);
+        RelicMiningNavigatorAgentRole(Shuttle *shuttle, GameMap& gamemap);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
@@ -69,7 +68,7 @@ class HaloNodeExplorerAgentRole: public ExplorerAgentRole {
 
     public:
         using ExplorerAgentRole::ExplorerAgentRole;
-        HaloNodeExplorerAgentRole(Shuttle *shuttle, ControlCenter *cc);
+        HaloNodeExplorerAgentRole(Shuttle *shuttle, GameMap& gamemap);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
@@ -78,7 +77,7 @@ class HaloNodeExplorerAgentRole: public ExplorerAgentRole {
 class HaloNodeNavigatorAgentRole: public NavigatorAgentRole {
     public:
         using NavigatorAgentRole::NavigatorAgentRole;
-        HaloNodeNavigatorAgentRole(Shuttle *shuttle, ControlCenter *cc);
+        HaloNodeNavigatorAgentRole(Shuttle *shuttle, GameMap& gamemap);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
@@ -87,7 +86,7 @@ class HaloNodeNavigatorAgentRole: public NavigatorAgentRole {
 class TrailblazerAgentRole: public ExplorerAgentRole {
     public:
         using ExplorerAgentRole::ExplorerAgentRole;
-        TrailblazerAgentRole(Shuttle *shuttle, ControlCenter *cc);
+        TrailblazerAgentRole(Shuttle *shuttle, GameMap& gamemap);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
@@ -99,7 +98,7 @@ class RandomAgentRole: public AgentRole {
         std::uniform_int_distribution<> dis; // Uniform distribution
     public:
         using AgentRole::AgentRole;
-        RandomAgentRole(Shuttle *shuttle, ControlCenter *cc);
+        RandomAgentRole(Shuttle *shuttle, GameMap& gamemap);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;

@@ -97,7 +97,7 @@ void ConstraintSet::pruneConstratins() {
 
 void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) {
     auto start = std::chrono::high_resolution_clock::now();
-    log("Entry constraint with points value " + std::to_string(pointsValue) + " and halo point set" + setToString(haloPointSet));
+    log("Entering constraint with points value " + std::to_string(pointsValue) + " and halo point set" + setToString(haloPointSet));
 
     auto it = haloPointSet.begin();
     while (it != haloPointSet.end()) {

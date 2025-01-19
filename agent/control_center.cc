@@ -19,21 +19,21 @@ void ControlCenter::init(GameState& gameState) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     gameEnvConfig.init(gameState);
 
-    // Shuttles (player and opponent).  This is created once and reused.
-    shuttles = new Shuttle*[gameEnvConfig.maxUnits];
-    opponentShuttles = new Shuttle*[gameEnvConfig.maxUnits];
-    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
-        shuttles[i] = new Shuttle(i, ShuttleType::player, this);
-        opponentShuttles[i] = new Shuttle(i, ShuttleType::opponent, this);
-    }
+    log("creating GameMap");
+    gameMap = new GameMap(gameEnvConfig.mapWidth, gameEnvConfig.mapHeight);
 
     relics = new Relic*[gameEnvConfig.relicCount];
     for (int i = 0; i < gameEnvConfig.relicCount; ++i) {
         relics[i] = new Relic(i);     
     }
 
-    log("creating GameMap");
-    gameMap = new GameMap(gameEnvConfig.mapWidth, gameEnvConfig.mapHeight);
+    // Shuttles (player and opponent).  This is created once and reused.
+    shuttles = new Shuttle*[gameEnvConfig.maxUnits];
+    opponentShuttles = new Shuttle*[gameEnvConfig.maxUnits];
+    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
+        shuttles[i] = new Shuttle(i, ShuttleType::player, *gameMap);
+        opponentShuttles[i] = new Shuttle(i, ShuttleType::opponent, *gameMap);
+    }
 
     haloConstraints = new ConstraintSet();
     planner = new Planner(shuttles);
@@ -54,7 +54,7 @@ void ControlCenter::update(GameState& gameState) {
     }
 
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
-    DerivedGameState state = gameMap->derivedGameState;
+    DerivedGameState& state = gameMap->derivedGameState;
 
     state.currentStep = gameState.obs.steps;
     state.currentMatchStep = gameState.obs.matchSteps;
@@ -253,15 +253,20 @@ void ControlCenter::update(GameState& gameState) {
 }
 
 void ControlCenter::plan() {
+    log("planning");
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    log("gameEnvConfig fetched");
     int planIteration = 0;
     Communicator communicator;
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
+        log("Surveying shuttle " + std::to_string(i));
         shuttles[i]->computePath();
+        log("Suverying shuttle 2");
         shuttles[i]->iteratePlan(planIteration, communicator);
     }
 
     planner->plan();
+    log("Planning complete");
 }
 
 ControlCenter::ControlCenter() {
@@ -287,7 +292,7 @@ std::vector<std::vector<int>> ControlCenter::act() {
     auto start = std::chrono::high_resolution_clock::now();
 
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
-    DerivedGameState state = gameMap->derivedGameState;
+    DerivedGameState& state = gameMap->derivedGameState;
 
     log("--- Acting step " + std::to_string(state.currentStep) + "/" + std::to_string(state.currentMatchStep) + " ---");
 

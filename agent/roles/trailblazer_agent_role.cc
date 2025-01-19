@@ -1,12 +1,12 @@
 #include "agent_role.h"
 
-TrailblazerAgentRole::TrailblazerAgentRole(Shuttle *shuttle, ControlCenter *cc) : ExplorerAgentRole(shuttle, cc){
+TrailblazerAgentRole::TrailblazerAgentRole(Shuttle *shuttle, GameMap& gameMap) : ExplorerAgentRole(shuttle, gameMap){
     roleClassName = "TrailblazerAgentRole";
 }
 
 bool TrailblazerAgentRole::isRolePossible()
 {
-    return !cc->gameMap->derivedGameState.allTilesExplored && !leastEnergyPathing->unexploredDestinations.empty();
+    return !gameMap.derivedGameState.allTilesExplored && !leastEnergyPathing->unexploredDestinations.empty();
 }
 
 void TrailblazerAgentRole::iteratePlan(int planIteration, Communicator &communicator) {

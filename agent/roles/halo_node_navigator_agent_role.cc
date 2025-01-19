@@ -1,6 +1,6 @@
 #include "agent_role.h"
 
-HaloNodeNavigatorAgentRole::HaloNodeNavigatorAgentRole(Shuttle *shuttle, ControlCenter *cc) : NavigatorAgentRole(shuttle, cc){
+HaloNodeNavigatorAgentRole::HaloNodeNavigatorAgentRole(Shuttle *shuttle, GameMap& gameMap) : NavigatorAgentRole(shuttle, gameMap){
     roleClassName = "HaloNodeNavigatorAgentRole";
 }
 
@@ -11,8 +11,8 @@ bool HaloNodeNavigatorAgentRole::isRolePossible()
     }
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     int totalTile = gameEnvConfig.mapHeight * gameEnvConfig.mapWidth;
-    float percentageExplored = static_cast<float>(this->cc->gameMap->derivedGameState.tilesExplored) / totalTile; 
-    return (cc->gameMap->derivedGameState.allRelicsFound || cc->gameMap->derivedGameState.allTilesExplored || percentageExplored >= 0.7) && !leastEnergyPathingStopAtHaloTiles->haloDestinations.empty();
+    float percentageExplored = static_cast<float>(gameMap.derivedGameState.tilesExplored) / totalTile; 
+    return (gameMap.derivedGameState.allRelicsFound || gameMap.derivedGameState.allTilesExplored || percentageExplored >= 0.7) && !leastEnergyPathingStopAtHaloTiles->haloDestinations.empty();
 }
 
 void HaloNodeNavigatorAgentRole::iteratePlan(int planIteration, Communicator &communicator) {

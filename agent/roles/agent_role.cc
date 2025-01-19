@@ -41,7 +41,7 @@ Direction AgentRole::getDirectionTo(const GameTile& destinationTile) {
     }
 }
 
-AgentRole::AgentRole(Shuttle* shuttle, ControlCenter* cc) : shuttle(shuttle), cc(cc), leastEnergyPathing(nullptr) {
+AgentRole::AgentRole(Shuttle* shuttle, GameMap& gameMap) : shuttle(shuttle), gameMap(gameMap), leastEnergyPathing(nullptr) {
     roleClassName = "AgentRole";
 }
 

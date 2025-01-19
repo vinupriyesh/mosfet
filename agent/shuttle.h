@@ -3,16 +3,15 @@
 
 #include <vector>
 #include <random>
+#include <map>
 
 #include "logger.h"
 #include "agent/game_map.h"
-#include "agent/control_center.h"
 #include "agent/pathing.h"
 #include "agent/roles/agent_role.h"
 #include "agent/roles/communicator.h"
 
 
-class ControlCenter; // Forward declaration
 class GameMap; // Forward declaration
 class AgentRole; //Forward declaration
 
@@ -28,7 +27,7 @@ private:
     bool ghost;
     ShuttleType type;    
     int energy;
-    ControlCenter* cc;
+    GameMap& gameMap;
 
     std::mt19937 gen; // Mersenne Twister random number generator 
     std::uniform_int_distribution<> dis; // Uniform distribution
@@ -63,7 +62,7 @@ public:
     void computePath();
     void iteratePlan(int planIteration, Communicator& communicator);
 
-    Shuttle(int id, ShuttleType type, ControlCenter* cc);    
+    Shuttle(int id, ShuttleType type, GameMap& gameMap);    
     ~Shuttle();
 };
 

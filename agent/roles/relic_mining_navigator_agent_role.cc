@@ -1,6 +1,6 @@
 #include "agent_role.h"
 
-RelicMiningNavigatorAgentRole::RelicMiningNavigatorAgentRole(Shuttle *shuttle, ControlCenter *cc) : NavigatorAgentRole(shuttle, cc) {
+RelicMiningNavigatorAgentRole::RelicMiningNavigatorAgentRole(Shuttle *shuttle, GameMap& gameMap) : NavigatorAgentRole(shuttle, gameMap) {
     roleClassName = "RelicMiningNavigatorAgentRole";
 }
 
@@ -9,7 +9,7 @@ bool RelicMiningNavigatorAgentRole::isRolePossible()
     if (unableToAct) {
         return false;
     }
-    int unexploitedVantagePoints = this->cc->gameMap->derivedGameState.vantagePointsFound - this->cc->gameMap->derivedGameState.vantagePointsOccupied;
+    int unexploitedVantagePoints = gameMap.derivedGameState.vantagePointsFound - gameMap.derivedGameState.vantagePointsOccupied;
     return unexploitedVantagePoints > 0 && !leastEnergyPathingStopAtVantagePoints->vantagePointDestinations.empty();
 }
 

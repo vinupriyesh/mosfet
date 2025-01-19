@@ -1,10 +1,6 @@
-#include <queue>
-#include <vector>
-#include <unordered_map>
+
 #include <limits>
-#include "logger.h"
 #include "agent/pathing.h"
-#include "pathing.h"
 
 
 void Pathing::log(std::string message) {

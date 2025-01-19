@@ -1,9 +1,6 @@
 #include <random>
 
 #include "shuttle.h"
-#include "control_center.h"
-#include "game_map.h"
-
 #include <tuple>
 
 
@@ -43,16 +40,17 @@ int Shuttle::getY() {
 }
 
 GameTile *Shuttle::getTileAtPosition() {
-    if (this->cc->gameMap->isValidTile(position[0], position[1])) {
-        return &this->cc->gameMap->getTile(position[0], position[1]);
+    if (gameMap.isValidTile(position[0], position[1])) {
+        return &gameMap.getTile(position[0], position[1]);
     } else {
         return nullptr;
     }
 }
 
 void Shuttle::computePath() {
-
+    log("Computing path");
     if (!visible) {
+        log("Retuning as shuttle is not visible");
         return;
     }
 
@@ -70,16 +68,19 @@ void Shuttle::computePath() {
         delete leastEnergyPathingStopAtVantagePoints;
     }
 
+    log("Staring to pathing");
+    GameTile& startTile = gameMap.getTile(position[0], position[1]);
+    log("Staring tile " + startTile.toString());
+
     // Pathing expored tiles
     PathingConfig config = {};
     config.pathingHeuristics = LEAST_ENERGY;
     config.captureEverything();
     config.stopAtUnexploredTiles = true;
 
-    GameTile& startTile = this->cc->gameMap->getTile(position[0], position[1]);
-    leastEnergyPathing = new Pathing(cc->gameMap, config);
+    leastEnergyPathing = new Pathing(&gameMap, config);
     leastEnergyPathing->findAllPaths(startTile);
-
+    log("First path complete");
 
     // Pathing halo tiles
     PathingConfig config2 = {};
@@ -87,16 +88,18 @@ void Shuttle::computePath() {
     config2.captureEverything();
     config2.stopAtHaloTiles= true;
 
-    leastEnergyPathingStopAtHaloTiles = new Pathing(cc->gameMap, config2);
+    leastEnergyPathingStopAtHaloTiles = new Pathing(&gameMap, config2);
     leastEnergyPathingStopAtHaloTiles->findAllPaths(startTile);
+    log("Second path complete");
 
     // Pathing capture vantage points
     PathingConfig config3 = {};
     config3.pathingHeuristics = LEAST_ENERGY;
     config3.captureEverything();
     config3.stopAtVantagePointTiles= true;
+    log("Third path complete");
 
-    leastEnergyPathingStopAtVantagePoints = new Pathing(cc->gameMap, config3);
+    leastEnergyPathingStopAtVantagePoints = new Pathing(&gameMap, config3);
     leastEnergyPathingStopAtVantagePoints->findAllPaths(startTile);
 
     for (const auto& pair : agentRoles) {
@@ -160,40 +163,37 @@ void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
     // log("decided the role");
 }
 
-Shuttle::Shuttle(int id, ShuttleType type, ControlCenter* cc) {
-    this->id = id;
+Shuttle::Shuttle(int id, ShuttleType type, GameMap& gameMap) : id(id), type(type), gameMap(gameMap) {
     this->visible = false;
-    this->type = type;
-    this->cc = cc;
     this->ghost = false;
 
     leastEnergyPathing = nullptr;
 
     //Populating Agent role classes
 
-    log("Going to create explorer roles");
+    // log("Going to create explorer roles");
     // Explorers
-    agentRoles["HaloNodeExplorerAgentRole"] = new HaloNodeExplorerAgentRole(this, cc);
-    agentRoles["TrailblazerAgentRole"] = new TrailblazerAgentRole(this, cc);
+    agentRoles["HaloNodeExplorerAgentRole"] = new HaloNodeExplorerAgentRole(this, gameMap);
+    agentRoles["TrailblazerAgentRole"] = new TrailblazerAgentRole(this, gameMap);
 
     // Navigators
-    agentRoles["RelicMiningNavigatorAgentRole"] = new RelicMiningNavigatorAgentRole(this, cc);
-    agentRoles["HaloNodeNavigatorAgentRole"] = new HaloNodeNavigatorAgentRole(this, cc);
+    agentRoles["RelicMiningNavigatorAgentRole"] = new RelicMiningNavigatorAgentRole(this, gameMap);
+    agentRoles["HaloNodeNavigatorAgentRole"] = new HaloNodeNavigatorAgentRole(this, gameMap);
 
     // Miners
-    agentRoles["RelicMinerAgentRole"] = new RelicMinerAgentRole(this, cc);
+    agentRoles["RelicMinerAgentRole"] = new RelicMinerAgentRole(this, gameMap);
 
     // Random
-    agentRoles["RandomAgentRole"] = new RandomAgentRole(this, cc);
+    agentRoles["RandomAgentRole"] = new RandomAgentRole(this, gameMap);
 
-    log("Shuttle instance created");
+    // log("Shuttle instance created");
 }
 
 
 bool Shuttle::isTileUnvisited(Direction direction) {
-    GameTile& shuttleTile = this->cc->gameMap->getTile(position[0], position[1]);
+    GameTile& shuttleTile = gameMap.getTile(position[0], position[1]);
 
-    std::tuple<bool, GameTile&> result = this->cc->gameMap->isMovable(shuttleTile, direction);
+    std::tuple<bool, GameTile&> result = gameMap.isMovable(shuttleTile, direction);
     bool movable = std::get<0>(result);    
     GameTile& toTile = std::get<1>(result);
     
