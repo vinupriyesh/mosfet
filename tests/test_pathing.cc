@@ -41,7 +41,7 @@ TEST_F(PathingTest, FindAllPaths) {
     config.stopAtUnexploredTiles = false;
     config.captureUnexploredTileDestinations = false;
 
-    Pathing* pathing = new Pathing(gameMap, config);
+    Pathing* pathing = new Pathing(*gameMap, config);
     GameTile* startTile = &gameMap->getTile(0, 0);
     pathing->findAllPaths(*startTile);
     auto distances = pathing->distances;
@@ -70,7 +70,7 @@ TEST_F(PathingTest, FindAllPathsWithStopAtExploredTiles) {
     config.stopAtUnexploredTiles = false;
     config.captureUnexploredTileDestinations = false;
 
-    Pathing* pathing = new Pathing(gameMap, config);
+    Pathing* pathing = new Pathing(*gameMap, config);
 
     // Mark some tiles as explored
     gameMap->getTile(0, 0).setExplored(true, 0);
@@ -110,7 +110,7 @@ TEST_F(PathingTest, FindLeastEnergyPath) {
     config.stopAtUnexploredTiles = false;
     config.captureUnexploredTileDestinations = false;
 
-    Pathing* pathing = new Pathing(cc->gameMap, config);
+    Pathing* pathing = new Pathing(*cc->gameMap, config);
 
     GameTile* startTile = &cc->gameMap->getTile(11, 3);
     pathing->findAllPaths(*startTile);

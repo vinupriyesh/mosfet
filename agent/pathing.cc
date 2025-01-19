@@ -24,10 +24,10 @@ float Pathing::getCost(GameTile &neighbor) {
         }
 
         if (neighbor.getLastKnownTileType() == TileType::NEBULA) {
-            energyGain -= 10;
+            energyGain -= GameEnvConfig::getInstance().nebulaTileEnergyReduction;
         }
 
-        return 10 + 4 - energyGain; // EnergyGainOffset + UnitMoveCost - EnergyGainInNewTile
+        return 10 + GameEnvConfig::getInstance().unitMoveCost - energyGain; // EnergyGainOffset + UnitMoveCost - EnergyGainInNewTile
     }
 
     throw std::runtime_error("Unknown heuristic to compute distance");
@@ -39,9 +39,9 @@ void Pathing::findAllPaths(GameTile &startTile) {
 
 
     // Initialize distances to infinity and paths to empty
-    for (int y = 0; y < gameMap->height; ++y) {
-        for (int x = 0; x < gameMap->width; ++x) {
-            GameTile& tile = gameMap->getTile(x, y);
+    for (int y = 0; y < gameMap.height; ++y) {
+        for (int x = 0; x < gameMap.width; ++x) {
+            GameTile& tile = gameMap.getTile(x, y);
             distances[&tile] = {std::numeric_limits<int>::max(), {}};
         }
     }
@@ -101,7 +101,7 @@ void Pathing::findAllPaths(GameTile &startTile) {
 
         // Explore neighbors
         for (Direction direction = Direction::UP; direction <= Direction::LEFT; ++direction) {
-            std::tuple<bool, GameTile&> result = gameMap->isMovable(*currentTile, direction);
+            std::tuple<bool, GameTile&> result = gameMap.isMovable(*currentTile, direction);
             bool movable = std::get<0>(result);
 
             // Skip if the tile is not movable

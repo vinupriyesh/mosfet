@@ -13,27 +13,14 @@ include_directories(${PROJECT_SOURCE_DIR})
 include_directories(${json_SOURCE_DIR}/include)
 include_directories(${PROJECT_SOURCE_DIR}/..)
 
+# Link the main project library
+add_executable(test_parser test_parser.cc)
+add_executable(test_pathing test_pathing.cc)
+add_executable(test_constraint_set test_constraint_set.cc)
 
-# Add test executable for test_parser
-add_executable(test_parser test_parser.cc ${PROJECT_SOURCE_DIR}/../parser.cc)
-target_link_libraries(test_parser gtest gtest_main nlohmann_json::nlohmann_json)
-
-# Add test executable for test_pathing
-# Locate all .cc files in the given directories
-file(GLOB AGENT_SOURCES ${PROJECT_SOURCE_DIR}/../agent/*.cc)
-file(GLOB AGENT_ROLES_SOURCES ${PROJECT_SOURCE_DIR}/../agent/roles/*.cc)
-file(GLOB AGENT_PLANNING_SOURCES ${PROJECT_SOURCE_DIR}/../agent/planning/*.cc)
-file(GLOB DATASTRUCTURE_SOURCES ${PROJECT_SOURCE_DIR}/../datastructures/*.cc)
-file(GLOB VISUALIZER_SOURCES ${PROJECT_SOURCE_DIR}/../visualizer/*.cc)
-
-# Add the executable with all the source files
-add_executable(test_pathing test_pathing.cc ${AGENT_SOURCES}  ${AGENT_ROLES_SOURCES} ${AGENT_PLANNING_SOURCES} ${DATASTRUCTURE_SOURCES} ${VISUALIZER_SOURCES} ${PROJECT_SOURCE_DIR}/../parser.cc ${PROJECT_SOURCE_DIR}/../config.cc)
-
-target_link_libraries(test_pathing gtest gtest_main pthread)
-
-# Add test executable for test_pathing
-add_executable(test_constraint_set test_constraint_set.cc ${PROJECT_SOURCE_DIR}/../datastructures/constraint_set.cc)
-target_link_libraries(test_constraint_set gtest gtest_main pthread)
+target_link_libraries(test_parser libmosfet nlohmann_json::nlohmann_json gtest gtest_main)
+target_link_libraries(test_pathing libmosfet pthread gtest gtest_main)
+target_link_libraries(test_constraint_set libmosfet pthread gtest gtest_main)
 
 # Enable testing
 enable_testing()

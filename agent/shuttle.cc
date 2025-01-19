@@ -78,7 +78,7 @@ void Shuttle::computePath() {
     config.captureEverything();
     config.stopAtUnexploredTiles = true;
 
-    leastEnergyPathing = new Pathing(&gameMap, config);
+    leastEnergyPathing = new Pathing(gameMap, config);
     leastEnergyPathing->findAllPaths(startTile);
     log("First path complete");
 
@@ -88,7 +88,7 @@ void Shuttle::computePath() {
     config2.captureEverything();
     config2.stopAtHaloTiles= true;
 
-    leastEnergyPathingStopAtHaloTiles = new Pathing(&gameMap, config2);
+    leastEnergyPathingStopAtHaloTiles = new Pathing(gameMap, config2);
     leastEnergyPathingStopAtHaloTiles->findAllPaths(startTile);
     log("Second path complete");
 
@@ -99,7 +99,7 @@ void Shuttle::computePath() {
     config3.stopAtVantagePointTiles= true;
     log("Third path complete");
 
-    leastEnergyPathingStopAtVantagePoints = new Pathing(&gameMap, config3);
+    leastEnergyPathingStopAtVantagePoints = new Pathing(gameMap, config3);
     leastEnergyPathingStopAtVantagePoints->findAllPaths(startTile);
 
     for (const auto& pair : agentRoles) {

@@ -7,6 +7,7 @@
 
 #include "logger.h"
 #include "agent/game_map.h"
+#include "game_env_config.h"
 #include "datastructures/iterable_priority_queue.h"
 
 
@@ -36,10 +37,10 @@ struct PathingConfig {
 
 class PathingBase {
     protected:
-        GameMap* gameMap;
+        GameMap& gameMap;
 
     public:
-        PathingBase(GameMap* gameMap): gameMap(gameMap) {};
+        PathingBase(GameMap& gameMap): gameMap(gameMap) {};
 
 };
 
@@ -79,7 +80,7 @@ class Pathing : public PathingBase {
          */
         std::unordered_map<GameTile*, std::pair<int, std::vector<GameTile*>>> distances;
 
-        Pathing(GameMap* gameMap, PathingConfig config): PathingBase(gameMap), config(config) {};
+        Pathing(GameMap& gameMap, PathingConfig config): PathingBase(gameMap), config(config) {};
 
         void log(std::string message);
 

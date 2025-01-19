@@ -22,6 +22,7 @@ struct GameEnvConfig {
     int mapHeight;
     int mapWidth;
     bool initialized = false;
+    int nebulaTileEnergyReduction;
     
     void init(GameState& gameState) {
         // Player ID and team ID
@@ -47,6 +48,8 @@ struct GameEnvConfig {
         unitSapCost = gameState.info.envCfg["unit_sap_cost"];
         unitSapRange = gameState.info.envCfg["unit_sap_range"];
         unitSensorRange = gameState.info.envCfg["unit_sensor_range"];
+
+        nebulaTileEnergyReduction = 10; //TODO:  This has to be identified dynamically, lets start with 10!
         relicCount = gameState.obs.relicNodesMask.size();
 
         initialized = true;

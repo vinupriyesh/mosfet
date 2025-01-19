@@ -1,5 +1,3 @@
-## If you change anything here, dont forget to do `cmake ..` from the build directory!
-
 cmake_minimum_required(VERSION 3.14)
 project(mosfet)
 
@@ -40,12 +38,22 @@ file(GLOB AGENT_PLANNING_SOURCES ${PROJECT_SOURCE_DIR}/agent/planning/*.cc)
 file(GLOB VISUALIZER_SOURCES ${PROJECT_SOURCE_DIR}/visualizer/*.cc)
 file(GLOB DATASTRUCTURE_SOURCES ${PROJECT_SOURCE_DIR}/datastructures/*.cc)
 
+# Add your library with a different name
+add_library(libmosfet STATIC ${AGENT_SOURCES} ${AGENT_ROLES_SOURCES} ${AGENT_PLANNING_SOURCES} ${VISUALIZER_SOURCES} ${DATASTRUCTURE_SOURCES} main.cc parser.cc config.cc)
+
+# Include directories for header files
+target_include_directories(libmosfet PUBLIC ${PROJECT_SOURCE_DIR})
+
+# Link nlohmann/json to your library
+target_link_libraries(libmosfet PRIVATE nlohmann_json::nlohmann_json)
+
+# Set the output name of the library
+set_target_properties(libmosfet PROPERTIES OUTPUT_NAME "libmosfet")
 # Add your executable
 add_executable(mosfet main.cc parser.cc config.cc ${AGENT_SOURCES} ${AGENT_ROLES_SOURCES} ${AGENT_PLANNING_SOURCES} ${VISUALIZER_SOURCES} ${DATASTRUCTURE_SOURCES})
 
 # Include directories for header files
 target_include_directories(mosfet PUBLIC ${PROJECT_SOURCE_DIR})
 
-
-# Link nlohmann/json to your executable
+# Link nlohmann/json statically to your executable
 target_link_libraries(mosfet PRIVATE nlohmann_json::nlohmann_json -static)
