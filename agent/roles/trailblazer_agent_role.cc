@@ -6,7 +6,7 @@ TrailblazerAgentRole::TrailblazerAgentRole(Shuttle *shuttle, ControlCenter *cc) 
 
 bool TrailblazerAgentRole::isRolePossible()
 {
-    return !cc->allTilesExplored && !leastEnergyPathing->unexploredDestinations.empty();
+    return !cc->gameMap->derivedGameState.allTilesExplored && !leastEnergyPathing->unexploredDestinations.empty();
 }
 
 void TrailblazerAgentRole::iteratePlan(int planIteration, Communicator &communicator) {

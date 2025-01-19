@@ -16,23 +16,24 @@ void ControlCenter::init(GameState& gameState) {
     auto start = std::chrono::high_resolution_clock::now();
     log("Initializing the control center");
     
-    gameEnvConfig = new GameEnvConfig(gameState);
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    gameEnvConfig.init(gameState);
 
     // Shuttles (player and opponent).  This is created once and reused.
-    shuttles = new Shuttle*[gameEnvConfig->maxUnits];
-    opponentShuttles = new Shuttle*[gameEnvConfig->maxUnits];
-    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+    shuttles = new Shuttle*[gameEnvConfig.maxUnits];
+    opponentShuttles = new Shuttle*[gameEnvConfig.maxUnits];
+    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         shuttles[i] = new Shuttle(i, ShuttleType::player, this);
         opponentShuttles[i] = new Shuttle(i, ShuttleType::opponent, this);
     }
 
-    relics = new Relic*[gameEnvConfig->relicCount];
-    for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
+    relics = new Relic*[gameEnvConfig.relicCount];
+    for (int i = 0; i < gameEnvConfig.relicCount; ++i) {
         relics[i] = new Relic(i);     
     }
 
     log("creating GameMap");
-    gameMap = new GameMap(gameEnvConfig->mapWidth, gameEnvConfig->mapHeight);
+    gameMap = new GameMap(gameEnvConfig.mapWidth, gameEnvConfig.mapHeight);
 
     haloConstraints = new ConstraintSet();
     planner = new Planner(shuttles);
@@ -52,53 +53,56 @@ void ControlCenter::update(GameState& gameState) {
         init(gameState);
     }
 
-    currentStep = gameState.obs.steps;
-    currentMatchStep = gameState.obs.matchSteps;
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    DerivedGameState state = gameMap->derivedGameState;
 
-    Logger::getInstance().setStepId(std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));
-    Metrics::getInstance().setStepId(std::to_string(currentStep));  
-    log("Updating for step " + std::to_string(currentStep) + "/" + std::to_string(currentMatchStep));
+    state.currentStep = gameState.obs.steps;
+    state.currentMatchStep = gameState.obs.matchSteps;
 
-    remainingOverageTime = gameState.remainingOverageTime;
-    teamPointsDelta = gameState.obs.teamPoints[gameEnvConfig->teamId] - teamPoints;
-    teamPoints = gameState.obs.teamPoints[gameEnvConfig->teamId];
-    opponentTeamPointsDelta = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId] - opponentTeamPoints;
-    opponentTeamPoints = gameState.obs.teamPoints[gameEnvConfig->opponentTeamId];
+    Logger::getInstance().setStepId(std::to_string(state.currentStep) + "/" + std::to_string(state.currentMatchStep));
+    Metrics::getInstance().setStepId(std::to_string(state.currentStep));  
+    log("Updating for step " + std::to_string(state.currentStep) + "/" + std::to_string(state.currentMatchStep));
+
+    state.remainingOverageTime = gameState.remainingOverageTime;
+    state.teamPointsDelta = gameState.obs.teamPoints[gameEnvConfig.teamId] - state.teamPoints;
+    state.teamPoints = gameState.obs.teamPoints[gameEnvConfig.teamId];
+    state.opponentTeamPointsDelta = gameState.obs.teamPoints[gameEnvConfig.opponentTeamId] - state.opponentTeamPoints;
+    state.opponentTeamPoints = gameState.obs.teamPoints[gameEnvConfig.opponentTeamId];
 
     // At the start of each set, the team points delta is 0
-    if (currentMatchStep == 0) {
-        teamPointsDelta = 0;
-        opponentTeamPointsDelta = 0;
+    if (state.currentMatchStep == 0) {
+        state.teamPointsDelta = 0;
+        state.opponentTeamPointsDelta = 0;
     }
 
-    Metrics::getInstance().add("points", teamPoints);
-    Metrics::getInstance().add("opponentPoints", opponentTeamPoints);
+    Metrics::getInstance().add("points", state.teamPoints);
+    Metrics::getInstance().add("opponentPoints", state.opponentTeamPoints);
 
-    Metrics::getInstance().add("teamPointsDelta", teamPointsDelta);
-    Metrics::getInstance().add("opponentTeamPointsDelta", opponentTeamPointsDelta);
+    Metrics::getInstance().add("teamPointsDelta", state.teamPointsDelta);
+    Metrics::getInstance().add("opponentTeamPointsDelta", state.opponentTeamPointsDelta);
     
     log("Exploring all units");
     // Exploring all units (cost 16)
     // REQUIREMENTS: NONE
-    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
 
         // log("OldTile positions for unit " + std::to_string(i) + " - " + std::to_string(oldX) + ", " + std::to_string(oldY));
 
         // Update unit's current position and energy
-        shuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->teamId][i],
-                                     gameState.obs.units.energy[gameEnvConfig->teamId][i]);
+        shuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig.teamId][i],
+                                     gameState.obs.units.energy[gameEnvConfig.teamId][i]);
 
                                          
-        opponentShuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig->opponentTeamId][i],
-                                          gameState.obs.units.energy[gameEnvConfig->opponentTeamId][i]);
+        opponentShuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig.opponentTeamId][i],
+                                          gameState.obs.units.energy[gameEnvConfig.opponentTeamId][i]);
                                           
-        shuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->teamId][i]);
-        opponentShuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig->opponentTeamId][i]);     
+        shuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig.teamId][i]);
+        opponentShuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig.opponentTeamId][i]);     
 
         if (gameMap->isValidTile(shuttles[i]->getX(), shuttles[i]->getY())) {
             // log("Updating visited for tile " + std::to_string(shuttles[i]->getX()) + ", " + std::to_string(shuttles[i]->getY()));
             GameTile& shuttleTile = gameMap->getTile(shuttles[i]->getX(), shuttles[i]->getY());
-            shuttleTile.setVisited(true, currentStep);
+            shuttleTile.setVisited(true, state.currentStep);
         }
     }
 
@@ -106,24 +110,24 @@ void ControlCenter::update(GameState& gameState) {
     // Exploring all relics (cost 8)
     // REQUIREMENTS:
     // 1. Visited nodes should be updated. i.e. Unit movements should've already happened
-    allRelicsFound = true;
-    relicsFound = 0;
+    state.allRelicsFound = true;
+    state.relicsFound = 0;
 
-    for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
+    for (int i = 0; i < gameEnvConfig.relicCount; ++i) {
         bool firstTimeRevealed = relics[i]->updateRelicData(gameState.obs.relicNodes[i], gameState.obs.relicNodesMask[i]);
         if (firstTimeRevealed) {
             log("Relic " + std::to_string(i) + " found at " + std::to_string(relics[i]->position[0]) + ", " + std::to_string(relics[i]->position[1]));
-            gameMap->addRelic(relics[i], currentStep);
+            gameMap->addRelic(relics[i], state.currentStep);
         }
 
         if (!relics[i]->revealed) {
-            allRelicsFound = false;
+            state.allRelicsFound = false;
         } else {
-            relicsFound++;
+            state.relicsFound++;
         }
     }
 
-    if (allRelicsFound) {
+    if (state.allRelicsFound) {
         log("All relics found :)");
     }
 
@@ -132,42 +136,42 @@ void ControlCenter::update(GameState& gameState) {
     // Exploring contents of each tile (cost 24x24)
     // REQUIREMENTS:
     // 1. Visited nodes should be updated. i.e. Unit movements should've already happened
-    allTilesExplored = true;
-    allTilesVisited = true;
-    tilesVisited = gameEnvConfig->mapHeight * gameEnvConfig->mapWidth;
-    tilesExplored = gameEnvConfig->mapHeight * gameEnvConfig->mapWidth;
+    state.allTilesExplored = true;
+    state.allTilesVisited = true;
+    state.tilesVisited = gameEnvConfig.mapHeight * gameEnvConfig.mapWidth;
+    state.tilesExplored = gameEnvConfig.mapHeight * gameEnvConfig.mapWidth;
 
-    for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
-        for (int j = 0; j < gameEnvConfig->mapWidth; ++j) {
+    for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
+        for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
             GameTile& currentTile = gameMap->getTile(i, j);
-            currentTile.setType(gameState.obs.mapFeatures.tileType[i][j], currentStep);
-            currentTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], currentStep);
+            currentTile.setType(gameState.obs.mapFeatures.tileType[i][j], state.currentStep);
+            currentTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], state.currentStep);
 
             if (gameState.obs.sensorMask[i][j]) {
-                currentTile.setExplored(true, currentStep);
+                currentTile.setExplored(true, state.currentStep);
             }
 
             currentTile.clearShuttles();
-            for (int s = 0; s < gameEnvConfig->maxUnits; ++s) {
+            for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
                 if (shuttles[s]->getX() == i && shuttles[s]->getY() == j && !shuttles[s]->isGhost()) {
                     currentTile.addShuttle(shuttles[s]);
                 }
             }
 
             if (!currentTile.isVisited()) {
-                allTilesVisited = false;
-                tilesVisited--;
+                state.allTilesVisited = false;
+                state.tilesVisited--;
             }
 
             if (!currentTile.isExplored()) {
-                allTilesExplored = false;
-                tilesExplored--;
+                state.allTilesExplored = false;
+                state.tilesExplored--;
             }
             
         }
     }
 
-    if (allTilesExplored) {
+    if (state.allTilesExplored) {
         log("All tiles explored :)");
     }
 
@@ -183,8 +187,8 @@ void ControlCenter::update(GameState& gameState) {
     // Constraint tile ids
     std::set<int> constraintTiles;
     
-    for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
-        for (int j = 0; j < gameEnvConfig->mapWidth; ++j) { 
+    for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
+        for (int j = 0; j < gameEnvConfig.mapWidth; ++j) { 
             GameTile& currentTile = gameMap->getTile(i, j);
             
             if (currentTile.isOccupied() && (currentTile.isVantagePoint() || currentTile.isHaloTile() || gameMap->hasPotentialInvisibleRelicNode(currentTile))) {
@@ -196,32 +200,32 @@ void ControlCenter::update(GameState& gameState) {
                     log("Force setting halo tile for " + std::to_string(i) + ", " + std::to_string(j));
                     currentTile.setHaloTile(true);  //Setting if it is not already set
                 }                
-                constraintTiles.insert(currentTile.getId(gameEnvConfig->mapWidth));                
+                constraintTiles.insert(currentTile.getId(gameEnvConfig.mapWidth));                
             }
         }
     }
 
     // Not adding constraint if the matchstep is 0
-    if (constraintTiles.size() >0 && currentMatchStep != 0) {
-        haloConstraints->addConstraint(teamPointsDelta, constraintTiles);
+    if (constraintTiles.size() >0 && state.currentMatchStep != 0) {
+        haloConstraints->addConstraint(state.teamPointsDelta, constraintTiles);
     }
     // Collect information from the constraint set and clear it
 
     for (auto& regularTile : haloConstraints->identifiedRegularTiles) {
-        int x = regularTile % gameEnvConfig->mapWidth;
-        int y = regularTile / gameEnvConfig->mapWidth;
+        int x = regularTile % gameEnvConfig.mapWidth;
+        int y = regularTile / gameEnvConfig.mapWidth;
         log("Marking regular tile at " + std::to_string(x) + ", " + std::to_string(y));
         GameTile& currentTile = gameMap->getTile(x, y);
         currentTile.setHaloTile(false);
         currentTile.setForcedRegularTile(true);
     }
 
-    vantagePointsFound = haloConstraints->identifiedVantagePoints.size();
-    vantagePointsOccupied = 0;
+    state.vantagePointsFound = haloConstraints->identifiedVantagePoints.size();
+    state.vantagePointsOccupied = 0;
 
     for (auto& vantagePoint : haloConstraints->identifiedVantagePoints) {
-        int x = vantagePoint % gameEnvConfig->mapWidth;
-        int y = vantagePoint / gameEnvConfig->mapWidth;
+        int x = vantagePoint % gameEnvConfig.mapWidth;
+        int y = vantagePoint / gameEnvConfig.mapWidth;
         log("Marking vantage point at " + std::to_string(x) + ", " + std::to_string(y));
         GameTile& currentTile = gameMap->getTile(x, y);
 
@@ -229,15 +233,14 @@ void ControlCenter::update(GameState& gameState) {
         currentTile.setHaloTile(false);     
 
         if (currentTile.isOccupied()) {
-            vantagePointsOccupied++;
+            state.vantagePointsOccupied++;
         }
     }
 
+    Metrics::getInstance().add("unexploited_vantage_points", state.vantagePointsFound - state.vantagePointsOccupied);
 
-    Metrics::getInstance().add("unexploited_vantage_points", vantagePointsFound - vantagePointsOccupied);
-
-    if (teamPointsDelta - vantagePointsOccupied < 0 && currentMatchStep != 0) {
-        log("Problem: Team points delta is less than vantage points occupied = " + std::to_string(teamPointsDelta) + " & " + std::to_string(vantagePointsOccupied));
+    if (state.teamPointsDelta - state.vantagePointsOccupied < 0 && state.currentMatchStep != 0) {
+        log("Problem: Team points delta is less than vantage points occupied = " + std::to_string(state.teamPointsDelta) + " & " + std::to_string(state.vantagePointsOccupied));
         std::cerr<<"Problem: Team points delta < vantage points occupied"<<std::endl;
     }
 
@@ -250,14 +253,13 @@ void ControlCenter::update(GameState& gameState) {
 }
 
 void ControlCenter::plan() {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     int planIteration = 0;
     Communicator communicator;
-    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         shuttles[i]->computePath();
         shuttles[i]->iteratePlan(planIteration, communicator);
     }
-
-    
 
     planner->plan();
 }
@@ -271,8 +273,8 @@ ControlCenter::ControlCenter() {
 }
 
 ControlCenter::~ControlCenter() {
-    delete gameEnvConfig;
-    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         delete shuttles[i];
     }
     delete[] shuttles;
@@ -283,19 +285,24 @@ ControlCenter::~ControlCenter() {
 
 std::vector<std::vector<int>> ControlCenter::act() {
     auto start = std::chrono::high_resolution_clock::now();
-    log("--- Acting step " + std::to_string(currentStep) + "/" + std::to_string(currentMatchStep) + " ---");
+
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    DerivedGameState state = gameMap->derivedGameState;
+
+    log("--- Acting step " + std::to_string(state.currentStep) + "/" + std::to_string(state.currentMatchStep) + " ---");
+
     std::vector<std::vector<int>> results;
-    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         std::vector<int> agentAction = shuttles[i]->act();        
         results.push_back(agentAction);
     }
 
     // Send data to live play visualizer
-    if (Config::livePlayPlayer0 && gameEnvConfig->teamId == 0) {
-        send_game_data(shuttles, opponentShuttles, relics, gameEnvConfig, gameMap, Config::portPlayer0);
+    if (Config::livePlayPlayer0 && gameEnvConfig.teamId == 0) {
+        send_game_data(shuttles, opponentShuttles, relics, gameMap, Config::portPlayer0);
     }
-    if (Config::livePlayPlayer1 && gameEnvConfig->teamId == 1) {
-        send_game_data(shuttles, opponentShuttles, relics, gameEnvConfig, gameMap, Config::portPlayer1);
+    if (Config::livePlayPlayer1 && gameEnvConfig.teamId == 1) {
+        send_game_data(shuttles, opponentShuttles, relics, gameMap, Config::portPlayer1);
     }
     // std::cerr<< "test cc" << std::endl;
 

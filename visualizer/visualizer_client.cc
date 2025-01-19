@@ -33,18 +33,20 @@ std::string exec(const char* cmd) {
     return result;
 }
 
-std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic, GameEnvConfig* gameEnvConfig, GameMap* gameMap) {
+std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic, GameMap* gameMap) {
     // Implement the function to return the required data as a JSON string
     // return "{\"grid_size\": [24, 24], \"asteroids\": [[0,0], [0,5],[20,5]], \"blue_shuttles\": [[3,0], [7,5]], \"red_shuttles\": [[4,3], [9,5]]}";
 
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    
     // Create a JSON object
     json jsonObject;
 
     // Add grid_size
-    jsonObject["grid_size"] = {gameEnvConfig->mapWidth, gameEnvConfig->mapHeight};
+    jsonObject["grid_size"] = {gameEnvConfig.mapWidth, gameEnvConfig.mapHeight};
 
     // Add relics
-    for (int i = 0; i < gameEnvConfig->relicCount; ++i) {
+    for (int i = 0; i < gameEnvConfig.relicCount; ++i) {
         if (!relic[i]->revealed) {
             continue;
         }
@@ -52,8 +54,8 @@ std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic,
     }
 
     // Add asteroids
-    for (int i = 0; i < gameEnvConfig->mapHeight; ++i) {
-        for (int j = 0; j < gameEnvConfig->mapWidth; ++j) {
+    for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
+        for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
             if (gameMap->getTile(i, j).getLastKnownType() == TileType::ASTEROID) {
                 jsonObject["asteroids"].push_back({i, j});
             }
@@ -70,7 +72,7 @@ std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic,
     }
 
     // Blue is the current player
-    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         if (shuttles[i]->position[0] == -1) {
             continue;
         }
@@ -78,7 +80,7 @@ std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic,
     }
 
     // Red is the enemy player
-    for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
+    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         if (enemyShuttles[i]->position[0] == -1) {
             continue;
         }
@@ -88,10 +90,10 @@ std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic,
     return jsonObject.dump();
 }
 
-int send_game_data(Shuttle** shuttle, Shuttle** enemyShuttle, Relic** relic, GameEnvConfig* gameEnvConfig, GameMap* gameMap, int port) {
+int send_game_data(Shuttle** shuttle, Shuttle** enemyShuttle, Relic** relic, GameMap* gameMap, int port) {
      auto start = std::chrono::high_resolution_clock::now();
     std::string url = "http://localhost:" + std::to_string(port) + "/";
-    std::string data = get_data(shuttle, enemyShuttle, relic, gameEnvConfig, gameMap);
+    std::string data = get_data(shuttle, enemyShuttle, relic, gameMap);
     std::string command = "curl -s --request POST --url " + url + " --header 'content-type: application/json' --data '"+ data + "'";
     Logger::getInstance().log("Command: " + command);            
 

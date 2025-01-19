@@ -7,10 +7,10 @@ HaloNodeExplorerAgentRole::HaloNodeExplorerAgentRole(Shuttle *shuttle, ControlCe
     dis = std::uniform_int_distribution<>(0, 4); // Initialize the distribution with the range
 }
 
-bool HaloNodeExplorerAgentRole::isRolePossible()
-{
-    int totalTile = this->cc->gameEnvConfig->mapHeight * this->cc->gameEnvConfig->mapWidth;
-    float percentageExplored = static_cast<float>(this->cc->tilesExplored) / totalTile;
+bool HaloNodeExplorerAgentRole::isRolePossible() {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    int totalTile = gameEnvConfig.mapHeight * gameEnvConfig.mapWidth;
+    float percentageExplored = static_cast<float>(this->cc->gameMap->derivedGameState.tilesExplored) / totalTile;
     return shuttle->getTileAtPosition()->isHaloTile() && percentageExplored >= 0.33;
 }
 

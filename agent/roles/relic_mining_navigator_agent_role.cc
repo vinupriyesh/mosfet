@@ -9,7 +9,7 @@ bool RelicMiningNavigatorAgentRole::isRolePossible()
     if (unableToAct) {
         return false;
     }
-    int unexploitedVantagePoints = this->cc->vantagePointsFound - this->cc->vantagePointsOccupied;
+    int unexploitedVantagePoints = this->cc->gameMap->derivedGameState.vantagePointsFound - this->cc->gameMap->derivedGameState.vantagePointsOccupied;
     return unexploitedVantagePoints > 0 && !leastEnergyPathingStopAtVantagePoints->vantagePointDestinations.empty();
 }
 

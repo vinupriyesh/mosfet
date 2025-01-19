@@ -8,10 +8,11 @@ bool HaloNodeNavigatorAgentRole::isRolePossible()
 {
     if (unableToAct) {
         return false;
-    }  
-    int totalTile = this->cc->gameEnvConfig->mapHeight * this->cc->gameEnvConfig->mapWidth;
-    float percentageExplored = static_cast<float>(this->cc->tilesExplored) / totalTile; 
-    return (cc->allRelicsFound || cc->allTilesExplored || percentageExplored >= 0.7) && !leastEnergyPathingStopAtHaloTiles->haloDestinations.empty();
+    }
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    int totalTile = gameEnvConfig.mapHeight * gameEnvConfig.mapWidth;
+    float percentageExplored = static_cast<float>(this->cc->gameMap->derivedGameState.tilesExplored) / totalTile; 
+    return (cc->gameMap->derivedGameState.allRelicsFound || cc->gameMap->derivedGameState.allTilesExplored || percentageExplored >= 0.7) && !leastEnergyPathingStopAtHaloTiles->haloDestinations.empty();
 }
 
 void HaloNodeNavigatorAgentRole::iteratePlan(int planIteration, Communicator &communicator) {

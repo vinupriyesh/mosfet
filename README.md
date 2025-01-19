@@ -34,4 +34,5 @@ pip3 install --upgrade luxai-s3
 
 ## To dive deep
 
-- Seed 8466, 22638, 3313 - Points to in negative
+- seed 946202263 - This seed identifies wrong vantage points.  Investigate this!
+- [Fixed] Seed 8466, 22638, 3313 - Points to in negative

@@ -98,6 +98,26 @@ class GameTile {
         
 };
 
+struct DerivedGameState {
+    int teamPoints;
+    int opponentTeamPoints;
+    int teamPointsDelta;
+    int opponentTeamPointsDelta;
+    int currentStep;
+    int currentMatchStep;
+    int remainingOverageTime;
+
+    bool allRelicsFound = false;
+    bool allTilesExplored = false;
+    bool allTilesVisited = false;
+
+    int relicsFound = 0;
+    int tilesExplored = 0;
+    int tilesVisited = 0;
+    int vantagePointsFound = 0;
+    int vantagePointsOccupied = 0;
+};
+
 class GameMap {
     private:
         void log(std::string message);
@@ -107,6 +127,7 @@ class GameMap {
         
         int width;
         int height;
+        DerivedGameState derivedGameState;
         GameMap(int width, int height);
         void addRelic(Relic* relic, int currentStep);
         bool hasPotentialInvisibleRelicNode(GameTile &gameTile);
