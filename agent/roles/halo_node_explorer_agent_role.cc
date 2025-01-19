@@ -2,6 +2,9 @@
 
 HaloNodeExplorerAgentRole::HaloNodeExplorerAgentRole(Shuttle *shuttle, ControlCenter *cc) : ExplorerAgentRole(shuttle, cc) {
     roleClassName = "HaloNodeExplorerAgentRole";
+    std::random_device rd;
+    gen = std::mt19937(rd()); // Initialize the random number generator 
+    dis = std::uniform_int_distribution<>(0, 4); // Initialize the distribution with the range
 }
 
 bool HaloNodeExplorerAgentRole::isRolePossible()

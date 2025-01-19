@@ -32,7 +32,6 @@ private:
 
     std::mt19937 gen; // Mersenne Twister random number generator 
     std::uniform_int_distribution<> dis; // Uniform distribution
-    Direction getDirectionTo(const GameTile &destinationTile);
 
     AgentRole* activeRole = nullptr;
     std::map<std::string, AgentRole*> agentRoles;
@@ -47,7 +46,7 @@ public:
     std::vector<int> previousPosition = {-1, -1};
     std::vector<int> position = {-1, -1};
     bool isTileUnvisited(Direction direction);
-    std::vector<int> act2();
+
     bool isRandomAction();
     bool isGhost();
     std::vector<int> act();

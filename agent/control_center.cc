@@ -201,8 +201,8 @@ void ControlCenter::update(GameState& gameState) {
         }
     }
 
-    // Make sure the constraintTiles are not in the vantage points
-    if (constraintTiles.size() >0) {
+    // Not adding constraint if the matchstep is 0
+    if (constraintTiles.size() >0 && currentMatchStep != 0) {
         haloConstraints->addConstraint(teamPointsDelta, constraintTiles);
     }
     // Collect information from the constraint set and clear it
@@ -286,12 +286,7 @@ std::vector<std::vector<int>> ControlCenter::act() {
     log("--- Acting step " + std::to_string(currentStep) + "/" + std::to_string(currentMatchStep) + " ---");
     std::vector<std::vector<int>> results;
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
-        std::vector<int> agentAction = shuttles[i]->act();
-        std::vector<int> agentAction2 = shuttles[i]->act2();
-        if (agentAction != agentAction2 && !shuttles[i]->isRandomAction()) {
-            log("Problem: Rolebased actions not same as the legacy - " + std::to_string(agentAction[0]) + " != " + std::to_string(agentAction2[0]));
-            std::cerr<<"Problem: Rolebased actions not same as the legacy - " + std::to_string(agentAction[0]) + " != " + std::to_string(agentAction2[0]) <<std::endl;
-        }
+        std::vector<int> agentAction = shuttles[i]->act();        
         results.push_back(agentAction);
     }
 

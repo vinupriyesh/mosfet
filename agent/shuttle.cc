@@ -167,10 +167,6 @@ Shuttle::Shuttle(int id, ShuttleType type, ControlCenter* cc) {
     this->cc = cc;
     this->ghost = false;
 
-    std::random_device rd;
-    gen = std::mt19937(rd()); // Initialize the random number generator 
-    dis = std::uniform_int_distribution<>(0, 4); // Initialize the distribution with the range
-
     leastEnergyPathing = nullptr;
 
     //Populating Agent role classes
@@ -210,7 +206,7 @@ bool Shuttle::isTileUnvisited(Direction direction) {
     return movable && !toTile.isVisited();    
 }
 
-std::vector<int> Shuttle::act2() {
+std::vector<int> Shuttle::act() {
     
     if (!visible) {
         //TODO: Check if we can still move invisible shuttle (If it is inside Nebula!)
@@ -225,159 +221,9 @@ bool Shuttle::isRandomAction() {
     return activeRole != nullptr && (dynamic_cast<RandomAgentRole*>(activeRole) != nullptr || dynamic_cast<HaloNodeExplorerAgentRole*>(activeRole) != nullptr);
 }
 
-std::vector<int> Shuttle::act() {    
-    if (!visible) {
-        //TODO: Check if we can still move invisible shuttle (If it is inside Nebula!)
-        return {0, 0, 0};
-    }
-
-    log("Shuttle acting - (" + std::to_string(position[0]) + ", " + std::to_string(position[1]) + ")");
-
-    GameTile& startTile = this->cc->gameMap->getTile(position[0], position[1]);
-
-    int totalTile = this->cc->gameEnvConfig->mapHeight * this->cc->gameEnvConfig->mapWidth;
-    float percentageExplored = static_cast<float>(this->cc->tilesExplored) / totalTile;
-    int unexploitedVantagePoints = this->cc->vantagePointsFound - this->cc->vantagePointsOccupied;
-
-    // If we are already at the vantage point, then stay there if you are the first shuttle
-    if (startTile.isVantagePoint() && startTile.getShuttles()[0]->id == this->id) {
-        log("Legacy:RelicMiner");
-        return {Direction::CENTER, 0, 0};
-    }
-
-    // If there are unexploited tiles, exploit them first
-    if (unexploitedVantagePoints > 0) {
-        log("Legacy:RelicMiningNavigator");
-        PathingConfig config = {};
-        config.pathingHeuristics = LEAST_ENERGY;
-        config.stopAtVantagePointTiles = true;
-        config.captureVantagePointTileDestinations = true;
-
-        Pathing pathing(this->cc->gameMap, config);
-        
-        pathing.findAllPaths(startTile);
-
-        if (!pathing.vantagePointDestinations.empty()) {
-            int idx = -1;
-            for (const auto [distance, destinationTile] : pathing.vantagePointDestinations) {
-                idx++;
-                log(std::to_string(idx) + "/" + std::to_string(pathing.vantagePointDestinations.size()) + " - Vantage point - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
-                if (destinationTile->isOccupied()) {
-                    log("Tile is occupied");
-                    continue;
-                }
-
-                // Move towards the destination tile
-                std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
-                if (pathToDestination.size() < 2) {
-                    log("We are already in the closest vantage point");
-                    return {Direction::CENTER, 0, 0};
-                }
-                Direction direction = getDirectionTo(*pathToDestination[1]);
-
-                return {directionToInt(direction), 0, 0};
-            }
-        }
-    }
-
-    //If we are already at a halo tile, then move to a random tile
-    if (startTile.isHaloTile() && percentageExplored >= 0.33) {
-        log("Legacy:HaloNodeExplorer");
-        int random_number = dis(gen);
-        return {random_number, 0, 0};
-    }
-
-    // If all relics are found, then move towards halo nodes
-    if (cc->allRelicsFound || cc->allTilesExplored || percentageExplored >= 0.7) {
-        log("Legacy:HaloNodeNavigator");
-        PathingConfig config = {};
-        config.pathingHeuristics = LEAST_ENERGY;
-        config.stopAtHaloTiles = true;
-        config.captureHaloTileDestinations = true;
-
-        Pathing pathing(this->cc->gameMap, config);
-        
-        pathing.findAllPaths(startTile);
-
-        if (!pathing.haloDestinations.empty()) {
-            int idx = -1;
-            for (const auto [distance, destinationTile] : pathing.haloDestinations) {
-                idx++;
-                log(std::to_string(idx) + "/" + std::to_string(pathing.haloDestinations.size()) + " - Halo tile - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
-                if (destinationTile->isOccupied()) {
-                    log("Tile is occupied");
-                    continue;
-                }
-
-                // Move towards the destination tile
-                std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
-                if (pathToDestination.size() < 2) {
-                    log("We are already in the closest halo tile");
-                    return {Direction::CENTER, 0, 0};
-                }
-                Direction direction = getDirectionTo(*pathToDestination[1]);
-
-                return {directionToInt(direction), 0, 0};
-            }
-        }
-
-    }
-
-    // Explore the unexplored tiles
-    if (!cc->allTilesExplored) {
-        log("Legacy:Trailblazer");
-        PathingConfig config = {};
-        config.pathingHeuristics = LEAST_ENERGY;
-        config.stopAtUnexploredTiles = true;
-        config.captureUnexploredTileDestinations = true;
-
-        Pathing pathing(this->cc->gameMap, config);
-
-        pathing.findAllPaths(startTile);
-
-        // Get the closest unexplored tile
-        if (!pathing.unexploredDestinations.empty()) {
-            auto [distance, destinationTile] = pathing.unexploredDestinations.top();
-            log("Closest unexplored tile - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
-
-            // Move towards the destination tile
-            std::vector<GameTile*> pathToDestination = pathing.distances[destinationTile].second;
-            if (pathToDestination.size() < 2) {
-                log("We are already in the closest unexplored tile");
-                return {Direction::CENTER, 0, 0};
-            }
-            Direction direction = getDirectionTo(*pathToDestination[1]);
-
-            return {directionToInt(direction), 0, 0};
-        }
-    }
-
-    log("Legacy: Random agent" + std::to_string(id));
-    // return {0, 0, 0};
-
-    int random_number = dis(gen); // Generate a random number in the range
-    return {random_number, 0, 0};
-}
-
-Direction Shuttle::getDirectionTo(const GameTile& destinationTile) {
-    int currentX = position[0];
-    int currentY = position[1];
-    int destinationX = destinationTile.x;
-    int destinationY = destinationTile.y;
-
-    if (destinationX < currentX) {
-        return LEFT;
-    } else if (destinationX > currentX) {
-        return RIGHT;
-    } else if (destinationY < currentY) {
-        return UP;
-    } else if (destinationY > currentY) {
-        return DOWN;
-    } else {
-        return CENTER; // If the destination is the same as the current position
-    }
-}
-
 Shuttle::~Shuttle() {
-
+    for (const auto& pair : agentRoles) {
+        delete pair.second;
+    }
+    agentRoles.clear();
 }

@@ -87,6 +87,7 @@ def prepare_charts(df):
     plot(df, images, "visualizer_overhead", "ms")
     plot(df, images, "act_duration", "ms")
     plot(df, images, "update_duration", "micro seconds")
+    plot(df, images, "pathing_duration", "ms")
 
     return json.dumps(json_data, indent=4)
 
