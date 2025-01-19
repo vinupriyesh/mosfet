@@ -1,6 +1,11 @@
 #include "agent_role.h"
 
-bool TrailblazerAgentRole::isRolePossible() {
+TrailblazerAgentRole::TrailblazerAgentRole(Shuttle *shuttle, ControlCenter *cc) : ExplorerAgentRole(shuttle, cc){
+    roleClassName = "TrailblazerAgentRole";
+}
+
+bool TrailblazerAgentRole::isRolePossible()
+{
     return !cc->allTilesExplored && !leastEnergyPathing->unexploredDestinations.empty();
 }
 
@@ -13,8 +18,12 @@ void TrailblazerAgentRole::iteratePlan(int planIteration, Communicator &communic
     if (pathToDestination.size() < 2) {
         log("We are already in the closest unexplored tile");
         bestPlan = {Direction::CENTER, 0, 0};
+        return;
     }
-    Direction direction = getDirectionTo(*pathToDestination[1]);
 
+    log("Trying to get the direction");
+    Direction direction = getDirectionTo(*pathToDestination[1]);
+    log("Got the direction");
     bestPlan = {directionToInt(direction), 0, 0};
+    log("Prepared the trailblazer best plan");
 }

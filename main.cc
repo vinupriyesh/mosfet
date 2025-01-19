@@ -19,8 +19,10 @@ ControlCenter* cc = new ControlCenter();
 void emit_memory_usage_metric() {
     struct rusage usage;
     getrusage(RUSAGE_SELF, &usage);
-    Metrics::getInstance().add("memory", usage.ru_maxrss);
+    float memory_usage_mb = usage.ru_maxrss / 1024.0f;  // Convert KB to MB
+    Metrics::getInstance().add("memory", memory_usage_mb);
 }
+
 
 void process(std::string& input, int counter) {
     std::getline(std::cin, input);

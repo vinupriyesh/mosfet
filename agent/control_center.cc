@@ -245,6 +245,8 @@ void ControlCenter::update(GameState& gameState) {
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     Metrics::getInstance().add("update_duration", duration.count());
+
+    log("Update complete");
 }
 
 void ControlCenter::plan() {
@@ -284,7 +286,13 @@ std::vector<std::vector<int>> ControlCenter::act() {
     log("--- Acting step " + std::to_string(currentStep) + "/" + std::to_string(currentMatchStep) + " ---");
     std::vector<std::vector<int>> results;
     for (int i = 0; i < gameEnvConfig->maxUnits; ++i) {
-        results.push_back(shuttles[i]->act());
+        std::vector<int> agentAction = shuttles[i]->act();
+        std::vector<int> agentAction2 = shuttles[i]->act2();
+        if (agentAction != agentAction2 && !shuttles[i]->isRandomAction()) {
+            log("Problem: Rolebased actions not same as the legacy - " + std::to_string(agentAction[0]) + " != " + std::to_string(agentAction2[0]));
+            std::cerr<<"Problem: Rolebased actions not same as the legacy - " + std::to_string(agentAction[0]) + " != " + std::to_string(agentAction2[0]) <<std::endl;
+        }
+        results.push_back(agentAction);
     }
 
     // Send data to live play visualizer

@@ -1,6 +1,11 @@
 #include "agent_role.h"
 
-bool RandomAgentRole::isRolePossible() {
+RandomAgentRole::RandomAgentRole(Shuttle *shuttle, ControlCenter *cc) : AgentRole(shuttle, cc) {
+    roleClassName = "RandomAgentRole";
+}
+
+bool RandomAgentRole::isRolePossible()
+{
     return true;
 }
 

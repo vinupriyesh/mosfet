@@ -1,24 +1,32 @@
 #include "agent_role.h"
 
-bool RelicMiningNavigatorAgentRole::isRolePossible() {
+RelicMiningNavigatorAgentRole::RelicMiningNavigatorAgentRole(Shuttle *shuttle, ControlCenter *cc) : NavigatorAgentRole(shuttle, cc) {
+    roleClassName = "RelicMiningNavigatorAgentRole";
+}
 
+bool RelicMiningNavigatorAgentRole::isRolePossible()
+{
+    if (unableToAct) {
+        return false;
+    }
     int unexploitedVantagePoints = this->cc->vantagePointsFound - this->cc->vantagePointsOccupied;
-    return unexploitedVantagePoints > 0 && !leastEnergyPathing->vantagePointDestinations.empty();
+    return unexploitedVantagePoints > 0 && !leastEnergyPathingStopAtVantagePoints->vantagePointDestinations.empty();
 }
 
 void RelicMiningNavigatorAgentRole::iteratePlan(int planIteration, Communicator &communicator) {
-
+    unableToAct = false;
+    bestPlan.clear();
     int idx = -1;
-    for (const auto [distance, destinationTile] : leastEnergyPathing->vantagePointDestinations) {
+    for (const auto [distance, destinationTile] : leastEnergyPathingStopAtVantagePoints->vantagePointDestinations) {
         idx++;
-        log(std::to_string(idx) + "/" + std::to_string(leastEnergyPathing->vantagePointDestinations.size()) + " - Vantage point - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
+        log(std::to_string(idx) + "/" + std::to_string(leastEnergyPathingStopAtVantagePoints->vantagePointDestinations.size()) + " - Vantage point - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
         if (destinationTile->isOccupied()) {
             log("Tile is occupied");
             continue;
         }
 
         // Move towards the destination tile
-        std::vector<GameTile*> pathToDestination = leastEnergyPathing->distances[destinationTile].second;
+        std::vector<GameTile*> pathToDestination = leastEnergyPathingStopAtVantagePoints->distances[destinationTile].second;
         if (pathToDestination.size() < 2) {
             log("We are already in the closest vantage point");
             bestPlan = {Direction::CENTER, 0, 0};
@@ -29,4 +37,9 @@ void RelicMiningNavigatorAgentRole::iteratePlan(int planIteration, Communicator 
         bestPlan = {directionToInt(direction), 0, 0};
         break;
     }
+
+    if (bestPlan.size() == 0){
+        unableToAct = true;
+    }
+
 }

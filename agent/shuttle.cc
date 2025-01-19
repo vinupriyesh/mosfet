@@ -62,21 +62,53 @@ void Shuttle::computePath() {
         delete leastEnergyPathing;
     }
 
+    if (leastEnergyPathingStopAtHaloTiles != nullptr) {
+        delete leastEnergyPathingStopAtHaloTiles;
+    }
+
+    if (leastEnergyPathingStopAtVantagePoints != nullptr) {
+        delete leastEnergyPathingStopAtVantagePoints;
+    }
+
+    // Pathing expored tiles
     PathingConfig config = {};
     config.pathingHeuristics = LEAST_ENERGY;
     config.captureEverything();
+    config.stopAtUnexploredTiles = true;
 
     GameTile& startTile = this->cc->gameMap->getTile(position[0], position[1]);
     leastEnergyPathing = new Pathing(cc->gameMap, config);
     leastEnergyPathing->findAllPaths(startTile);
 
+
+    // Pathing halo tiles
+    PathingConfig config2 = {};
+    config2.pathingHeuristics = LEAST_ENERGY;
+    config2.captureEverything();
+    config2.stopAtHaloTiles= true;
+
+    leastEnergyPathingStopAtHaloTiles = new Pathing(cc->gameMap, config2);
+    leastEnergyPathingStopAtHaloTiles->findAllPaths(startTile);
+
+    // Pathing capture vantage points
+    PathingConfig config3 = {};
+    config3.pathingHeuristics = LEAST_ENERGY;
+    config3.captureEverything();
+    config3.stopAtVantagePointTiles= true;
+
+    leastEnergyPathingStopAtVantagePoints = new Pathing(cc->gameMap, config3);
+    leastEnergyPathingStopAtVantagePoints->findAllPaths(startTile);
+
     for (const auto& pair : agentRoles) {
         pair.second->setLeastEnergyPathing(leastEnergyPathing);
+        pair.second->setLeastEnergyPathingStopAtHaloTiles(leastEnergyPathingStopAtHaloTiles);
+        pair.second->setLeastEnergyPathingStopAtVantagePoints(leastEnergyPathingStopAtVantagePoints);
     }
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     Metrics::getInstance().add("pathing_duration", duration.count());
+    log("pathing complete");
 }
 
 void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
@@ -87,12 +119,45 @@ void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
 
     log("Iterating plan - " + std::to_string(planIteration));
     for (const auto& pair : agentRoles) {
-        log("Checking role possibility " + pair.first);
+        // log("Checking role possibility " + pair.first);
+        pair.second->reset();
         if (pair.second->isRolePossible()) {
-            log("Role possible " + pair.first);
+            // log("Role possible " + pair.first);
             pair.second->iteratePlan(planIteration, communicator);
         }
     }
+    log("Going to decide the best role for this shuttle");
+
+    //TODO:  below is a temporary code. Also need not have casted anything
+    activeRole = nullptr;
+    HaloNodeExplorerAgentRole* haloNodeExplorer = dynamic_cast<HaloNodeExplorerAgentRole*>(agentRoles["HaloNodeExplorerAgentRole"]);
+    HaloNodeNavigatorAgentRole* haloNodeNavigator = dynamic_cast<HaloNodeNavigatorAgentRole*>(agentRoles["HaloNodeNavigatorAgentRole"]);
+    RandomAgentRole* randomAgent = dynamic_cast<RandomAgentRole*>(agentRoles["RandomAgentRole"]);
+    RelicMinerAgentRole* relicMiner = dynamic_cast<RelicMinerAgentRole*>(agentRoles["RelicMinerAgentRole"]);
+    RelicMiningNavigatorAgentRole* relicMiningNavigator = dynamic_cast<RelicMiningNavigatorAgentRole*>(agentRoles["RelicMiningNavigatorAgentRole"]);
+    TrailblazerAgentRole* trailblazer = dynamic_cast<TrailblazerAgentRole*>(agentRoles["TrailblazerAgentRole"]);
+
+    if (relicMiner->isRolePossible()) {
+        log("relicMiner it is");
+        activeRole = relicMiner;
+    } else if(relicMiningNavigator->isRolePossible()) {
+        activeRole = relicMiningNavigator;
+        log("relicMiningNavirgator it is");
+    } else if(haloNodeExplorer->isRolePossible()) {
+        activeRole = haloNodeExplorer;
+        log("haloNodeExplorer it is");
+    } else if(haloNodeNavigator->isRolePossible()) {
+        activeRole = haloNodeNavigator;
+        log("haloNodeNavigator it is");
+    } else if(trailblazer->isRolePossible()) {
+        activeRole = trailblazer;
+        log("Trailblazer it is");
+    } else {
+        activeRole = randomAgent;
+        log("Random agent it is");
+    }
+    
+    // log("decided the role");
 }
 
 Shuttle::Shuttle(int id, ShuttleType type, ControlCenter* cc) {
@@ -113,11 +178,11 @@ Shuttle::Shuttle(int id, ShuttleType type, ControlCenter* cc) {
     log("Going to create explorer roles");
     // Explorers
     agentRoles["HaloNodeExplorerAgentRole"] = new HaloNodeExplorerAgentRole(this, cc);
-    log("HaloNodeExplorerAgentRole done");
     agentRoles["TrailblazerAgentRole"] = new TrailblazerAgentRole(this, cc);
 
     // Navigators
     agentRoles["RelicMiningNavigatorAgentRole"] = new RelicMiningNavigatorAgentRole(this, cc);
+    agentRoles["HaloNodeNavigatorAgentRole"] = new HaloNodeNavigatorAgentRole(this, cc);
 
     // Miners
     agentRoles["RelicMinerAgentRole"] = new RelicMinerAgentRole(this, cc);
@@ -145,6 +210,21 @@ bool Shuttle::isTileUnvisited(Direction direction) {
     return movable && !toTile.isVisited();    
 }
 
+std::vector<int> Shuttle::act2() {
+    
+    if (!visible) {
+        //TODO: Check if we can still move invisible shuttle (If it is inside Nebula!)
+        return {0, 0, 0};
+    }
+
+    log("Inside act2 -> " + std::to_string(activeRole == nullptr));
+    return activeRole->bestPlan;
+}
+
+bool Shuttle::isRandomAction() {
+    return activeRole != nullptr && (dynamic_cast<RandomAgentRole*>(activeRole) != nullptr || dynamic_cast<HaloNodeExplorerAgentRole*>(activeRole) != nullptr);
+}
+
 std::vector<int> Shuttle::act() {    
     if (!visible) {
         //TODO: Check if we can still move invisible shuttle (If it is inside Nebula!)
@@ -161,13 +241,13 @@ std::vector<int> Shuttle::act() {
 
     // If we are already at the vantage point, then stay there if you are the first shuttle
     if (startTile.isVantagePoint() && startTile.getShuttles()[0]->id == this->id) {
-        log("Staying at the vantage point");
+        log("Legacy:RelicMiner");
         return {Direction::CENTER, 0, 0};
     }
 
     // If there are unexploited tiles, exploit them first
     if (unexploitedVantagePoints > 0) {
-        log("Moving to the vantage point");
+        log("Legacy:RelicMiningNavigator");
         PathingConfig config = {};
         config.pathingHeuristics = LEAST_ENERGY;
         config.stopAtVantagePointTiles = true;
@@ -202,14 +282,14 @@ std::vector<int> Shuttle::act() {
 
     //If we are already at a halo tile, then move to a random tile
     if (startTile.isHaloTile() && percentageExplored >= 0.33) {
-        log("Moving random from a halo tile");
+        log("Legacy:HaloNodeExplorer");
         int random_number = dis(gen);
         return {random_number, 0, 0};
     }
 
     // If all relics are found, then move towards halo nodes
     if (cc->allRelicsFound || cc->allTilesExplored || percentageExplored >= 0.7) {
-        log("Going to halo the tiles");
+        log("Legacy:HaloNodeNavigator");
         PathingConfig config = {};
         config.pathingHeuristics = LEAST_ENERGY;
         config.stopAtHaloTiles = true;
@@ -245,6 +325,7 @@ std::vector<int> Shuttle::act() {
 
     // Explore the unexplored tiles
     if (!cc->allTilesExplored) {
+        log("Legacy:Trailblazer");
         PathingConfig config = {};
         config.pathingHeuristics = LEAST_ENERGY;
         config.stopAtUnexploredTiles = true;
@@ -271,7 +352,7 @@ std::vector<int> Shuttle::act() {
         }
     }
 
-    log("No actions possible for shuttle" + std::to_string(id));
+    log("Legacy: Random agent" + std::to_string(id));
     // return {0, 0, 0};
 
     int random_number = dis(gen); // Generate a random number in the range

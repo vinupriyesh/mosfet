@@ -1,8 +1,13 @@
 #include "agent_role.h"
 
-bool RelicMinerAgentRole::isRolePossible() {
+RelicMinerAgentRole::RelicMinerAgentRole(Shuttle *shuttle, ControlCenter *cc) : AgentRole(shuttle, cc) {
+    roleClassName = "RelicMinerAgentRole";
+}
+
+bool RelicMinerAgentRole::isRolePossible()
+{
     // It mines only if this is the first shuttle in the position
-    return shuttle->getTileAtPosition()->isVantagePoint() && shuttle->getTileAtPosition()->getShuttles()[0]->id == shuttle->id; 
+    return shuttle->getTileAtPosition()->isVantagePoint() && shuttle->getTileAtPosition()->getShuttles()[0]->id == shuttle->id;
 }
 
 void RelicMinerAgentRole::iteratePlan(int planIteration, Communicator &communicator) {

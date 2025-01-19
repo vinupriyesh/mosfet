@@ -1,16 +1,26 @@
 #include "agent_role.h"
 
-bool HaloNodeNavigatorAgentRole::isRolePossible() {   
+HaloNodeNavigatorAgentRole::HaloNodeNavigatorAgentRole(Shuttle *shuttle, ControlCenter *cc) : NavigatorAgentRole(shuttle, cc){
+    roleClassName = "HaloNodeNavigatorAgentRole";
+}
+
+bool HaloNodeNavigatorAgentRole::isRolePossible()
+{
+    if (unableToAct) {
+        return false;
+    }  
     int totalTile = this->cc->gameEnvConfig->mapHeight * this->cc->gameEnvConfig->mapWidth;
     float percentageExplored = static_cast<float>(this->cc->tilesExplored) / totalTile; 
-    return (cc->allRelicsFound || cc->allTilesExplored || percentageExplored >= 0.7) && !leastEnergyPathing->haloDestinations.empty();
+    return (cc->allRelicsFound || cc->allTilesExplored || percentageExplored >= 0.7) && !leastEnergyPathingStopAtHaloTiles->haloDestinations.empty();
 }
 
 void HaloNodeNavigatorAgentRole::iteratePlan(int planIteration, Communicator &communicator) {
+    unableToAct = false;
+    bestPlan.clear();
     int idx = -1;
-    for (const auto [distance, destinationTile] : leastEnergyPathing->haloDestinations) {
+    for (const auto [distance, destinationTile] : leastEnergyPathingStopAtHaloTiles->haloDestinations) {
         idx++;
-        log(std::to_string(idx) + "/" + std::to_string(leastEnergyPathing->haloDestinations.size()) + 
+        log(std::to_string(idx) + "/" + std::to_string(leastEnergyPathingStopAtHaloTiles->haloDestinations.size()) + 
             " - Halo tile - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + 
             ") with distance " + std::to_string(distance));
         if (destinationTile->isOccupied()) {
@@ -19,7 +29,7 @@ void HaloNodeNavigatorAgentRole::iteratePlan(int planIteration, Communicator &co
         }
 
         // Move towards the destination tile
-        std::vector<GameTile*> pathToDestination = leastEnergyPathing->distances[destinationTile].second;
+        std::vector<GameTile*> pathToDestination = leastEnergyPathingStopAtHaloTiles->distances[destinationTile].second;
         if (pathToDestination.size() < 2) {
             log("We are already in the closest halo tile");
             bestPlan = {Direction::CENTER, 0, 0};
@@ -29,5 +39,9 @@ void HaloNodeNavigatorAgentRole::iteratePlan(int planIteration, Communicator &co
 
         bestPlan = {directionToInt(direction), 0, 0};
         break;
+    }
+
+    if (bestPlan.size() == 0){
+        unableToAct = true;
     }
 }

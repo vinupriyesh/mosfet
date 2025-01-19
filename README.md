@@ -31,3 +31,7 @@ pip3 install --upgrade luxai-s3
   - gameMap
   - gameEnvConfigs (global)
   - gameState (Can be inside gameMap)
+
+## To dive deep
+
+- Seed 8466, 22638 - Points to in negative

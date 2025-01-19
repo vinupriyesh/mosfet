@@ -12,20 +12,24 @@ class ControlCenter; // Forward declaration
 
 class AgentRole {
     protected:
-        
+        std::string roleClassName;
+        bool unableToAct = false;
         ControlCenter* cc;
         Shuttle* shuttle;
         Pathing* leastEnergyPathing;
-
-        std::vector<int> bestPlan;
+        Pathing* leastEnergyPathingStopAtHaloTiles;
+        Pathing* leastEnergyPathingStopAtVantagePoints;
 
         void log(std::string message);
         
     public:
-
+        std::vector<int> bestPlan; 
         void setLeastEnergyPathing(Pathing *leastEnergyPathing);
+        void setLeastEnergyPathingStopAtHaloTiles(Pathing *leastEnergyPathingStopAtHaloTiles);
+        void setLeastEnergyPathingStopAtVantagePoints(Pathing *leastEnergyPathingStopAtVantagePoints);
         Direction getDirectionTo(const GameTile &destinationTile);
         AgentRole(Shuttle *shuttle, ControlCenter *cc);
+        void reset();
         virtual bool isRolePossible() = 0;
         virtual void iteratePlan(int planIteration, Communicator& communicator) = 0;
 };
@@ -43,6 +47,7 @@ class NavigatorAgentRole: public AgentRole {
 class RelicMinerAgentRole : public AgentRole {
     public:
         using AgentRole::AgentRole;
+        RelicMinerAgentRole(Shuttle *shuttle, ControlCenter *cc);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
@@ -51,6 +56,7 @@ class RelicMinerAgentRole : public AgentRole {
 class RelicMiningNavigatorAgentRole: public NavigatorAgentRole {
     public:
         using NavigatorAgentRole::NavigatorAgentRole;
+        RelicMiningNavigatorAgentRole(Shuttle *shuttle, ControlCenter *cc);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
@@ -63,6 +69,7 @@ class HaloNodeExplorerAgentRole: public ExplorerAgentRole {
 
     public:
         using ExplorerAgentRole::ExplorerAgentRole;
+        HaloNodeExplorerAgentRole(Shuttle *shuttle, ControlCenter *cc);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
@@ -71,6 +78,7 @@ class HaloNodeExplorerAgentRole: public ExplorerAgentRole {
 class HaloNodeNavigatorAgentRole: public NavigatorAgentRole {
     public:
         using NavigatorAgentRole::NavigatorAgentRole;
+        HaloNodeNavigatorAgentRole(Shuttle *shuttle, ControlCenter *cc);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
@@ -79,6 +87,7 @@ class HaloNodeNavigatorAgentRole: public NavigatorAgentRole {
 class TrailblazerAgentRole: public ExplorerAgentRole {
     public:
         using ExplorerAgentRole::ExplorerAgentRole;
+        TrailblazerAgentRole(Shuttle *shuttle, ControlCenter *cc);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
@@ -90,6 +99,7 @@ class RandomAgentRole: public AgentRole {
         std::uniform_int_distribution<> dis; // Uniform distribution
     public:
         using AgentRole::AgentRole;
+        RandomAgentRole(Shuttle *shuttle, ControlCenter *cc);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
