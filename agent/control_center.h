@@ -11,6 +11,8 @@
 #include "datastructures/constraint_set.h"
 #include "agent/planning/planner.h"
 #include "agent/roles/communicator.h"
+#include "visualizer/visualizer_client.h"
+
 #include <vector>
 #include <string>
 
@@ -19,8 +21,9 @@ class Planner; //Forward declaration
 
 class ControlCenter {
 private:
+    VisualizerClient* visualizerClientPtr;
     ConstraintSet* haloConstraints = nullptr; 
-    Planner* planner = nullptr;      
+    Planner* planner = nullptr;     
 
     // dynamic objects
     Shuttle** shuttles; 

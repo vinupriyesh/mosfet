@@ -16,7 +16,11 @@ struct FileCloser {
     }
 };
 
-std::string exec(const char* cmd) {
+void VisualizerClient::log(std::string message) {
+    Logger::getInstance().log("VisualizerClient -> " + message);
+}
+
+std::string VisualizerClient::exec(const char* cmd) {
     std::array<char, 128> buffer;
     std::string result;
 
@@ -33,44 +37,50 @@ std::string exec(const char* cmd) {
     return result;
 }
 
-std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic, GameMap* gameMap) {
+std::string VisualizerClient::get_data() {
     // Implement the function to return the required data as a JSON string
     // return "{\"grid_size\": [24, 24], \"asteroids\": [[0,0], [0,5],[20,5]], \"blue_shuttles\": [[3,0], [7,5]], \"red_shuttles\": [[4,3], [9,5]]}";
-
+    log("Collecting data");
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     
     // Create a JSON object
     json jsonObject;
 
+    jsonObject["step"].push_back(gameMap.derivedGameState.currentStep);
+    jsonObject["match_step"].push_back(gameMap.derivedGameState.currentMatchStep);
+
     // Add grid_size
     jsonObject["grid_size"] = {gameEnvConfig.mapWidth, gameEnvConfig.mapHeight};
 
+    log("Looking for relics");
     // Add relics
     for (int i = 0; i < gameEnvConfig.relicCount; ++i) {
-        if (!relic[i]->revealed) {
+        if (!relics[i]->revealed) {
             continue;
         }
-        jsonObject["relics"].push_back(relic[i]->position);
+        jsonObject["relics"].push_back(relics[i]->position);
     }
 
+    log("Looking for asteroids");
     // Add asteroids
     for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
-            if (gameMap->getTile(i, j).getLastKnownType() == TileType::ASTEROID) {
+            if (gameMap.getTile(i, j).getLastKnownType() == TileType::ASTEROID) {
                 jsonObject["asteroids"].push_back({i, j});
             }
-            if (gameMap->getTile(i, j).getLastKnownType() == TileType::NEBULA) {
+            if (gameMap.getTile(i, j).getLastKnownType() == TileType::NEBULA) {
                 jsonObject["nebula"].push_back({i, j});
             }
-            if (gameMap->getTile(i, j).isHaloTile()) {
+            if (gameMap.getTile(i, j).isHaloTile()) {
                 jsonObject["halo_tiles"].push_back({i, j});
             }
-            if (gameMap->getTile(i, j).isVantagePoint()) {
+            if (gameMap.getTile(i, j).isVantagePoint()) {
                 jsonObject["vantage_points"].push_back({i, j});
             }
         }
     }
 
+    log("Looking for player shuttles");
     // Blue is the current player
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         if (shuttles[i]->position[0] == -1) {
@@ -79,32 +89,93 @@ std::string get_data(Shuttle** shuttles, Shuttle** enemyShuttles, Relic** relic,
         jsonObject["blue_shuttles"].push_back(shuttles[i]->position);
     }
 
+    log("Looking for opponent shuttles");
     // Red is the enemy player
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
-        if (enemyShuttles[i]->position[0] == -1) {
+        log("Checking opponent shuttle " + std::to_string(i));
+        if (opponentShuttles[i]->position[0] == -1 || opponentShuttles[i]->position[1] == -1) {
             continue;
         }
-        jsonObject["red_shuttles"].push_back(enemyShuttles[i]->position);
+        jsonObject["red_shuttles"].push_back(opponentShuttles[i]->position);
     }
 
+    log("Done collecing data");
     return jsonObject.dump();
 }
 
-int send_game_data(Shuttle** shuttle, Shuttle** enemyShuttle, Relic** relic, GameMap* gameMap, int port) {
-     auto start = std::chrono::high_resolution_clock::now();
-    std::string url = "http://localhost:" + std::to_string(port) + "/";
-    std::string data = get_data(shuttle, enemyShuttle, relic, gameMap);
-    std::string command = "curl -s --request POST --url " + url + " --header 'content-type: application/json' --data '"+ data + "'";
-    Logger::getInstance().log("Command: " + command);            
+VisualizerClient::VisualizerClient(GameMap &gameMap, Shuttle **shuttles, Shuttle **opponentShuttles, Relic **relics) 
+                                    : gameMap(gameMap), shuttles(shuttles), opponentShuttles(opponentShuttles), relics(relics) {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    if (gameEnvConfig.teamId == 0) {
+        //We are playing as blue team
+        livePlayEnabled = Config::livePlayPlayer0;
+        recordingEnabled = Config::recordPlayer0;
+        port = Config::portPlayer0;
+        teamId = 0;
+    } else if(gameEnvConfig.teamId == 1) {
+        livePlayEnabled = Config::livePlayPlayer1;
+        recordingEnabled = Config::recordPlayer1;
+        port = Config::portPlayer1;
+        teamId = 1;
+    }
+    
+    if (recordingEnabled) {
+        std::string filename = "custom_replay_" + std::to_string(teamId) + ".json";
+        log_file.open(filename, std::ios::out | std::ios::app);
+    }
+    if (log_file.is_open()) {
+        log_file << "{\"data\":[" << std::endl;
+    }
+}
 
+std::string VisualizerClient::upload_data(std::string data) {
+    if (!livePlayEnabled) {
+        return "";
+    }
     try {
+        std::string url = "http://localhost:" + std::to_string(port) + "/";
+        std::string command = "curl -s --request POST --url " + url + " --header 'content-type: application/json' --data '"+ data + "'";
+        Logger::getInstance().log("Command: " + command);        
         std::string response = exec(command.c_str());
         Logger::getInstance().log("Response: " + response);
+        return response;
     } catch (const std::exception& e) {
         Logger::getInstance().log("Exception while sending live play data: " + std::string(e.what()));
     }
+    
+    return "";
+}
+
+int VisualizerClient::send_game_data() {
+    if (!livePlayEnabled && !recordingEnabled) {
+        return 0;
+    }
+
+    log("sending game data");
+    auto start = std::chrono::high_resolution_clock::now();         
+
+    std::string data = get_data();
+    
+    if (log_file.is_open()) {
+        log_file << data << "," << std::endl;
+    }
+
+    if (livePlayEnabled) {
+        upload_data(data);
+    }
+    
     auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);  
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);      
     Metrics::getInstance().add("visualizer_overhead", duration.count());
+    log("game data sent");
     return 0;
 }
+
+VisualizerClient::~VisualizerClient() {
+    log("Destroying visualizer");
+    if (log_file.is_open()) {
+        log_file<<"{}]}"<<std::endl;
+        log_file.close();
+    }
+}
+

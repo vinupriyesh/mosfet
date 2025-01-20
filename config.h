@@ -10,6 +10,8 @@ public:
     static bool enableMetrics;
     static bool livePlayPlayer0;
     static bool livePlayPlayer1;
+    static bool recordPlayer0;
+    static bool recordPlayer1;
     static int portPlayer0;
     static int portPlayer1;
     static int seed;

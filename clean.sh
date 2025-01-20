@@ -1,5 +1,7 @@
 rm *.tar.gz
 rm application.log
+rm custom_replay_0.json
+rm custom_replay_1.json
 rm test.log
 rm metrics.csv
 rm replay.html

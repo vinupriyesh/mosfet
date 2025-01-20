@@ -101,10 +101,10 @@ int main(int argc, char* argv[]) {
             process(input, counter++);                        
         } catch (const std::exception& e) {
             log("Exception caught: " + std::string(e.what()));
+
+            delete cc;
+            log("Deleted CC, good bye");
             std::cerr << "Fatal:" << e.what() << std::endl;
-            
-            //Print something so that python can handle this
-            // std::cout << "unable" << std::endl;
             return -1;
         }
     }

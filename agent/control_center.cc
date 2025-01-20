@@ -1,7 +1,6 @@
 #include "control_center.h"
 #include <iostream>
 #include "logger.h"
-#include "visualizer/visualizer_client.h"
 #include "config.h"
 #include "agent/planning/planner.h"
 
@@ -38,6 +37,9 @@ void ControlCenter::init(GameState& gameState) {
     haloConstraints = new ConstraintSet();
     planner = new Planner(shuttles);
 
+
+    visualizerClientPtr = new VisualizerClient(*gameMap, shuttles, opponentShuttles, relics);
+
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     log("Initialization complete " + std::to_string(duration.count()));
@@ -48,10 +50,11 @@ void ControlCenter::init(GameState& gameState) {
  */
 void ControlCenter::update(GameState& gameState) {
 
-    auto start = std::chrono::high_resolution_clock::now();
+    auto start = std::chrono::high_resolution_clock::now();    
+
     if (shuttles == nullptr) {
         init(gameState);
-    }
+    }    
 
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap->derivedGameState;
@@ -279,10 +282,13 @@ ControlCenter::ControlCenter() {
 
 ControlCenter::~ControlCenter() {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    log("destroying cc");
+    delete visualizerClientPtr;
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         delete shuttles[i];
     }
     delete[] shuttles;
+    delete[] opponentShuttles;
     delete haloConstraints;
     delete planner;
 }
@@ -302,14 +308,9 @@ std::vector<std::vector<int>> ControlCenter::act() {
         results.push_back(agentAction);
     }
 
-    // Send data to live play visualizer
-    if (Config::livePlayPlayer0 && gameEnvConfig.teamId == 0) {
-        send_game_data(shuttles, opponentShuttles, relics, gameMap, Config::portPlayer0);
+    if (visualizerClientPtr != nullptr) {
+        visualizerClientPtr->send_game_data();
     }
-    if (Config::livePlayPlayer1 && gameEnvConfig.teamId == 1) {
-        send_game_data(shuttles, opponentShuttles, relics, gameMap, Config::portPlayer1);
-    }
-    // std::cerr<< "test cc" << std::endl;
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
