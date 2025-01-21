@@ -1,3 +1,4 @@
+import argparse
 from time import sleep
 import pygame
 import sys
@@ -13,6 +14,7 @@ game_state = None
 visualizer = None
 response_queue = Queue()
 httpd = None
+replay_handler = None
 
 class RequestHandler(BaseHTTPRequestHandler):
     def _set_headers(self):
@@ -38,71 +40,87 @@ class RequestHandler(BaseHTTPRequestHandler):
         self._set_headers()
         self.wfile.write(json.dumps({'status': response}).encode('utf-8'))
 
+
+class ReplayHandler:
+
+    def __init__(self, file):
+        self.file = file
+        self.data = self.load_data()["data"]
+        self.current_frame = 0
+
+    def load_data(self):
+        with open(self.file, 'r') as f:
+            data = json.load(f)
+        return data
+
+    def forward(self, increment=1):
+        if self.current_frame < len(self.data) - increment - 1:            
+            self.current_frame += increment
+            game_state.update_state(self.data[self.current_frame])
+            visualizer.update_display()            
+    
+    def backward(self, increment=1):
+        if self.current_frame - increment >= 0:
+            self.current_frame -= increment
+            game_state.update_state(self.data[self.current_frame])
+            visualizer.update_display()
+    
+    def goto_start(self):
+        self.current_frame = 0
+        game_state.update_state(self.data[self.current_frame])
+        visualizer.update_display()
+    
+    def goto_end(self):
+        self.current_frame = len(self.data) - 2
+        game_state.update_state(self.data[self.current_frame])
+        visualizer.update_display()
+
 def run_server(port):
     global httpd
     server_address = ('', port)
     httpd = HTTPServer(server_address, RequestHandler)
     print(f'Starting server at port {port}...')
     httpd.serve_forever()
-
-def draw_text(screen, text, position, font):
-    text_surface = font.render(text, True, (0, 0, 0))
-    screen.blit(text_surface, position)
-
-def main():
-    pygame.init()
-    screen = pygame.display.set_mode((400, 200))
-    pygame.display.set_caption('Enter Port Number')
-    font = pygame.font.Font(None, 32)
-    input_box = pygame.Rect(100, 50, 200, 32)
-    color_inactive = pygame.Color('lightskyblue3')
-    color_active = pygame.Color('dodgerblue2')
-    color = color_inactive
-    active = False
-    text = ''
-    done = False
-
-    while not done:
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                pygame.quit()
-                sys.exit()
-            if event.type == pygame.MOUSEBUTTONDOWN:
-                if input_box.collidepoint(event.pos):
-                    active = not active
-                else:
-                    active = False
-                color = color_active if active else color_inactive
-            if event.type == pygame.KEYDOWN:
-                if active:
-                    if event.key == pygame.K_RETURN:
-                        port = int(text)
-                        done = True
-                    elif event.key == pygame.K_BACKSPACE:
-                        text = text[:-1]
-                    else:
-                        text += event.unicode
-
-        screen.fill((255, 255, 255))
-        draw_text(screen, 'Port No:', (50, 50), font)
-        txt_surface = font.render(text, True, color)
-        width = max(200, txt_surface.get_width()+10)
-        input_box.w = width
-        screen.blit(txt_surface, (input_box.x+5, input_box.y+5))
-        pygame.draw.rect(screen, color, input_box, 2)
-
-        pygame.display.flip()
-
-    global game_state, visualizer, response_queue
-    game_state = GameState((24, 24))
-    visualizer = Visualizer(game_state, response_queue)
+        
+def live_mode(port: int):    
 
     # Start HTTP server in a separate thread
     server_thread = Thread(target=run_server, args=(port,))
     server_thread.start()
 
+def replay_mode(file: str, visualizer: Visualizer):
+    global replay_handler
+
+    replay_handler = ReplayHandler(file)
+    visualizer.register_replay_handler(replay_handler)
+    
+def main():
+    parser = argparse.ArgumentParser(description='Vizualization CLI')
+    
+    subparsers = parser.add_subparsers(dest='mode', required=True)
+    
+    live_parser = subparsers.add_parser('live', help='Run in live mode')
+    live_parser.add_argument('port', type=int, help='Port number for live mode')
+    
+    replay_parser = subparsers.add_parser('replay', help='Run in replay mode')
+    replay_parser.add_argument('file', type=str, help='JSON file for replay mode')
+    
+    args = parser.parse_args()
+
+    pygame.init()        
+
+    global game_state, visualizer, response_queue
+    game_state = GameState((24, 24))
+    visualizer = Visualizer(game_state, response_queue)
+
+    if args.mode == 'live':
+        live_mode(args.port)
+    elif args.mode == 'replay':
+        replay_mode(args.file, visualizer)
+
     # Start the Pygame loop in the main thread
     visualizer.run()
+
 
 if __name__ == "__main__":
     main()

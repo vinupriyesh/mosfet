@@ -1,6 +1,7 @@
 import pygame
 import sys
 import random
+import time
 
 white = (255, 255, 255)
 black = (0, 0, 0)
@@ -29,12 +30,29 @@ class Visualizer:
         self.relic_image = pygame.transform.scale(self.relic_image, (self.cell_size, self.cell_size))
         self.vantage_point_image = pygame.image.load('img/vantage_point.png')
         self.vantage_point_image = pygame.transform.scale(self.vantage_point_image, (self.cell_size, self.cell_size))
+        self.replay_handler = None
+        self.running = True
+        self.forward_key_held = False
+        self.backward_key_held = False
+
+        self.asteroid_images = {}
+        self.last_update_time = 0
+        self.update_interval = 0.1  # Interval in seconds
+
+    def get_asteroid_image(self, x, y):
+        key = f"{x}_{y}"
+        if key not in self.asteroid_images:
+            self.asteroid_images[key] = pygame.transform.rotate(self.asteroid_image, random.randint(0, 360))
+        return self.asteroid_images[key]
+
+    def register_replay_handler(self, replay_handler):
+        self.replay_handler = replay_handler
 
     def update_display(self):
         self.screen.fill(white)
         self.draw_grid()
         self.draw_elements()
-        self.draw_button()
+        self.draw_score()
         pygame.display.flip()
 
     def draw_grid(self):
@@ -77,7 +95,7 @@ class Visualizer:
 
     def draw_asteroid(self, position):
         x, y = position
-        rotated_image = pygame.transform.rotate(self.asteroid_image, random.randint(0, 360))
+        rotated_image = self.get_asteroid_image(x, y)
         rect = rotated_image.get_rect(center=(x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2))
         self.screen.blit(rotated_image, rect.topleft)
 
@@ -104,29 +122,68 @@ class Visualizer:
         text_surface = self.font.render('Respond', True, (255, 255, 255))
         self.screen.blit(text_surface, (self.button_rect.x + 10, self.button_rect.y + 5))
 
+    def draw_score(self):
+        text_surface = self.font.render(f'{self.game_state.step} / {self.game_state.match_step}', True, (0, 0, 0))
+        self.screen.blit(text_surface, (self.button_rect.x + 10, self.button_rect.y + 5))
+
+    def handle_events(self):
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                self.running = False
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                if self.button_rect.collidepoint(event.pos):
+                    # Send a custom response and unblock the HTTP request
+                    self.response_queue.put("Custom Response")
+                else:
+                    self.handle_click(event.pos)
+            elif event.type == pygame.KEYDOWN:
+                if event.key == pygame.K_RIGHT:
+                    self.forward_key_held = True
+                elif event.key == pygame.K_LEFT:
+                    self.backward_key_held = True
+                elif event.key == pygame.K_PAGEUP:
+                    if self.replay_handler:
+                        if pygame.key.get_mods() & pygame.KMOD_SHIFT:
+                            self.replay_handler.forward(100)
+                        else:
+                            self.replay_handler.forward(10)
+                elif event.key == pygame.K_PAGEDOWN:
+                    if self.replay_handler:
+                        if pygame.key.get_mods() & pygame.KMOD_SHIFT:
+                            self.replay_handler.backward(100)
+                        else:
+                            self.replay_handler.backward(10)
+                elif event.key == pygame.K_HOME:
+                    if self.replay_handler:
+                        self.replay_handler.goto_start()
+                elif event.key == pygame.K_END:
+                    if self.replay_handler:
+                        self.replay_handler.goto_end()
+            elif event.type == pygame.KEYUP:
+                if event.key == pygame.K_RIGHT:
+                    self.forward_key_held = False
+                elif event.key == pygame.K_LEFT:
+                    self.backward_key_held = False            
+
+    def update(self):
+        current_time = time.time()
+        if current_time - self.last_update_time >= self.update_interval:
+            if self.forward_key_held and self.replay_handler:
+                self.replay_handler.forward()
+                self.last_update_time = current_time
+            if self.backward_key_held and self.replay_handler:
+                self.replay_handler.backward()
+                self.last_update_time = current_time
+        self.update_display()
+
     def run(self):
-        while True:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    pygame.quit()
-                    sys.exit()
-                elif event.type == pygame.MOUSEBUTTONDOWN:
-                    if self.button_rect.collidepoint(event.pos):
-                        # Send a custom response and unblock the HTTP request
-                        self.response_queue.put("Custom Response")
-                    else:
-                        self.handle_click(event.pos)
-            pygame.time.wait(10)  # Adding a small delay to prevent high CPU usage
+        while self.running:
+            self.handle_events()
+            self.update()                        
+            pygame.time.wait(10) 
 
     def handle_click(self, position):
         x, y = position
         grid_x, grid_y = x // self.cell_size, y // self.cell_size
         print(f"Shuttle clicked at ({grid_x}, {grid_y})")
 
-if __name__ == "__main__":
-    # Assuming the game state is initialized somewhere else as per the main.py
-    from game_state import GameState
-    game_state = GameState((24, 24))  # Example grid size
-    response_queue = Queue()
-    visualizer = Visualizer(game_state, response_queue)
-    visualizer.run()
