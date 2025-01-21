@@ -77,6 +77,7 @@ void Shuttle::computePath() {
     config.pathingHeuristics = LEAST_ENERGY;
     config.captureEverything();
     config.stopAtUnexploredTiles = true;
+    config.doNotBumpIntoOpponentShuttles = true;
 
     leastEnergyPathing = new Pathing(gameMap, config);
     leastEnergyPathing->findAllPaths(startTile);
@@ -87,6 +88,7 @@ void Shuttle::computePath() {
     config2.pathingHeuristics = LEAST_ENERGY;
     config2.captureEverything();
     config2.stopAtHaloTiles= true;
+    config2.doNotBumpIntoOpponentShuttles = true;
 
     leastEnergyPathingStopAtHaloTiles = new Pathing(gameMap, config2);
     leastEnergyPathingStopAtHaloTiles->findAllPaths(startTile);
@@ -97,6 +99,7 @@ void Shuttle::computePath() {
     config3.pathingHeuristics = LEAST_ENERGY;
     config3.captureEverything();
     config3.stopAtVantagePointTiles= true;
+    config3.doNotBumpIntoOpponentShuttles = true;
     log("Third path complete");
 
     leastEnergyPathingStopAtVantagePoints = new Pathing(gameMap, config3);

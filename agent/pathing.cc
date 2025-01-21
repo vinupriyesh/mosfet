@@ -109,6 +109,12 @@ void Pathing::findAllPaths(GameTile &startTile) {
                 continue;
             }
 
+            // Skip if the tile is occupied by an opponent shuttle
+            if (config.doNotBumpIntoOpponentShuttles && std::get<1>(result).isOpponentOccupied() 
+                && !std::get<1>(result).isVantagePoint() && !std::get<1>(result).isHaloTile()) {
+                continue;
+            }
+
             GameTile& neighbor = std::get<1>(result);
 
             int neighborCost = getCost(neighbor);

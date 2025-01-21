@@ -164,6 +164,13 @@ void ControlCenter::update(GameState& gameState) {
                 }
             }
 
+            currentTile.clearOpponentShuttles();
+            for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
+                if (opponentShuttles[s]->getX() == i && opponentShuttles[s]->getY() == j && !opponentShuttles[s]->isGhost()) {
+                    currentTile.addOpponentShuttle(opponentShuttles[s]);
+                }
+            }
+
             if (!currentTile.isVisited()) {
                 state.allTilesVisited = false;
                 state.tilesVisited--;

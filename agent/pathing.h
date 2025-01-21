@@ -18,6 +18,7 @@ enum PathingHeuristics {
 
 struct PathingConfig {
     PathingHeuristics pathingHeuristics = SHORTEST_DISTANCE;
+    bool doNotBumpIntoOpponentShuttles;
     bool stopAtHaloTiles; // Halo tiles are not explored
     bool stopAtUnexploredTiles; // Unexplored tiles can be at the leaf node, but they will not be explored further
     bool stopAtVisitedTiles; // Visited tiles can be at the leaf node, but they will not be explored further

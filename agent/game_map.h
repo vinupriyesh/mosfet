@@ -53,6 +53,7 @@ class GameTile {
         bool forcedRegularTile;
         Relic* relic;
         std::vector<Shuttle*> shuttles;
+        std::vector<Shuttle*> opponentShuttles;
         int energy;
 
         int lastVisitedTime;
@@ -84,10 +85,13 @@ class GameTile {
         void setForcedRegularTile(bool forcedRegularTile) { this->forcedRegularTile = forcedRegularTile; };
         void setRelic(Relic* relic) { this->relic = relic; };
         void addShuttle(Shuttle* shuttle);
+        void addOpponentShuttle(Shuttle* shuttle);
         bool isOccupied();
+        bool isOpponentOccupied();
         std::vector<Shuttle*>& getShuttles() { return shuttles; };
         void clearShuttle(Shuttle *shuttle);
         void clearShuttles();
+        void clearOpponentShuttles();
 
         TileType setType(int tileTypeCode, int time);
         TileType getLastKnownTileType();

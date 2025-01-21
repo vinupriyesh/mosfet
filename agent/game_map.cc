@@ -136,8 +136,16 @@ void GameTile::addShuttle(Shuttle* shuttle)  {
     this->shuttles.push_back(shuttle);
 }
 
+void GameTile::addOpponentShuttle(Shuttle* shuttle) {
+    this->opponentShuttles.push_back(shuttle);
+}
+
 bool GameTile::isOccupied() {
     return shuttles.size() > 0;
+}
+
+bool GameTile::isOpponentOccupied() {
+    return opponentShuttles.size() > 0;
 }
 
 void GameTile::clearShuttle(Shuttle* shuttle) {
@@ -152,6 +160,10 @@ void GameTile::clearShuttle(Shuttle* shuttle) {
 
 void GameTile::clearShuttles() {
     this->shuttles.clear();
+}
+
+void GameTile::clearOpponentShuttles() {
+    this->opponentShuttles.clear();
 }
 
 void GameTile::setExplored(bool explored, int time) {
