@@ -53,7 +53,7 @@ public:
 
     void log(std::string message);
     void updateUnitsData(std::vector<int> position, int energy);
-    void updateVisbility(bool isVisible);
+    void updateVisibility(bool isVisible);
     int getX();
     int getY();
 

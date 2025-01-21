@@ -11,6 +11,7 @@ class GameState:
         self.relics = []
         self.vantage_points = []
         self.halo_tiles = []
+        self.energy = []
         self.step = 0
         self.match_step = 0
 
@@ -27,3 +28,4 @@ class GameState:
         self.relics = data.get('relics', [])
         self.vantage_points = data.get('vantage_points', [])
         self.halo_tiles = data.get('halo_tiles', [])
+        self.energy = data.get('energy', [])

@@ -27,7 +27,7 @@ bool Shuttle::isGhost() {
     return this->ghost;
 }
 
-void Shuttle::updateVisbility(bool isVisible) {
+void Shuttle::updateVisibility(bool isVisible) {
     this->visible = isVisible;
 }
 

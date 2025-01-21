@@ -191,6 +191,13 @@ int GameTile::getEnergy() {
     return energy;
 }
 
+int GameTile::getLastKnownEnergy() {
+    if (lastEnergyUpdateTime == 0) {
+        return 0;
+    }
+    return energy;
+}
+
 std::string GameTile::toString() {
     return "(" + std::to_string(x) + "," + std::to_string(y) + ")";
 }

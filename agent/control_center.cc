@@ -99,8 +99,8 @@ void ControlCenter::update(GameState& gameState) {
         opponentShuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig.opponentTeamId][i],
                                           gameState.obs.units.energy[gameEnvConfig.opponentTeamId][i]);
                                           
-        shuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig.teamId][i]);
-        opponentShuttles[i]->updateVisbility(gameState.obs.unitsMask[gameEnvConfig.opponentTeamId][i]);     
+        shuttles[i]->updateVisibility(gameState.obs.unitsMask[gameEnvConfig.teamId][i]);
+        opponentShuttles[i]->updateVisibility(gameState.obs.unitsMask[gameEnvConfig.opponentTeamId][i]);     
 
         if (gameMap->isValidTile(shuttles[i]->getX(), shuttles[i]->getY())) {
             // log("Updating visited for tile " + std::to_string(shuttles[i]->getX()) + ", " + std::to_string(shuttles[i]->getY()));
@@ -148,7 +148,10 @@ void ControlCenter::update(GameState& gameState) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
             GameTile& currentTile = gameMap->getTile(i, j);
             currentTile.setType(gameState.obs.mapFeatures.tileType[i][j], state.currentStep);
-            currentTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], state.currentStep);
+            if (gameState.obs.sensorMask[i][j]) {
+                // Update energy only if the node is visible.
+                currentTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], state.currentStep);
+            }            
 
             if (gameState.obs.sensorMask[i][j]) {
                 currentTile.setExplored(true, state.currentStep);

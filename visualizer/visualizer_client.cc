@@ -77,6 +77,7 @@ std::string VisualizerClient::get_data() {
             if (gameMap.getTile(i, j).isVantagePoint()) {
                 jsonObject["vantage_points"].push_back({i, j});
             }
+            jsonObject["energy"].push_back(gameMap.getTile(i, j).getLastKnownEnergy());
         }
     }
 

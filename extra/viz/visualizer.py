@@ -5,9 +5,17 @@ import time
 
 white = (255, 255, 255)
 black = (0, 0, 0)
+light_grey = (200, 200, 190)
 blue = (0, 0, 255)
 red = (255, 0, 0)
-gold_with_transparency = (255, 215, 0, 128)  # RGBA format with alpha value for transparency
+gold_with_transparency = (255, 215, 0, 128)
+energy_green = (0, 136, 41)
+energy_red = (136, 16, 0)
+
+def colorize(base_color, energy_value):
+    # Assuming energy_value is between 0 and 1 for positive energy and 0 and -1 for negative energy
+    alpha = int(13 * abs(energy_value))  # Calculate alpha based on energy value
+    return base_color + (alpha,)
 
 class Visualizer:
     def __init__(self, game_state, response_queue):
@@ -56,10 +64,20 @@ class Visualizer:
         pygame.display.flip()
 
     def draw_grid(self):
+        idx = 0
         for x in range(0, self.screen_width, self.cell_size):
             for y in range(0, self.screen_height, self.cell_size):
                 rect = pygame.Rect(x, y, self.cell_size, self.cell_size)
-                pygame.draw.rect(self.screen, black, rect, 1)
+                if len(self.game_state.energy) > 0:
+                    energy_value = self.game_state.energy[idx]
+                    if energy_value != 0:
+                        color = colorize(energy_green if energy_value > 0 else energy_red, energy_value)
+                        # Create a temporary surface with per-pixel alpha
+                        temp_surface = pygame.Surface((self.cell_size, self.cell_size), pygame.SRCALPHA)
+                        pygame.draw.rect(temp_surface, color, temp_surface.get_rect())
+                        self.screen.blit(temp_surface, rect.topleft)
+                pygame.draw.rect(self.screen, light_grey, rect, 1)
+                idx += 1
 
     def draw_elements(self):
         for asteroid in self.game_state.asteroids:
