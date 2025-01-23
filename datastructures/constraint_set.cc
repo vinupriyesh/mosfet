@@ -57,7 +57,33 @@ void removeValue(std::set<int>& haloPointSet, int value) {
     haloPointSet.erase(value);
 }
 
-void ConstraintSet::pruneConstratins() {
+/**
+ * When a new relic is found and if the halo nodes overlap with existing nodes, it is better we 'forget' the older constraints. 
+ * This is because, the older constraints need not be true anymore unfortunately. 
+ * 
+ * I am calling it phaseOut and not forget, because i might come back to this and add versioning logic.  It is too complex to think,
+ * but its sad to forget the hard found constraints. :(
+ */
+void ConstraintSet::phaseOutOlderConstraints(int tileId) {
+    log("Phasing out older constraints for tile " + std::to_string(tileId));
+    auto it = masterSet.begin();
+    int count = 0;
+    while (it != masterSet.end()) {
+        if (contains(it->haloPointSet, tileId)) {
+            log("Removing constraint with points value " + std::to_string(it->pointsValue) + " and halo point set" + setToString(it->haloPointSet));
+            it = masterSet.erase(it); // Erase and get the next valid iterator
+            count++;
+        } else {
+            ++it; // Move to the next element
+        }
+    }
+    Metrics::getInstance().add("phased_out_constraints", count);
+}
+
+/**
+ * If the master set has any regular tile or vantage points, then we can reduce them to have a slimmer constraint set.
+ */
+void ConstraintSet::pruneConstraints() {
     log("Pruning constraints");
     auto it = masterSet.begin();
     std::vector<ConstraintObservation> nextRecursionCycle;
@@ -119,7 +145,7 @@ void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) 
     ConstraintObservation observation(pointsValue, haloPointSet);
     addConstraint(std::move(observation));
 
-    pruneConstratins();
+    pruneConstraints();
 
     Metrics::getInstance().add("constraint_set_size", masterSet.size());
 
@@ -131,7 +157,11 @@ void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) 
 void ConstraintSet::reconsiderNormalizedTile(int tileId) {
     if (identifiedRegularTiles.find(tileId) != identifiedRegularTiles.end()) {
         identifiedRegularTiles.erase(tileId);
-        log("Removing regular tile " + std::to_string(tileId));
+        log("Removing regular tile " + std::to_string(tileId));        
+    } else if (Config::phaseOutConstraints && identifiedVantagePoints.find(tileId) == identifiedVantagePoints.end()) { 
+        // This if condition is there just for performance. Vantage points will always be
+        // included in the set.  So better check if it is not a vantage point before phasing out.
+        phaseOutOlderConstraints(tileId);
     }
 }
 

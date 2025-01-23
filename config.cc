@@ -12,6 +12,7 @@ bool Config::recordPlayer1 = false;
 int Config::portPlayer0 = 0;
 int Config::portPlayer1 = 0;
 int Config::seed = 0;
+bool Config::phaseOutConstraints = true;
 
 void Config::parseConfig(const std::string& filename) {
     std::ifstream configFile(filename);
@@ -43,5 +44,6 @@ void Config::parseConfig(const std::string& filename) {
     recordPlayer1 = (configMap["record_player1"] == "true");
     portPlayer0 = livePlayPlayer0 ? std::stoi(configMap["port_player0"]) : 0;
     portPlayer1 = livePlayPlayer1 ? std::stoi(configMap["port_player1"]) : 0;
+    phaseOutConstraints = (configMap["phase_out_constraints"] == "true");
     seed = std::stoi(configMap["seed"]);
 }

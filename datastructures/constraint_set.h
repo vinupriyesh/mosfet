@@ -10,6 +10,7 @@
 
 #include "metrics.h"
 #include "logger.h"
+#include "config.h"
 
 
 struct ConstraintObservation {
@@ -27,8 +28,9 @@ struct ConstraintObservation {
 
 class ConstraintSet {
     private:
+
         void log(const std::string message) const;
-        void pruneConstratins();
+        void pruneConstraints();
 
         std::vector<ConstraintObservation> masterSet;
 
@@ -37,11 +39,12 @@ class ConstraintSet {
 
         // std::tuple<bool, ConstraintObservation&> isSuperset(const std::set<int> &querySet);
         void addConstraint(const ConstraintObservation &observation);
+        void phaseOutOlderConstraints(int tileId);
     public:
         std::set<int> identifiedVantagePoints;
         std::set<int> identifiedRegularTiles;
 
-        void clear();        
+        void clear();
         void addConstraint(int, std::set<int>&);
         void reconsiderNormalizedTile(int tileId);
         void reconsiderNormalizedTile(std::vector<int> tileIds);
@@ -49,7 +52,6 @@ class ConstraintSet {
         std::vector<ConstraintObservation> getMasterSet() {
             return masterSet;
         }
-
        
         void logMasterSet() const;
 };

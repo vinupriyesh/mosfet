@@ -19,13 +19,16 @@ def delete_all_files(folder_path):
             print(f"Error deleting {file}: {e}")
 
 
-def plot(df, images, dimension: str, ylabel ='Value', xlabel='Timestep', output_folder='output'):
+def plot(df, images, dimension: str, ylabel='Value', xlabel='Timestep', output_folder='output', sum_values=False):
 
     # Filter the DataFrame by the specified dimension
     df_filtered = df[df['dimension'] == dimension]
 
+    if sum_values:
+        # Sum the values per timestep if the flag is set
+        df_filtered = df_filtered.groupby(['timestep', 'player_id']).agg({'value': 'sum'}).reset_index()
+
     # Create a seaborn lineplot
-    # sns.set(style='whitegrid')
     fig, ax = plt.subplots(figsize=(14, 8))
     sns.lineplot(data=df_filtered, x='timestep', y='value', hue='player_id', estimator=None)
     
@@ -33,7 +36,6 @@ def plot(df, images, dimension: str, ylabel ='Value', xlabel='Timestep', output_
     ax.set_title(f'{dimension}', fontsize=16)
     ax.set_xlabel(xlabel, fontsize=14)
     ax.set_ylabel(ylabel, fontsize=14)
-    
 
     fig.autofmt_xdate(rotation=45, ha='right')
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))
@@ -77,6 +79,7 @@ def prepare_charts(df):
     images = create_heading("Relic Exploration", json_data)
     plot(df, images, "constraint_set_size", "size")
     plot(df, images, 'add_constraint_duration', "micro seconds")
+    plot(df, images, 'phased_out_constraints', "size", sum_values=True)
     
     # Relic exploitation
     images = create_heading("Relic Exploitation", json_data)

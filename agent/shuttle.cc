@@ -134,7 +134,7 @@ void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
     }
     log("Going to decide the best role for this shuttle");
 
-    //TODO:  below is a temporary code. Also need not have casted anything
+    //TODO:  below is a temporary code, this will go to the planner. Also need not have casted anything
     activeRole = nullptr;
     HaloNodeExplorerAgentRole* haloNodeExplorer = dynamic_cast<HaloNodeExplorerAgentRole*>(agentRoles["HaloNodeExplorerAgentRole"]);
     HaloNodeNavigatorAgentRole* haloNodeNavigator = dynamic_cast<HaloNodeNavigatorAgentRole*>(agentRoles["HaloNodeNavigatorAgentRole"]);
