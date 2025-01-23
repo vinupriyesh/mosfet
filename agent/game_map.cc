@@ -24,24 +24,22 @@ GameMap::GameMap(int width, int height) : width(width), height(height) {
     }
 }
 
-void GameMap::addRelic(Relic *relic, int currentStep) {
+void GameMap::addRelic(Relic *relic, int currentStep, std::vector<int>& haloTileIds) {
     int x = relic->position[0];
     int y = relic->position[1];
     map[y][x].setRelic(relic);
     for (int i = x-2;i <= x+2; ++i) {
         for (int j = y-2; j <= y+2; ++j) {            
             if (isValidTile(i, j)) {
-                auto& tile = getTile(i, j);
-                // If the tile is already visited in the past and not set as halo yet, that only means this relic node was invisible
-                // due to a nebula that time.  In such cases, we handle the marking of halo tile in the points-constraints
-                // evaluation
-                if (!tile.isVisited() || tile.getLastVisitedTime() == currentStep) {
-                    if (map[j][i].isHaloTile()) {
-                        // If multiple relics are seen, this can happen.  This is a overlap
-                        log("Halo Overlap detected for (" + std::to_string(i) + ", " + std::to_string(j) + ")");
-                    }
-                    map[j][i].setHaloTile(true);
+                auto& tile = getTile(i, j);                
+                if (map[j][i].isHaloTile()) {
+                    // If multiple relics are seen, this can happen.  This is a overlap
+                    log("Halo Overlap detected for (" + std::to_string(i) + ", " + std::to_string(j) + ")");
                 }
+                map[j][i].setHaloTile(true);
+                haloTileIds.push_back(map[j][i].getId(width));
+                //TODO: If this is already a halo node, and we have it in our constraint set then it is a problem!
+                log("Forcing halo tile for (" + std::to_string(i) + ", " + std::to_string(j) + ")");
             }
         }
     }
@@ -54,7 +52,7 @@ bool GameMap::hasPotentialInvisibleRelicNode(GameTile& gameTile) {
         for (int j = y-2; j <= y+2; ++j) {
             if (isValidTile(i, j)) {
                 auto& tile = getTile(i, j);
-                if (!tile.isExplored() && !tile.isForcedRegularTile()) {
+                if (!tile.isVisible() /*&& !tile.isForcedRegularTile()*/) {
                     // There is atleaast one tile that is not explored, meaning it is a potential invisible relic node
                     return true;
                 }

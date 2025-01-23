@@ -46,6 +46,7 @@ class GameTile {
         void log(std::string message);
         TileType type;
         TileType lastKnownTileType;
+        bool visible;
         bool visited;
         bool explored;
         bool haloTile;
@@ -68,6 +69,7 @@ class GameTile {
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
                 forcedRegularTile(false), relic(nullptr), shuttles({}), lastKnownTileType(UNKNOWN) {};
         int getId(int width);
+        bool isVisible() {return visible;};
         bool isVisited() { return visited; };
         bool isExplored() { return explored; };
         bool isHaloTile() { return haloTile; };
@@ -78,6 +80,7 @@ class GameTile {
         TileType getType() const;
         TileType getLastKnownType() const;
 
+        void setVisible(bool visible) { this->visible = visible; };
         void setVisited(bool visited, int time);
         void setExplored(bool explored, int time);
         void setHaloTile(bool haloTile) { this->haloTile = haloTile; };
@@ -134,7 +137,7 @@ class GameMap {
         int height;
         DerivedGameState derivedGameState;
         GameMap(int width, int height);
-        void addRelic(Relic* relic, int currentStep);
+        void addRelic(Relic* relic, int currentStep, std::vector<int>& haloTileIds);
         bool hasPotentialInvisibleRelicNode(GameTile &gameTile);
         bool isValidTile(int x, int y);
         GameTile& getTile(int x, int y);

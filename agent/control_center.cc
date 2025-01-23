@@ -116,11 +116,12 @@ void ControlCenter::update(GameState& gameState) {
     state.allRelicsFound = true;
     state.relicsFound = 0;
 
+    std::vector<int> forcedHaloTileIds;
     for (int i = 0; i < gameEnvConfig.relicCount; ++i) {
         bool firstTimeRevealed = relics[i]->updateRelicData(gameState.obs.relicNodes[i], gameState.obs.relicNodesMask[i]);
         if (firstTimeRevealed) {
             log("Relic " + std::to_string(i) + " found at " + std::to_string(relics[i]->position[0]) + ", " + std::to_string(relics[i]->position[1]));
-            gameMap->addRelic(relics[i], state.currentStep);
+            gameMap->addRelic(relics[i], state.currentStep, forcedHaloTileIds);
         }
 
         if (!relics[i]->revealed) {
@@ -129,10 +130,12 @@ void ControlCenter::update(GameState& gameState) {
             state.relicsFound++;
         }
     }
+    haloConstraints->reconsiderNormalizedTile(forcedHaloTileIds);
 
     if (state.allRelicsFound) {
         log("All relics found :)");
     }
+    
 
 
     log("Exploring contents of each tile");
@@ -148,6 +151,7 @@ void ControlCenter::update(GameState& gameState) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
             GameTile& currentTile = gameMap->getTile(i, j);
             currentTile.setType(gameState.obs.mapFeatures.tileType[i][j], state.currentStep);
+            currentTile.setVisible(gameState.obs.sensorMask[i][j]);
             if (gameState.obs.sensorMask[i][j]) {
                 // Update energy only if the node is visible.
                 currentTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], state.currentStep);
@@ -212,6 +216,7 @@ void ControlCenter::update(GameState& gameState) {
                     // }
                     log("Force setting halo tile for " + std::to_string(i) + ", " + std::to_string(j));
                     currentTile.setHaloTile(true);  //Setting if it is not already set
+                    haloConstraints->reconsiderNormalizedTile(currentTile.getId(gameEnvConfig.mapWidth));
                 }                
                 constraintTiles.insert(currentTile.getId(gameEnvConfig.mapWidth));                
             }

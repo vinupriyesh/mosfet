@@ -98,6 +98,8 @@ void ConstraintSet::pruneConstratins() {
 void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) {
     auto start = std::chrono::high_resolution_clock::now();
     log("Entering constraint with points value " + std::to_string(pointsValue) + " and halo point set" + setToString(haloPointSet));
+    log("Regular tiles: " + setToString(identifiedRegularTiles));
+    log("Vantage points: " + setToString(identifiedVantagePoints));
 
     auto it = haloPointSet.begin();
     while (it != haloPointSet.end()) {
@@ -124,6 +126,19 @@ void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);  
     Metrics::getInstance().add("add_constraint_duration", duration.count());
+}
+
+void ConstraintSet::reconsiderNormalizedTile(int tileId) {
+    if (identifiedRegularTiles.find(tileId) != identifiedRegularTiles.end()) {
+        identifiedRegularTiles.erase(tileId);
+        log("Removing regular tile " + std::to_string(tileId));
+    }
+}
+
+void ConstraintSet::reconsiderNormalizedTile(std::vector<int> tileIds) {
+    for (int tileId : tileIds) {
+        reconsiderNormalizedTile(tileId);
+    }
 }
 
 void ConstraintSet::addConstraint(const ConstraintObservation& observation) {

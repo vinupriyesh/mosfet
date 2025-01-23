@@ -43,6 +43,8 @@ class ConstraintSet {
 
         void clear();        
         void addConstraint(int, std::set<int>&);
+        void reconsiderNormalizedTile(int tileId);
+        void reconsiderNormalizedTile(std::vector<int> tileIds);
 
         std::vector<ConstraintObservation> getMasterSet() {
             return masterSet;
