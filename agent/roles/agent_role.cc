@@ -41,6 +41,15 @@ Direction AgentRole::getDirectionTo(const GameTile& destinationTile) {
     }
 }
 
+std::tuple<int, int> AgentRole::getRelativePosition(const GameTile& destinationTile) {
+    int currentX = shuttle->position[0];
+    int currentY = shuttle->position[1];
+    int destinationX = destinationTile.x;
+    int destinationY = destinationTile.y;
+
+    return std::make_tuple(destinationX - currentX, destinationY - currentY);
+}
+
 AgentRole::AgentRole(Shuttle* shuttle, GameMap& gameMap) : shuttle(shuttle), gameMap(gameMap), leastEnergyPathing(nullptr) {
     roleClassName = "AgentRole";
 }

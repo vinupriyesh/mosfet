@@ -53,8 +53,6 @@ class GameTile {
         bool vantagePoint;
         bool forcedRegularTile;
         Relic* relic;
-        std::vector<Shuttle*> shuttles;
-        std::vector<Shuttle*> opponentShuttles;
         int energy;
 
         int lastVisitedTime;
@@ -65,6 +63,9 @@ class GameTile {
     public:
         int x;
         int y;
+
+        std::vector<Shuttle*> shuttles;
+        std::vector<Shuttle*> opponentShuttles;
         
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
                 forcedRegularTile(false), relic(nullptr), shuttles({}), lastKnownTileType(UNKNOWN) {};
@@ -90,7 +91,7 @@ class GameTile {
         void addShuttle(Shuttle* shuttle);
         void addOpponentShuttle(Shuttle* shuttle);
         bool isOccupied();
-        bool isOpponentOccupied();
+        bool isOpponentOccupied();        
         std::vector<Shuttle*>& getShuttles() { return shuttles; };
         void clearShuttle(Shuttle *shuttle);
         void clearShuttles();
@@ -145,6 +146,8 @@ class GameMap {
         GameTile& getTile(GameTile &fromTile, Direction direction);
 
         std::tuple<bool, GameTile&> isMovable(GameTile& fromTile, Direction direction);
+
+        void getAllOpponentsInRadious(int radius, int x, int y, std::vector<Shuttle*>& opponents);
         
 };
 

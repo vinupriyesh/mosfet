@@ -27,6 +27,7 @@ class AgentRole {
         void setLeastEnergyPathingStopAtHaloTiles(Pathing *leastEnergyPathingStopAtHaloTiles);
         void setLeastEnergyPathingStopAtVantagePoints(Pathing *leastEnergyPathingStopAtVantagePoints);
         Direction getDirectionTo(const GameTile &destinationTile);
+        std::tuple<int, int> getRelativePosition(const GameTile &destinationTile);
         AgentRole(Shuttle *shuttle, GameMap& gamemap);
         void reset();
         virtual bool isRolePossible() = 0;
@@ -102,6 +103,21 @@ class RandomAgentRole: public AgentRole {
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
+};
+
+class DefenderAgentRole: public AgentRole {
+    private:
+        std::vector<Shuttle*> opponents;
+    public:
+        int attackingTileId = -1;
+
+        using AgentRole::AgentRole;
+        DefenderAgentRole(Shuttle *shuttle, GameMap& gamemap);
+
+        bool isRolePossible() override;
+        void iteratePlan(int planIteration, Communicator& communicator) override;
+
+        bool chooseAttackingTile(Communicator &communicator);
 };
 
 #endif // AGENT_ROLE_H

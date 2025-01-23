@@ -45,6 +45,21 @@ void GameMap::addRelic(Relic *relic, int currentStep, std::vector<int>& haloTile
     }
 }
 
+void GameMap::getAllOpponentsInRadious(int radius, int x, int y, std::vector<Shuttle *> &opponents) {
+    for (int i = x-radius; i <= x+radius; ++i) {
+        for (int j = y-radius; j <= y+radius; ++j) {
+            if (isValidTile(i, j)) {
+                auto& tile = getTile(i, j);
+                if (tile.isOpponentOccupied()) {
+                    for (auto& shuttle : tile.opponentShuttles) {
+                        opponents.push_back(shuttle);
+                    }
+                }
+            }
+        }
+    }
+}
+
 bool GameMap::hasPotentialInvisibleRelicNode(GameTile& gameTile) {
     int x = gameTile.x;
     int y = gameTile.y;

@@ -2,6 +2,7 @@
 
 #include "shuttle.h"
 #include <tuple>
+#include <set>
 
 
 void Shuttle::log(std::string message) {
@@ -121,7 +122,7 @@ void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
 
     if (!visible) {
         return;
-    }
+    }    
 
     log("Iterating plan - " + std::to_string(planIteration));
     for (const auto& pair : agentRoles) {
@@ -142,25 +143,36 @@ void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
     RelicMinerAgentRole* relicMiner = dynamic_cast<RelicMinerAgentRole*>(agentRoles["RelicMinerAgentRole"]);
     RelicMiningNavigatorAgentRole* relicMiningNavigator = dynamic_cast<RelicMiningNavigatorAgentRole*>(agentRoles["RelicMiningNavigatorAgentRole"]);
     TrailblazerAgentRole* trailblazer = dynamic_cast<TrailblazerAgentRole*>(agentRoles["TrailblazerAgentRole"]);
+    DefenderAgentRole* defender = dynamic_cast<DefenderAgentRole*>(agentRoles["DefenderAgentRole"]);    
 
-    if (relicMiner->isRolePossible()) {
+    if (defender->isRolePossible() && defender->chooseAttackingTile(communicator)) {
+        activeRole = defender;
+        log("Defender it is");
+        Metrics::getInstance().add("defender", 1);
+    } else if (relicMiner->isRolePossible()) {
         log("relicMiner it is");
         activeRole = relicMiner;
+        Metrics::getInstance().add("relicMiner", 1);
     } else if(relicMiningNavigator->isRolePossible()) {
         activeRole = relicMiningNavigator;
         log("relicMiningNavirgator it is");
+        Metrics::getInstance().add("relicMiningNavigator", 1);
     } else if(haloNodeExplorer->isRolePossible()) {
         activeRole = haloNodeExplorer;
         log("haloNodeExplorer it is");
+        Metrics::getInstance().add("haloNodeExplorer", 1);
     } else if(haloNodeNavigator->isRolePossible()) {
         activeRole = haloNodeNavigator;
         log("haloNodeNavigator it is");
+        Metrics::getInstance().add("haloNodeNavigator", 1);
     } else if(trailblazer->isRolePossible()) {
         activeRole = trailblazer;
         log("Trailblazer it is");
+        Metrics::getInstance().add("trailblazer", 1);
     } else {
         activeRole = randomAgent;
         log("Random agent it is");
+        Metrics::getInstance().add("randomAgent", 1);
     }
     
     // log("decided the role");
@@ -188,6 +200,9 @@ Shuttle::Shuttle(int id, ShuttleType type, GameMap& gameMap) : id(id), type(type
 
     // Random
     agentRoles["RandomAgentRole"] = new RandomAgentRole(this, gameMap);
+
+    // Sappers
+    agentRoles["DefenderAgentRole"] = new DefenderAgentRole(this, gameMap);
 
     // log("Shuttle instance created");
 }

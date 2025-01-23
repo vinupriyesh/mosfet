@@ -19,21 +19,27 @@ def delete_all_files(folder_path):
             print(f"Error deleting {file}: {e}")
 
 
-def plot(df, images, dimension: str, ylabel='Value', xlabel='Timestep', output_folder='output', sum_values=False):
-
-    # Filter the DataFrame by the specified dimension
-    df_filtered = df[df['dimension'] == dimension]
+def plot(df, images, dimensions, ylabel='Value', xlabel='Timestep', output_folder='output', sum_values=False):
+    # Check if dimensions is a string and convert it to a list
+    if isinstance(dimensions, str):
+        df_filtered = df[df['dimension'] == dimensions]
+        graph_name = dimensions
+        style = None
+    else:
+        df_filtered = df[df['dimension'].isin(dimensions)]
+        graph_name = f'{"-".join(dimensions)}'
+        style = 'dimension'
 
     if sum_values:
         # Sum the values per timestep if the flag is set
-        df_filtered = df_filtered.groupby(['timestep', 'player_id']).agg({'value': 'sum'}).reset_index()
+        df_filtered = df_filtered.groupby(['timestep', 'player_id', 'dimension']).agg({'value': 'sum'}).reset_index()
 
     # Create a seaborn lineplot
     fig, ax = plt.subplots(figsize=(14, 8))
-    sns.lineplot(data=df_filtered, x='timestep', y='value', hue='player_id', estimator=None)
+    sns.lineplot(data=df_filtered, x='timestep', y='value', hue='player_id', style=style, estimator=None)
     
     # Add plot title and labels
-    ax.set_title(f'{dimension}', fontsize=16)
+    ax.set_title(f'{graph_name}', fontsize=16)
     ax.set_xlabel(xlabel, fontsize=14)
     ax.set_ylabel(ylabel, fontsize=14)
 
@@ -43,13 +49,13 @@ def plot(df, images, dimension: str, ylabel='Value', xlabel='Timestep', output_f
     plt.tight_layout(pad=2.0)
 
     # Show the plot
-    filename = output_folder + "/" + dimension + ".png"
+    filename = output_folder + "/" + graph_name + ".png"
     plt.savefig(filename)
     plt.close()
 
     images.append(filename)
 
-    print(f"Created {dimension}")
+    print(f"Created {graph_name}")
 
 def create_heading(name:str, json_data: dict):
     images = []
@@ -91,6 +97,14 @@ def prepare_charts(df):
     plot(df, images, "act_duration", "ms")
     plot(df, images, "update_duration", "micro seconds")
     plot(df, images, "pathing_duration", "ms")
+
+    # Agents
+    images = create_heading("Agents", json_data)
+    plot(df, images, "defender", sum_values=True)
+    plot(df, images, ["relicMiner", "relicMiningNavigator"], sum_values=True)
+    plot(df, images, ["haloNodeExplorer", "haloNodeNavigator"], sum_values=True)
+    plot(df, images, "trailblazer" , sum_values=True)
+    plot(df, images, "randomAgent", sum_values=True)
 
     return json.dumps(json_data, indent=4)
 

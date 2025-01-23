@@ -26,7 +26,7 @@ private:
     bool visible;
     bool ghost;
     ShuttleType type;    
-    int energy;
+    
     GameMap& gameMap;
 
     std::mt19937 gen; // Mersenne Twister random number generator 
@@ -42,6 +42,8 @@ private:
 
 public:
     int id;
+    int energy;
+    
     std::vector<int> previousPosition = {-1, -1};
     std::vector<int> position = {-1, -1};
     bool isTileUnvisited(Direction direction);
