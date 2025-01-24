@@ -221,10 +221,6 @@ std::vector<int> Shuttle::act() {
     return activeRole->bestPlan;
 }
 
-bool Shuttle::isRandomAction() {
-    return activeRole != nullptr && (dynamic_cast<RandomAgentRole*>(activeRole) != nullptr || dynamic_cast<HaloNodeExplorerAgentRole*>(activeRole) != nullptr);
-}
-
 Shuttle::~Shuttle() {
     for (const auto& pair : agentRoles) {
         delete pair.second;

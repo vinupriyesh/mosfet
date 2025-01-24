@@ -44,7 +44,7 @@ void GameMap::addRelic(Relic *relic, int currentStep, std::vector<int>& haloTile
     }
 }
 
-void GameMap::getAllOpponentsInRadious(int radius, int x, int y, std::vector<ShuttleData *> &opponents) {
+void GameMap::getAllOpponentsInRadius(int radius, int x, int y, std::vector<ShuttleData *> &opponents) {
     for (int i = x-radius; i <= x+radius; ++i) {
         for (int j = y-radius; j <= y+radius; ++j) {
             if (isValidTile(i, j)) {

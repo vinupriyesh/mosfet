@@ -33,7 +33,6 @@ public:
             
     bool isTileUnvisited(Direction direction);
 
-    bool isRandomAction();
     bool isGhost();
     std::vector<int> act();
     

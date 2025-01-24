@@ -17,7 +17,7 @@ bool DefenderAgentRole::isRolePossible() {
     opponents.clear();
     bool canSap = false;
     std::vector<ShuttleData*> allOpponents;
-    gameMap.getAllOpponentsInRadious(gameEnvConfig.unitSapRange, shuttle.getX(), shuttle.getY(), allOpponents);
+    gameMap.getAllOpponentsInRadius(gameEnvConfig.unitSapRange, shuttle.getX(), shuttle.getY(), allOpponents);
     for (auto& opponent : allOpponents) {
         if (opponent->ghost) {
             continue;

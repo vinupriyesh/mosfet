@@ -148,7 +148,7 @@ class GameMap {
 
         std::tuple<bool, GameTile&> isMovable(GameTile& fromTile, Direction direction);
 
-        void getAllOpponentsInRadious(int radius, int x, int y, std::vector<ShuttleData*>& opponents);
+        void getAllOpponentsInRadius(int radius, int x, int y, std::vector<ShuttleData*>& opponents);
         
         
 };
