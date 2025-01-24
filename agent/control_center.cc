@@ -102,9 +102,9 @@ void ControlCenter::update(GameState& gameState) {
         shuttles[i]->updateVisibility(gameState.obs.unitsMask[gameEnvConfig.teamId][i]);
         opponentShuttles[i]->updateVisibility(gameState.obs.unitsMask[gameEnvConfig.opponentTeamId][i]);     
 
-        if (gameMap->isValidTile(shuttles[i]->getX(), shuttles[i]->getY())) {
+        if (gameMap->isValidTile(shuttles[i]->getShuttleData().getX(), shuttles[i]->getShuttleData().getY())) {
             // log("Updating visited for tile " + std::to_string(shuttles[i]->getX()) + ", " + std::to_string(shuttles[i]->getY()));
-            GameTile& shuttleTile = gameMap->getTile(shuttles[i]->getX(), shuttles[i]->getY());
+            GameTile& shuttleTile = gameMap->getTile(shuttles[i]->getShuttleData().getX(), shuttles[i]->getShuttleData().getY());
             shuttleTile.setVisited(true, state.currentStep);
         }
     }
@@ -163,15 +163,15 @@ void ControlCenter::update(GameState& gameState) {
 
             currentTile.clearShuttles();
             for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
-                if (shuttles[s]->getX() == i && shuttles[s]->getY() == j && !shuttles[s]->isGhost()) {
-                    currentTile.addShuttle(shuttles[s]);
+                if (shuttles[s]->getShuttleData().getX() == i && shuttles[s]->getShuttleData().getY() == j && !shuttles[s]->isGhost()) {
+                    currentTile.addShuttle(&shuttles[s]->getShuttleData());
                 }
             }
 
             currentTile.clearOpponentShuttles();
             for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
-                if (opponentShuttles[s]->getX() == i && opponentShuttles[s]->getY() == j && !opponentShuttles[s]->isGhost()) {
-                    currentTile.addOpponentShuttle(opponentShuttles[s]);
+                if (opponentShuttles[s]->getShuttleData().getX() == i && opponentShuttles[s]->getShuttleData().getY() == j && !opponentShuttles[s]->isGhost()) {
+                    currentTile.addOpponentShuttle(&opponentShuttles[s]->getShuttleData());
                 }
             }
 

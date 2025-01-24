@@ -3,9 +3,9 @@
 
 #include "logger.h"
 #include "agent/relic.h"
-#include <vector>
+#include "shuttle_data.h"
 
-class Shuttle; //Forward declaration
+#include <vector>
 
 enum Direction {
     CENTER,
@@ -64,8 +64,8 @@ class GameTile {
         int x;
         int y;
 
-        std::vector<Shuttle*> shuttles;
-        std::vector<Shuttle*> opponentShuttles;
+        std::vector<ShuttleData*> shuttles;
+        std::vector<ShuttleData*> opponentShuttles;
         
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
                 forcedRegularTile(false), relic(nullptr), shuttles({}), lastKnownTileType(UNKNOWN) {};
@@ -88,12 +88,12 @@ class GameTile {
         void setVantagePoint(bool vantagePoint) { this->vantagePoint = vantagePoint; };
         void setForcedRegularTile(bool forcedRegularTile) { this->forcedRegularTile = forcedRegularTile; };
         void setRelic(Relic* relic) { this->relic = relic; };
-        void addShuttle(Shuttle* shuttle);
-        void addOpponentShuttle(Shuttle* shuttle);
+        void addShuttle(ShuttleData* shuttle);
+        void addOpponentShuttle(ShuttleData* shuttle);
         bool isOccupied();
         bool isOpponentOccupied();        
-        std::vector<Shuttle*>& getShuttles() { return shuttles; };
-        void clearShuttle(Shuttle *shuttle);
+        std::vector<ShuttleData*>& getShuttles() { return shuttles; };
+        void clearShuttle(ShuttleData *shuttle);
         void clearShuttles();
         void clearOpponentShuttles();
 
@@ -140,6 +140,7 @@ class GameMap {
         GameMap(int width, int height);
         void addRelic(Relic* relic, int currentStep, std::vector<int>& haloTileIds);
         bool hasPotentialInvisibleRelicNode(GameTile &gameTile);
+        GameTile *getTileAtPosition(ShuttleData &shuttleData);
         bool isValidTile(int x, int y);
         GameTile& getTile(int x, int y);
 
@@ -147,7 +148,8 @@ class GameMap {
 
         std::tuple<bool, GameTile&> isMovable(GameTile& fromTile, Direction direction);
 
-        void getAllOpponentsInRadious(int radius, int x, int y, std::vector<Shuttle*>& opponents);
+        void getAllOpponentsInRadious(int radius, int x, int y, std::vector<ShuttleData*>& opponents);
+        
         
 };
 

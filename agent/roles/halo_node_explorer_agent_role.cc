@@ -1,6 +1,6 @@
 #include "agent_role.h"
 
-HaloNodeExplorerAgentRole::HaloNodeExplorerAgentRole(Shuttle *shuttle, GameMap& gameMap) : ExplorerAgentRole(shuttle, gameMap) {
+HaloNodeExplorerAgentRole::HaloNodeExplorerAgentRole(ShuttleData& shuttle, GameMap& gameMap) : ExplorerAgentRole(shuttle, gameMap) {
     roleClassName = "HaloNodeExplorerAgentRole";
     std::random_device rd;
     gen = std::mt19937(rd()); // Initialize the random number generator 
@@ -11,7 +11,7 @@ bool HaloNodeExplorerAgentRole::isRolePossible() {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     int totalTile = gameEnvConfig.mapHeight * gameEnvConfig.mapWidth;
     float percentageExplored = static_cast<float>(gameMap.derivedGameState.tilesExplored) / totalTile;
-    return shuttle->getTileAtPosition()->isHaloTile() && percentageExplored >= 0.33;
+    return gameMap.getTileAtPosition(shuttle)->isHaloTile() && percentageExplored >= 0.33;
 }
 
 void HaloNodeExplorerAgentRole::iteratePlan(int planIteration, Communicator &communicator) {

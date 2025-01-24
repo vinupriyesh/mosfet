@@ -1,6 +1,6 @@
 #include "agent_role.h"
 
-RelicMiningNavigatorAgentRole::RelicMiningNavigatorAgentRole(Shuttle *shuttle, GameMap& gameMap) : NavigatorAgentRole(shuttle, gameMap) {
+RelicMiningNavigatorAgentRole::RelicMiningNavigatorAgentRole(ShuttleData& shuttle, GameMap& gameMap) : NavigatorAgentRole(shuttle, gameMap) {
     roleClassName = "RelicMiningNavigatorAgentRole";
 }
 

@@ -7,50 +7,34 @@
 
 void Shuttle::log(std::string message) {
     std::string visibilityMark = "";
-    if (!this->visible) {
+    if (!shuttleData.visible) {
         visibilityMark = "~";
     }
-    Logger::getInstance().log(visibilityMark + "Shuttle-" + std::to_string(this->id) + " -> " + message);
+    Logger::getInstance().log(visibilityMark + "Shuttle-" + std::to_string(shuttleData.id) + " -> " + message);
 }
 
 void Shuttle::updateUnitsData(std::vector<int> position, int energy) {
-    this->previousPosition = this->position;
-    this->position = position;
-    this->energy = energy;
+    this->shuttleData.previousPosition = this->shuttleData.position;
+    this->shuttleData.position = position;
+    this->shuttleData.energy = energy;
     if (energy < 0) {
-        this->ghost = true;
+        this->shuttleData.ghost = true;
     } else {
-        this->ghost = false;
+        this->shuttleData.ghost = false;
     }
 }
 
 bool Shuttle::isGhost() {
-    return this->ghost;
+    return this->shuttleData.ghost;
 }
 
 void Shuttle::updateVisibility(bool isVisible) {
-    this->visible = isVisible;
-}
-
-int Shuttle::getX() {
-    return position[0];
-}
-
-int Shuttle::getY() {
-    return position[1];
-}
-
-GameTile *Shuttle::getTileAtPosition() {
-    if (gameMap.isValidTile(position[0], position[1])) {
-        return &gameMap.getTile(position[0], position[1]);
-    } else {
-        return nullptr;
-    }
+    this->shuttleData.visible = isVisible;
 }
 
 void Shuttle::computePath() {
     log("Computing path");
-    if (!visible) {
+    if (!shuttleData.visible) {
         log("Retuning as shuttle is not visible");
         return;
     }
@@ -70,7 +54,7 @@ void Shuttle::computePath() {
     }
 
     log("Staring to pathing");
-    GameTile& startTile = gameMap.getTile(position[0], position[1]);
+    GameTile& startTile = gameMap.getTile(shuttleData.position[0], shuttleData.position[1]);
     log("Staring tile " + startTile.toString());
 
     // Pathing expored tiles
@@ -120,7 +104,7 @@ void Shuttle::computePath() {
 
 void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
 
-    if (!visible) {
+    if (!shuttleData.visible) {
         return;
     }    
 
@@ -178,9 +162,11 @@ void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
     // log("decided the role");
 }
 
-Shuttle::Shuttle(int id, ShuttleType type, GameMap& gameMap) : id(id), type(type), gameMap(gameMap) {
-    this->visible = false;
-    this->ghost = false;
+ShuttleData &Shuttle::getShuttleData() {
+    return shuttleData;
+}
+
+Shuttle::Shuttle(int id, ShuttleType type, GameMap& gameMap): shuttleData(ShuttleData(id, type)), gameMap(gameMap) {
 
     leastEnergyPathing = nullptr;
 
@@ -188,28 +174,28 @@ Shuttle::Shuttle(int id, ShuttleType type, GameMap& gameMap) : id(id), type(type
 
     // log("Going to create explorer roles");
     // Explorers
-    agentRoles["HaloNodeExplorerAgentRole"] = new HaloNodeExplorerAgentRole(this, gameMap);
-    agentRoles["TrailblazerAgentRole"] = new TrailblazerAgentRole(this, gameMap);
+    agentRoles["HaloNodeExplorerAgentRole"] = new HaloNodeExplorerAgentRole(shuttleData, gameMap);
+    agentRoles["TrailblazerAgentRole"] = new TrailblazerAgentRole(shuttleData, gameMap);
 
     // Navigators
-    agentRoles["RelicMiningNavigatorAgentRole"] = new RelicMiningNavigatorAgentRole(this, gameMap);
-    agentRoles["HaloNodeNavigatorAgentRole"] = new HaloNodeNavigatorAgentRole(this, gameMap);
+    agentRoles["RelicMiningNavigatorAgentRole"] = new RelicMiningNavigatorAgentRole(shuttleData, gameMap);
+    agentRoles["HaloNodeNavigatorAgentRole"] = new HaloNodeNavigatorAgentRole(shuttleData, gameMap);
 
     // Miners
-    agentRoles["RelicMinerAgentRole"] = new RelicMinerAgentRole(this, gameMap);
+    agentRoles["RelicMinerAgentRole"] = new RelicMinerAgentRole(shuttleData, gameMap);
 
     // Random
-    agentRoles["RandomAgentRole"] = new RandomAgentRole(this, gameMap);
+    agentRoles["RandomAgentRole"] = new RandomAgentRole(shuttleData, gameMap);
 
     // Sappers
-    agentRoles["DefenderAgentRole"] = new DefenderAgentRole(this, gameMap);
+    agentRoles["DefenderAgentRole"] = new DefenderAgentRole(shuttleData, gameMap);
 
     // log("Shuttle instance created");
 }
 
 
 bool Shuttle::isTileUnvisited(Direction direction) {
-    GameTile& shuttleTile = gameMap.getTile(position[0], position[1]);
+    GameTile& shuttleTile = gameMap.getTile(shuttleData.position[0], shuttleData.position[1]);
 
     std::tuple<bool, GameTile&> result = gameMap.isMovable(shuttleTile, direction);
     bool movable = std::get<0>(result);    
@@ -226,7 +212,7 @@ bool Shuttle::isTileUnvisited(Direction direction) {
 
 std::vector<int> Shuttle::act() {
     
-    if (!visible) {
+    if (!shuttleData.visible) {
         //TODO: Check if we can still move invisible shuttle (If it is inside Nebula!)
         return {0, 0, 0};
     }

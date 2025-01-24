@@ -6,27 +6,16 @@
 #include <map>
 
 #include "logger.h"
+#include "shuttle_data.h"
 #include "agent/game_map.h"
 #include "agent/pathing.h"
 #include "agent/roles/agent_role.h"
 #include "agent/roles/communicator.h"
 
-
-class GameMap; // Forward declaration
-class AgentRole; //Forward declaration
-
-enum ShuttleType {
-    player,
-    opponent
-};
-
 class Shuttle {
 
-private:    
-    bool visible;
-    bool ghost;
-    ShuttleType type;    
-    
+private:
+    ShuttleData shuttleData;            
     GameMap& gameMap;
 
     std::mt19937 gen; // Mersenne Twister random number generator 
@@ -41,28 +30,21 @@ private:
     Pathing* leastEnergyPathingStopAtVantagePoints;
 
 public:
-    int id;
-    int energy;
-    
-    std::vector<int> previousPosition = {-1, -1};
-    std::vector<int> position = {-1, -1};
+            
     bool isTileUnvisited(Direction direction);
 
     bool isRandomAction();
     bool isGhost();
     std::vector<int> act();
     
-
     void log(std::string message);
     void updateUnitsData(std::vector<int> position, int energy);
     void updateVisibility(bool isVisible);
-    int getX();
-    int getY();
-
-    GameTile* getTileAtPosition();
 
     void computePath();
     void iteratePlan(int planIteration, Communicator& communicator);
+
+    ShuttleData& getShuttleData();
 
     Shuttle(int id, ShuttleType type, GameMap& gameMap);    
     ~Shuttle();

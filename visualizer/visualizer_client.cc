@@ -84,20 +84,20 @@ std::string VisualizerClient::get_data() {
     log("Looking for player shuttles");
     // Blue is the current player
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
-        if (shuttles[i]->position[0] == -1) {
+        if (shuttles[i]->getShuttleData().getX() == -1) {
             continue;
         }
-        jsonObject["blue_shuttles"].push_back(shuttles[i]->position);
+        jsonObject["blue_shuttles"].push_back(shuttles[i]->getShuttleData().position);
     }
 
     log("Looking for opponent shuttles");
     // Red is the enemy player
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         log("Checking opponent shuttle " + std::to_string(i));
-        if (opponentShuttles[i]->position[0] == -1 || opponentShuttles[i]->position[1] == -1) {
+        if (opponentShuttles[i]->getShuttleData().getX() == -1 || opponentShuttles[i]->getShuttleData().getY() == -1) {
             continue;
         }
-        jsonObject["red_shuttles"].push_back(opponentShuttles[i]->position);
+        jsonObject["red_shuttles"].push_back(opponentShuttles[i]->getShuttleData().position);
     }
 
     log("Done collecing data");

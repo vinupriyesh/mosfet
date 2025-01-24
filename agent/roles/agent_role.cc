@@ -2,12 +2,8 @@
 #include "agent_role.h"
 
 
-void AgentRole::log(std::string message) {
-    if (shuttle != nullptr) {
-        Logger::getInstance().log(roleClassName + "-" + std::to_string(shuttle->id) + " -> " + message);
-    } else {
-        Logger::getInstance().log(roleClassName + "-null -> " + message);
-    }
+void AgentRole::log(std::string message) {    
+    Logger::getInstance().log(roleClassName + "-" + std::to_string(shuttle.id) + " -> " + message);
 }
 
 void AgentRole::setLeastEnergyPathing(Pathing *leastEnergyPathing) {
@@ -23,8 +19,8 @@ void AgentRole::setLeastEnergyPathingStopAtVantagePoints(Pathing *leastEnergyPat
 }
 
 Direction AgentRole::getDirectionTo(const GameTile& destinationTile) {
-    int currentX = shuttle->position[0];
-    int currentY = shuttle->position[1];
+    int currentX = shuttle.position[0];
+    int currentY = shuttle.position[1];
     int destinationX = destinationTile.x;
     int destinationY = destinationTile.y;
 
@@ -42,15 +38,15 @@ Direction AgentRole::getDirectionTo(const GameTile& destinationTile) {
 }
 
 std::tuple<int, int> AgentRole::getRelativePosition(const GameTile& destinationTile) {
-    int currentX = shuttle->position[0];
-    int currentY = shuttle->position[1];
+    int currentX = shuttle.position[0];
+    int currentY = shuttle.position[1];
     int destinationX = destinationTile.x;
     int destinationY = destinationTile.y;
 
     return std::make_tuple(destinationX - currentX, destinationY - currentY);
 }
 
-AgentRole::AgentRole(Shuttle* shuttle, GameMap& gameMap) : shuttle(shuttle), gameMap(gameMap), leastEnergyPathing(nullptr) {
+AgentRole::AgentRole(ShuttleData &shuttle, GameMap &gameMap) : shuttle(shuttle), gameMap(gameMap), leastEnergyPathing(nullptr) {
     roleClassName = "AgentRole";
 }
 

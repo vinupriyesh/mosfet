@@ -1,5 +1,4 @@
 #include "game_map.h"
-#include "shuttle.h"
 
 #include <stdexcept>
 #include <tuple>
@@ -45,7 +44,7 @@ void GameMap::addRelic(Relic *relic, int currentStep, std::vector<int>& haloTile
     }
 }
 
-void GameMap::getAllOpponentsInRadious(int radius, int x, int y, std::vector<Shuttle *> &opponents) {
+void GameMap::getAllOpponentsInRadious(int radius, int x, int y, std::vector<ShuttleData *> &opponents) {
     for (int i = x-radius; i <= x+radius; ++i) {
         for (int j = y-radius; j <= y+radius; ++j) {
             if (isValidTile(i, j)) {
@@ -75,6 +74,14 @@ bool GameMap::hasPotentialInvisibleRelicNode(GameTile& gameTile) {
         }
     }
     return false;
+}
+
+GameTile *GameMap::getTileAtPosition(ShuttleData& shuttleData) {
+    if (isValidTile(shuttleData.position[0], shuttleData.position[1])) {
+        return &getTile(shuttleData.position[0], shuttleData.position[1]);
+    } else {
+        return nullptr;
+    }
 }
 
 bool GameMap::isValidTile(int x, int y) {
@@ -144,12 +151,12 @@ void GameTile::setVisited(bool visited, int time) {
     this->lastVisitedTime = time;
 }
 
-void GameTile::addShuttle(Shuttle* shuttle)  {
+void GameTile::addShuttle(ShuttleData* shuttle)  {
     log("Adding shuttle at (" + std::to_string(x) + ", " + std::to_string(y) + "), id=" + std::to_string(shuttle->id));
     this->shuttles.push_back(shuttle);
 }
 
-void GameTile::addOpponentShuttle(Shuttle* shuttle) {
+void GameTile::addOpponentShuttle(ShuttleData* shuttle) {
     this->opponentShuttles.push_back(shuttle);
 }
 
@@ -161,7 +168,7 @@ bool GameTile::isOpponentOccupied() {
     return opponentShuttles.size() > 0;
 }
 
-void GameTile::clearShuttle(Shuttle* shuttle) {
+void GameTile::clearShuttle(ShuttleData* shuttle) {
     for (auto it = shuttles.begin(); it != shuttles.end(); ++it) {
         if (*it == shuttle) {
             it = shuttles.erase(it);

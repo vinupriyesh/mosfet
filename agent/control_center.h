@@ -16,9 +16,6 @@
 #include <vector>
 #include <string>
 
-class Shuttle; //Forward declaration
-class Planner; //Forward declaration
-
 class ControlCenter {
 private:
     VisualizerClient* visualizerClientPtr;
