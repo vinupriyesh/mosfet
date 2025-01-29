@@ -4,15 +4,17 @@
 #include "logger.h"
 #include "metrics.h"
 #include "agent/shuttle.h"
+#include "agent/planning/jobs.h"
 
 class Planner {
     private:
         void log(std::string message);
+        GameMap& gameMap;
     protected:
         Shuttle** shuttles;
 
     public:
-        Planner(Shuttle** shuttles) : shuttles(shuttles){};
+        Planner(Shuttle** shuttles, GameMap& gameMap) : shuttles(shuttles), gameMap(gameMap) {};
 
         void plan();
 };

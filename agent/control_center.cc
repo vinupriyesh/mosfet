@@ -35,7 +35,7 @@ void ControlCenter::init(GameState& gameState) {
     }
 
     haloConstraints = new ConstraintSet();
-    planner = new Planner(shuttles);
+    planner = new Planner(shuttles, *gameMap);
 
 
     visualizerClientPtr = new VisualizerClient(*gameMap, shuttles, opponentShuttles, relics);
