@@ -27,3 +27,8 @@ void TrailblazerAgentRole::iteratePlan(int planIteration, Communicator &communic
     bestPlan = {directionToInt(direction), 0, 0};
     log("Prepared the trailblazer best plan");
 }
+
+
+void TrailblazerAgentRole::surveyJobBoard(JobBoard& jobBoard) {
+    //TODO: Implement this
+}

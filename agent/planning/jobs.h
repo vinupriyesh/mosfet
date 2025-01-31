@@ -69,10 +69,18 @@ struct TrailblazerJob: Job {
 //----------------------------------------------
 
 struct JobApplication {
+    int id;
     ShuttleData& shuttleData;
     Job& job;
+    std::vector<int> bestPlan;
+
     int stepsNeededToExecute;
-    int energyNeededToExecute;
+    int energyNeededToExecute;    
+
+    JobApplication(int id, ShuttleData& shuttleData, Job& job, std::vector<int>&& bestPlan): id(id), shuttleData(shuttleData), job(job), bestPlan(std::move(bestPlan)) {
+        stepsNeededToExecute = 0;
+        energyNeededToExecute = 0;
+    }
 };
 
 //----------------------------------------------
@@ -104,8 +112,9 @@ class JobBoard {
             return jobs;
         }
 
-        JobApplication& applyForJob(Job& job, ShuttleData& shuttleData, int stepsNeededToExecute, int energyNeededToExecute) {
-            JobApplication* jobApplication = new JobApplication{shuttleData, job, stepsNeededToExecute, energyNeededToExecute};
+        JobApplication& applyForJob(Job& job, ShuttleData& shuttleData, std::vector<int>&& bestPlan) {
+            int id = jobApplications.size();
+            JobApplication* jobApplication = new JobApplication{id, shuttleData, job, std::move(bestPlan)};
             jobApplications.push_back(*jobApplication);
             jobApplicationsByShuttleId[shuttleData.id].push_back(*jobApplication);
             jobApplicationsByJobId[job.id].push_back(*jobApplication);

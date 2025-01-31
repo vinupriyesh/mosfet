@@ -1,4 +1,5 @@
 #include "agent_role.h"
+#include <memory>
 
 RelicMinerAgentRole::RelicMinerAgentRole(ShuttleData& shuttle, GameMap& gameMap) : AgentRole(shuttle, gameMap) {
     roleClassName = "RelicMinerAgentRole";
@@ -12,4 +13,18 @@ bool RelicMinerAgentRole::isRolePossible()
 
 void RelicMinerAgentRole::iteratePlan(int planIteration, Communicator &communicator) {
     bestPlan = {Direction::CENTER, 0, 0};
+}
+
+void RelicMinerAgentRole::surveyJobBoard(JobBoard& jobBoard) {
+
+    for (Job& job : jobBoard.getJobs()) {
+        if (job.type == JobType::RELIC_MINER) {
+            RelicMinerJob& relicMinerJob = static_cast<RelicMinerJob&>(job);
+            if (relicMinerJob.vantagePointX == shuttle.getX() && relicMinerJob.vantagePointY == shuttle.getY()) {
+                Job& job = jobBoard.getJobs()[0];
+                std::vector<int> bestPlan = {Direction::CENTER, 0, 0};
+                JobApplication* jobApplication = &jobBoard.applyForJob(job, shuttle, std::move(bestPlan));
+            }
+        }
+    }
 }

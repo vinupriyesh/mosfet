@@ -43,6 +43,8 @@ public:
     void computePath();
     void iteratePlan(int planIteration, Communicator& communicator);
 
+    void surveyJobBoard(JobBoard& jobBoard);
+
     ShuttleData& getShuttleData();
 
     Shuttle(int id, ShuttleType type, GameMap& gameMap);    

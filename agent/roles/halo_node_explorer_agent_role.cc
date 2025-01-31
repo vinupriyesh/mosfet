@@ -18,3 +18,28 @@ void HaloNodeExplorerAgentRole::iteratePlan(int planIteration, Communicator &com
     int random_number = dis(gen);
     bestPlan = {random_number, 0, 0};
 }
+
+
+void HaloNodeExplorerAgentRole::surveyJobBoard(JobBoard& jobBoard) {
+    // GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+
+    // int totalTile = gameEnvConfig.mapHeight * gameEnvConfig.mapWidth;
+    // float percentageExplored = static_cast<float>(gameMap.derivedGameState.tilesExplored) / totalTile;
+
+    // if (percentageExplored < 0.33) {
+    //     return;
+    // }
+
+    for (Job& job : jobBoard.getJobs()) {
+        if (job.type == JobType::HALO_NODE_EXPLORER) {
+            HaloNodeExplorerJob& haloNodeExplorerJob = static_cast<HaloNodeExplorerJob&>(job);
+            if (haloNodeExplorerJob.haloNodeX == shuttle.getX() && haloNodeExplorerJob.haloNodeY == shuttle.getY()) {
+                Job& job = jobBoard.getJobs()[0];
+                
+                std::vector<int> bestPlan = {dis(gen), 0, 0};
+                JobApplication* jobApplication = &jobBoard.applyForJob(job, shuttle, std::move(bestPlan));
+            }
+        }
+    }
+
+}

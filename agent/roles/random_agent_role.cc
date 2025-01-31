@@ -16,3 +16,8 @@ void RandomAgentRole::iteratePlan(int planIteration, Communicator &communicator)
     int random_number = dis(gen); // Generate a random number in the range
     bestPlan = {random_number, 0, 0};
 }
+
+
+void RandomAgentRole::surveyJobBoard(JobBoard& jobBoard) {
+    //No op
+}

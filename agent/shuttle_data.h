@@ -22,7 +22,7 @@ struct ShuttleData {
         visible(false), ghost(false) {};
 
     int getX() {
-    return position[0];
+        return position[0];
     }
 
     int getY() {

@@ -162,6 +162,17 @@ void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
     // log("decided the role");
 }
 
+void Shuttle::surveyJobBoard(JobBoard &jobBoard) {
+    log("Surveying job board");
+
+    computePath();
+
+    for (const auto& pair : agentRoles) {
+        pair.second->surveyJobBoard(jobBoard);
+    }
+
+}
+
 ShuttleData &Shuttle::getShuttleData() {
     return shuttleData;
 }

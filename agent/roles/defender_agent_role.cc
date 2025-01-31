@@ -68,3 +68,8 @@ bool DefenderAgentRole::chooseAttackingTile(Communicator &communicator) {
     return false;
 
 }
+
+
+void DefenderAgentRole::surveyJobBoard(JobBoard& jobBoard) {
+    //No op
+}

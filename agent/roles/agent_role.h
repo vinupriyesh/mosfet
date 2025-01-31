@@ -8,6 +8,7 @@
 #include "game_env_config.h"
 #include "agent/pathing.h"
 #include "agent/roles/communicator.h"
+#include "agent/planning/jobs.h"
 
 #include <random>
 
@@ -34,6 +35,8 @@ class AgentRole {
         void reset();
         virtual bool isRolePossible() = 0;
         virtual void iteratePlan(int planIteration, Communicator& communicator) = 0;
+
+        virtual void surveyJobBoard(JobBoard& jobBoard) = 0;
 };
 
 class ExplorerAgentRole : public AgentRole {
@@ -44,6 +47,8 @@ class ExplorerAgentRole : public AgentRole {
 class NavigatorAgentRole: public AgentRole {
     public:
         using AgentRole::AgentRole;
+        // std::vector<int> getNavigationTo(int x, int y);
+        void surveyJobBoard(JobBoard &jobBoard) override;
 };
 
 class RelicMinerAgentRole : public AgentRole {
@@ -53,6 +58,8 @@ class RelicMinerAgentRole : public AgentRole {
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
+
+        void surveyJobBoard(JobBoard& jobBoard) override;
 };
 
 class RelicMiningNavigatorAgentRole: public NavigatorAgentRole {
@@ -75,6 +82,7 @@ class HaloNodeExplorerAgentRole: public ExplorerAgentRole {
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
+        void surveyJobBoard(JobBoard &jobBoard);
 };
 
 class HaloNodeNavigatorAgentRole: public NavigatorAgentRole {
@@ -93,6 +101,7 @@ class TrailblazerAgentRole: public ExplorerAgentRole {
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
+        void surveyJobBoard(JobBoard &jobBoard);
 };
 
 class RandomAgentRole: public AgentRole {
@@ -105,6 +114,7 @@ class RandomAgentRole: public AgentRole {
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
+        void surveyJobBoard(JobBoard &jobBoard);
 };
 
 class DefenderAgentRole: public AgentRole {
@@ -120,6 +130,7 @@ class DefenderAgentRole: public AgentRole {
         void iteratePlan(int planIteration, Communicator& communicator) override;
 
         bool chooseAttackingTile(Communicator &communicator);
+        void surveyJobBoard(JobBoard &jobBoard);
 };
 
 #endif // AGENT_ROLE_H
