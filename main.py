@@ -16,6 +16,7 @@ q_stdout = None
 N = 16
 
 verbose = False
+debug = False
 
 def generate_no_action_string(N):
     actions = [[0, 0, 0] for _ in range(N)]
@@ -54,6 +55,12 @@ def agent(observation, configuration):
             command = [os.path.join(cwd, "mosfet")]
             if verbose:
                 command.append("config-test.properties")
+            
+            if debug:
+                # --tool=callgrind
+                command = ["valgrind", "--leak-check=full", "--show-leak-kinds=all", f"--log-file=valgrind_report_{observation.player}.txt"] + command
+                print("Running in debug mode", file=sys.stderr)
+
             agent_process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)
             agent_processes[observation.player] = agent_process
             atexit.register(cleanup_process)
@@ -112,6 +119,10 @@ if __name__ == "__main__":
     configurations = None
     i = 0
     verbose = True
+
+    if os.path.exists("DEBUG"):
+        debug = True
+
     while True:
         inputs = read_input()
         obs = json.loads(inputs)

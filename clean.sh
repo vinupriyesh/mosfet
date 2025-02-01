@@ -7,3 +7,6 @@ rm metrics.csv
 rm replay.html
 rm dashboard.html
 rm mosfet
+rm DEBUG
+rm valgrind_report_player_0.txt
+rm valgrind_report_player_1.txt

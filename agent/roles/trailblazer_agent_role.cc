@@ -1,6 +1,6 @@
 #include "agent_role.h"
 
-TrailblazerAgentRole::TrailblazerAgentRole(ShuttleData& shuttle, GameMap& gameMap) : ExplorerAgentRole(shuttle, gameMap){
+TrailblazerAgentRole::TrailblazerAgentRole(ShuttleData& shuttle, GameMap& gameMap) : NavigatorAgentRole(shuttle, gameMap){
     roleClassName = "TrailblazerAgentRole";
 }
 
@@ -26,9 +26,4 @@ void TrailblazerAgentRole::iteratePlan(int planIteration, Communicator &communic
     log("Got the direction");
     bestPlan = {directionToInt(direction), 0, 0};
     log("Prepared the trailblazer best plan");
-}
-
-
-void TrailblazerAgentRole::surveyJobBoard(JobBoard& jobBoard) {
-    //TODO: Implement this
 }

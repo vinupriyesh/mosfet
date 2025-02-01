@@ -49,6 +49,8 @@ __pycache__
 custom_replay_0.json
 custom_replay_1.json
 *test.log
+valgrind_report*
+DEBUG
 
 metrics.csv
 dashboard.html

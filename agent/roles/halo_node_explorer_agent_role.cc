@@ -30,14 +30,13 @@ void HaloNodeExplorerAgentRole::surveyJobBoard(JobBoard& jobBoard) {
     //     return;
     // }
 
-    for (Job& job : jobBoard.getJobs()) {
-        if (job.type == JobType::HALO_NODE_EXPLORER) {
-            HaloNodeExplorerJob& haloNodeExplorerJob = static_cast<HaloNodeExplorerJob&>(job);
-            if (haloNodeExplorerJob.haloNodeX == shuttle.getX() && haloNodeExplorerJob.haloNodeY == shuttle.getY()) {
-                Job& job = jobBoard.getJobs()[0];
-                
+    for (Job* job : jobBoard.getJobs()) {
+        if (job->type == JobType::HALO_NODE_EXPLORER) {
+            HaloNodeExplorerJob* haloNodeExplorerJob = static_cast<HaloNodeExplorerJob*>(job);
+            if (haloNodeExplorerJob->targetX == shuttle.getX() && haloNodeExplorerJob->targetY == shuttle.getY()) {                
                 std::vector<int> bestPlan = {dis(gen), 0, 0};
-                JobApplication* jobApplication = &jobBoard.applyForJob(job, shuttle, std::move(bestPlan));
+                JobApplication* jobApplication = &jobBoard.applyForJob(job, &shuttle, std::move(bestPlan));
+                jobApplication->setPriority(1); 
             }
         }
     }

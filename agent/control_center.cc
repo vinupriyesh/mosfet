@@ -158,7 +158,7 @@ void ControlCenter::update(GameState& gameState) {
             }            
 
             if (gameState.obs.sensorMask[i][j]) {
-                currentTile.setExplored(true, state.currentStep);
+                gameMap->exploreTile(currentTile, state.currentStep);
             }
 
             currentTile.clearShuttles();

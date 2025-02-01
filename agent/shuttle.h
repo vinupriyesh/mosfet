@@ -11,6 +11,7 @@
 #include "agent/pathing.h"
 #include "agent/roles/agent_role.h"
 #include "agent/roles/communicator.h"
+#include "agent/planning/jobs.h"
 
 class Shuttle {
 
@@ -30,7 +31,8 @@ private:
     Pathing* leastEnergyPathingStopAtVantagePoints;
 
 public:
-            
+    Job* currentJob;
+
     bool isTileUnvisited(Direction direction);
 
     bool isGhost();

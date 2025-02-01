@@ -84,6 +84,41 @@ GameTile *GameMap::getTileAtPosition(ShuttleData& shuttleData) {
     }
 }
 
+void GameMap::exploreTile(GameTile &tile, int currenStep) {
+
+    // Check if adjacent tiles are not explored and mark them frontier
+    if (isValidTile(tile.x, tile.y - 1)) {
+        auto& nextTile = getTile(tile.x, tile.y - 1);
+        if (!nextTile.isExplored()) {
+            nextTile.setUnexploredFrontier(true);
+        }
+    }
+
+    if (isValidTile(tile.x, tile.y + 1)) {
+        auto& nextTile = getTile(tile.x, tile.y + 1);
+        if (!nextTile.isExplored()) {
+            nextTile.setUnexploredFrontier(true);
+        }
+    }
+
+    if (isValidTile(tile.x - 1, tile.y)) {
+        auto& nextTile = getTile(tile.x - 1, tile.y);
+        if (!nextTile.isExplored()) {
+            nextTile.setUnexploredFrontier(true);
+        }
+    }
+
+    if (isValidTile(tile.x + 1, tile.y)) {
+        auto& nextTile = getTile(tile.x +1, tile.y);
+        if (!nextTile.isExplored()) {
+            nextTile.setUnexploredFrontier(true);
+        }
+    }
+    
+    // Set tile as explored
+    tile.setExplored(true, currenStep);
+}
+
 bool GameMap::isValidTile(int x, int y) {
     return x >= 0 && x < width && y >= 0 && y < height;
 }
@@ -189,6 +224,10 @@ void GameTile::clearOpponentShuttles() {
 void GameTile::setExplored(bool explored, int time) {
     this->explored = explored;
     this->lastExploredTime = time;
+
+    if (this->unexploredFrontier) {
+        this->unexploredFrontier = false;
+    }
 }
 
 TileType GameTile::setType(int tileTypeCode, int time) {

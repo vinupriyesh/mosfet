@@ -9,11 +9,10 @@
 class Planner {
     private:
         void log(std::string message);
-        void populateJobs();
+        void populateJobs(JobBoard& jobBoard);
         
         GameMap &gameMap;
-
-        JobBoard jobBoard;
+        
     protected:
         Shuttle** shuttles;
 

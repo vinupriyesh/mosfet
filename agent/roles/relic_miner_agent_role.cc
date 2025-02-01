@@ -17,13 +17,13 @@ void RelicMinerAgentRole::iteratePlan(int planIteration, Communicator &communica
 
 void RelicMinerAgentRole::surveyJobBoard(JobBoard& jobBoard) {
 
-    for (Job& job : jobBoard.getJobs()) {
-        if (job.type == JobType::RELIC_MINER) {
-            RelicMinerJob& relicMinerJob = static_cast<RelicMinerJob&>(job);
-            if (relicMinerJob.vantagePointX == shuttle.getX() && relicMinerJob.vantagePointY == shuttle.getY()) {
-                Job& job = jobBoard.getJobs()[0];
+    for (Job* job : jobBoard.getJobs()) {
+        if (job->type == JobType::RELIC_MINER) {
+            RelicMinerJob* relicMinerJob = static_cast<RelicMinerJob*>(job);
+            if (relicMinerJob->targetX == shuttle.getX() && relicMinerJob->targetY == shuttle.getY()) {                
                 std::vector<int> bestPlan = {Direction::CENTER, 0, 0};
-                JobApplication* jobApplication = &jobBoard.applyForJob(job, shuttle, std::move(bestPlan));
+                JobApplication* jobApplication = &jobBoard.applyForJob(job, &shuttle, std::move(bestPlan));
+                jobApplication->setPriority(1);
             }
         }
     }

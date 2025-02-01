@@ -163,6 +163,10 @@ void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
 }
 
 void Shuttle::surveyJobBoard(JobBoard &jobBoard) {
+    if (!shuttleData.visible) {
+        return;
+    }
+
     log("Surveying job board");
 
     computePath();
@@ -177,7 +181,8 @@ ShuttleData &Shuttle::getShuttleData() {
     return shuttleData;
 }
 
-Shuttle::Shuttle(int id, ShuttleType type, GameMap& gameMap): shuttleData(ShuttleData(id, type)), gameMap(gameMap) {
+Shuttle::Shuttle(int id, ShuttleType type, GameMap& gameMap)
+        :shuttleData(ShuttleData(id, type)), gameMap(gameMap), currentJob(nullptr) {
 
     leastEnergyPathing = nullptr;
 

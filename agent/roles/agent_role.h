@@ -94,14 +94,13 @@ class HaloNodeNavigatorAgentRole: public NavigatorAgentRole {
         void iteratePlan(int planIteration, Communicator& communicator) override;
 };
 
-class TrailblazerAgentRole: public ExplorerAgentRole {
+class TrailblazerAgentRole: public NavigatorAgentRole {
     public:
-        using ExplorerAgentRole::ExplorerAgentRole;
+        using NavigatorAgentRole::NavigatorAgentRole;
         TrailblazerAgentRole(ShuttleData& shuttle, GameMap& gamemap);
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
-        void surveyJobBoard(JobBoard &jobBoard);
 };
 
 class RandomAgentRole: public AgentRole {

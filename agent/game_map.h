@@ -49,6 +49,7 @@ class GameTile {
         bool visible;
         bool visited;
         bool explored;
+        bool unexploredFrontier;
         bool haloTile;
         bool vantagePoint;
         bool forcedRegularTile;
@@ -73,6 +74,7 @@ class GameTile {
         bool isVisible() {return visible;};
         bool isVisited() { return visited; };
         bool isExplored() { return explored; };
+        bool isUnExploredFrontier() { return unexploredFrontier; };
         bool isHaloTile() { return haloTile; };
         bool isVantagePoint() { return vantagePoint; };
         bool isForcedRegularTile() { return forcedRegularTile; };
@@ -84,6 +86,7 @@ class GameTile {
         void setVisible(bool visible) { this->visible = visible; };
         void setVisited(bool visited, int time);
         void setExplored(bool explored, int time);
+        void setUnexploredFrontier(bool unexploredFrontier) { this->unexploredFrontier = unexploredFrontier; };
         void setHaloTile(bool haloTile) { this->haloTile = haloTile; };
         void setVantagePoint(bool vantagePoint) { this->vantagePoint = vantagePoint; };
         void setForcedRegularTile(bool forcedRegularTile) { this->forcedRegularTile = forcedRegularTile; };
@@ -91,7 +94,7 @@ class GameTile {
         void addShuttle(ShuttleData* shuttle);
         void addOpponentShuttle(ShuttleData* shuttle);
         bool isOccupied();
-        bool isOpponentOccupied();        
+        bool isOpponentOccupied();
         std::vector<ShuttleData*>& getShuttles() { return shuttles; };
         void clearShuttle(ShuttleData *shuttle);
         void clearShuttles();
@@ -141,6 +144,7 @@ class GameMap {
         void addRelic(Relic* relic, int currentStep, std::vector<int>& haloTileIds);
         bool hasPotentialInvisibleRelicNode(GameTile &gameTile);
         GameTile *getTileAtPosition(ShuttleData &shuttleData);
+        void exploreTile(GameTile &tile, int currentStep);
         bool isValidTile(int x, int y);
         GameTile& getTile(int x, int y);
 
