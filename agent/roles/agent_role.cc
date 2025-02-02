@@ -10,14 +10,6 @@ void AgentRole::setLeastEnergyPathing(Pathing *leastEnergyPathing) {
     this->leastEnergyPathing = leastEnergyPathing; // Set least path strategy
 }
 
-void AgentRole::setLeastEnergyPathingStopAtHaloTiles(Pathing *leastEnergyPathingStopAtHaloTiles) {
-    this->leastEnergyPathingStopAtHaloTiles = leastEnergyPathingStopAtHaloTiles;
-}
-
-void AgentRole::setLeastEnergyPathingStopAtVantagePoints(Pathing *leastEnergyPathingStopAtVantagePoints) {
-    this->leastEnergyPathingStopAtVantagePoints = leastEnergyPathingStopAtVantagePoints;
-}
-
 Direction AgentRole::getDirectionTo(const GameTile& destinationTile) {
     int currentX = shuttle.position[0];
     int currentY = shuttle.position[1];
@@ -48,8 +40,4 @@ std::tuple<int, int> AgentRole::getRelativePosition(const GameTile& destinationT
 
 AgentRole::AgentRole(ShuttleData &shuttle, GameMap &gameMap) : shuttle(shuttle), gameMap(gameMap), leastEnergyPathing(nullptr) {
     roleClassName = "AgentRole";
-}
-
-void AgentRole::reset() {
-    unableToAct = false;
 }

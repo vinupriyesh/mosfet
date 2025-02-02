@@ -15,27 +15,17 @@
 class AgentRole {
     protected:
         std::string roleClassName;
-        bool unableToAct = false;
         GameMap& gameMap;
         ShuttleData& shuttle;
         Pathing* leastEnergyPathing;
-        Pathing* leastEnergyPathingStopAtHaloTiles;
-        Pathing* leastEnergyPathingStopAtVantagePoints;
 
         void log(std::string message);
         
     public:
-        std::vector<int> bestPlan; 
         void setLeastEnergyPathing(Pathing *leastEnergyPathing);
-        void setLeastEnergyPathingStopAtHaloTiles(Pathing *leastEnergyPathingStopAtHaloTiles);
-        void setLeastEnergyPathingStopAtVantagePoints(Pathing *leastEnergyPathingStopAtVantagePoints);
         Direction getDirectionTo(const GameTile &destinationTile);
         std::tuple<int, int> getRelativePosition(const GameTile &destinationTile);
         AgentRole(ShuttleData& shuttle, GameMap& gameMap);
-        void reset();
-        virtual bool isRolePossible() = 0;
-        virtual void iteratePlan(int planIteration, Communicator& communicator) = 0;
-
         virtual void surveyJobBoard(JobBoard& jobBoard) = 0;
 };
 
@@ -56,9 +46,6 @@ class RelicMinerAgentRole : public AgentRole {
         using AgentRole::AgentRole;
         RelicMinerAgentRole(ShuttleData& shuttle, GameMap& gamemap);
 
-        bool isRolePossible() override;
-        void iteratePlan(int planIteration, Communicator& communicator) override;
-
         void surveyJobBoard(JobBoard& jobBoard) override;
 };
 
@@ -67,8 +54,6 @@ class RelicMiningNavigatorAgentRole: public NavigatorAgentRole {
         using NavigatorAgentRole::NavigatorAgentRole;
         RelicMiningNavigatorAgentRole(ShuttleData& shuttle, GameMap& gamemap);
 
-        bool isRolePossible() override;
-        void iteratePlan(int planIteration, Communicator& communicator) override;
         void surveyJobBoard(JobBoard &jobBoard) override;
 };
 
@@ -81,8 +66,6 @@ class HaloNodeExplorerAgentRole: public ExplorerAgentRole {
         using ExplorerAgentRole::ExplorerAgentRole;
         HaloNodeExplorerAgentRole(ShuttleData& shuttle, GameMap& gamemap);
 
-        bool isRolePossible() override;
-        void iteratePlan(int planIteration, Communicator& communicator) override;
         void surveyJobBoard(JobBoard &jobBoard) override;
 };
 
@@ -91,8 +74,6 @@ class HaloNodeNavigatorAgentRole: public NavigatorAgentRole {
         using NavigatorAgentRole::NavigatorAgentRole;
         HaloNodeNavigatorAgentRole(ShuttleData& shuttle, GameMap& gamemap);
 
-        bool isRolePossible() override;
-        void iteratePlan(int planIteration, Communicator& communicator) override;
         void surveyJobBoard(JobBoard &jobBoard) override;
 };
 
@@ -100,9 +81,6 @@ class TrailblazerAgentRole: public NavigatorAgentRole {
     public:
         using NavigatorAgentRole::NavigatorAgentRole;
         TrailblazerAgentRole(ShuttleData& shuttle, GameMap& gamemap);
-
-        bool isRolePossible() override;
-        void iteratePlan(int planIteration, Communicator& communicator) override;
 
         void surveyJobBoard(JobBoard& jobBoard) override;
 };
@@ -114,9 +92,6 @@ class RandomAgentRole: public AgentRole {
     public:
         using AgentRole::AgentRole;
         RandomAgentRole(ShuttleData& shuttle, GameMap& gamemap);
-
-        bool isRolePossible() override;
-        void iteratePlan(int planIteration, Communicator& communicator) override;
         void surveyJobBoard(JobBoard &jobBoard);
 };
 
@@ -128,9 +103,6 @@ class DefenderAgentRole: public AgentRole {
 
         using AgentRole::AgentRole;
         DefenderAgentRole(ShuttleData& shuttle, GameMap& gamemap);
-
-        bool isRolePossible() override;
-        void iteratePlan(int planIteration, Communicator& communicator) override;
 
         bool chooseAttackingTile(Communicator &communicator);
         void surveyJobBoard(JobBoard &jobBoard);

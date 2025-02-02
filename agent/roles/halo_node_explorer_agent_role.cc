@@ -7,28 +7,7 @@ HaloNodeExplorerAgentRole::HaloNodeExplorerAgentRole(ShuttleData& shuttle, GameM
     dis = std::uniform_int_distribution<>(0, 4); // Initialize the distribution with the range
 }
 
-bool HaloNodeExplorerAgentRole::isRolePossible() {
-    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
-    int totalTile = gameEnvConfig.mapHeight * gameEnvConfig.mapWidth;
-    float percentageExplored = static_cast<float>(gameMap.derivedGameState.tilesExplored) / totalTile;
-    return gameMap.getTileAtPosition(shuttle)->isHaloTile() && percentageExplored >= 0.33;
-}
-
-void HaloNodeExplorerAgentRole::iteratePlan(int planIteration, Communicator &communicator) {
-    int random_number = dis(gen);
-    bestPlan = {random_number, 0, 0};
-}
-
-
 void HaloNodeExplorerAgentRole::surveyJobBoard(JobBoard& jobBoard) {
-    // GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
-
-    // int totalTile = gameEnvConfig.mapHeight * gameEnvConfig.mapWidth;
-    // float percentageExplored = static_cast<float>(gameMap.derivedGameState.tilesExplored) / totalTile;
-
-    // if (percentageExplored < 0.33) {
-    //     return;
-    // }
 
     for (Job* job : jobBoard.getJobs()) {
         if (job->type == JobType::HALO_NODE_EXPLORER) {

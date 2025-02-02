@@ -32,30 +32,21 @@ void Shuttle::updateVisibility(bool isVisible) {
     this->shuttleData.visible = isVisible;
 }
 
-void Shuttle::computePath() {
-    log("Computing path");
+void Shuttle::computePath() {    
     if (!shuttleData.visible) {
         log("Retuning as shuttle is not visible");
         return;
     }
+
+    log("Computing path");
 
     auto start = std::chrono::high_resolution_clock::now();
 
     if (leastEnergyPathing != nullptr) {
         delete leastEnergyPathing;
     }
-
-    if (leastEnergyPathingStopAtHaloTiles != nullptr) {
-        delete leastEnergyPathingStopAtHaloTiles;
-    }
-
-    if (leastEnergyPathingStopAtVantagePoints != nullptr) {
-        delete leastEnergyPathingStopAtVantagePoints;
-    }
-
-    log("Staring to pathing");
-    GameTile& startTile = gameMap.getTile(shuttleData.position[0], shuttleData.position[1]);
-    log("Staring tile " + startTile.toString());
+    
+    GameTile& startTile = gameMap.getTile(shuttleData.position[0], shuttleData.position[1]);    
 
     // Pathing expored tiles
     PathingConfig config = {};
@@ -65,9 +56,7 @@ void Shuttle::computePath() {
     config.doNotBumpIntoOpponentShuttles = true;
 
     leastEnergyPathing = new Pathing(gameMap, config);
-    leastEnergyPathing->findAllPaths(startTile);
-    log("First path complete");
-
+    leastEnergyPathing->findAllPaths(startTile);    
 
     for (const auto& pair : agentRoles) {
         pair.second->setLeastEnergyPathing(leastEnergyPathing);
@@ -77,66 +66,6 @@ void Shuttle::computePath() {
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     Metrics::getInstance().add("pathing_duration", duration.count());
     log("pathing complete");
-}
-
-void Shuttle::iteratePlan(int planIteration, Communicator &communicator) {
-
-    if (!shuttleData.visible) {
-        return;
-    }    
-
-    log("Iterating plan - " + std::to_string(planIteration));
-    for (const auto& pair : agentRoles) {
-        // log("Checking role possibility " + pair.first);
-        pair.second->reset();
-        if (pair.second->isRolePossible()) {
-            // log("Role possible " + pair.first);
-            pair.second->iteratePlan(planIteration, communicator);
-        }
-    }
-    log("Going to decide the best role for this shuttle");
-
-    //TODO:  below is a temporary code, this will go to the planner. Also need not have casted anything
-    activeRole = nullptr;
-    HaloNodeExplorerAgentRole* haloNodeExplorer = dynamic_cast<HaloNodeExplorerAgentRole*>(agentRoles["HaloNodeExplorerAgentRole"]);
-    HaloNodeNavigatorAgentRole* haloNodeNavigator = dynamic_cast<HaloNodeNavigatorAgentRole*>(agentRoles["HaloNodeNavigatorAgentRole"]);
-    RandomAgentRole* randomAgent = dynamic_cast<RandomAgentRole*>(agentRoles["RandomAgentRole"]);
-    RelicMinerAgentRole* relicMiner = dynamic_cast<RelicMinerAgentRole*>(agentRoles["RelicMinerAgentRole"]);
-    RelicMiningNavigatorAgentRole* relicMiningNavigator = dynamic_cast<RelicMiningNavigatorAgentRole*>(agentRoles["RelicMiningNavigatorAgentRole"]);
-    TrailblazerAgentRole* trailblazer = dynamic_cast<TrailblazerAgentRole*>(agentRoles["TrailblazerAgentRole"]);
-    DefenderAgentRole* defender = dynamic_cast<DefenderAgentRole*>(agentRoles["DefenderAgentRole"]);    
-
-    if (defender->isRolePossible() && defender->chooseAttackingTile(communicator)) {
-        activeRole = defender;
-        log("Defender it is");
-        Metrics::getInstance().add("defender", 1);
-    } else if (relicMiner->isRolePossible()) {
-        log("relicMiner it is");
-        activeRole = relicMiner;
-        Metrics::getInstance().add("relicMiner", 1);
-    } else if(relicMiningNavigator->isRolePossible()) {
-        activeRole = relicMiningNavigator;
-        log("relicMiningNavirgator it is");
-        Metrics::getInstance().add("relicMiningNavigator", 1);
-    } else if(haloNodeExplorer->isRolePossible()) {
-        activeRole = haloNodeExplorer;
-        log("haloNodeExplorer it is");
-        Metrics::getInstance().add("haloNodeExplorer", 1);
-    } else if(haloNodeNavigator->isRolePossible()) {
-        activeRole = haloNodeNavigator;
-        log("haloNodeNavigator it is");
-        Metrics::getInstance().add("haloNodeNavigator", 1);
-    } else if(trailblazer->isRolePossible()) {
-        activeRole = trailblazer;
-        log("Trailblazer it is");
-        Metrics::getInstance().add("trailblazer", 1);
-    } else {
-        activeRole = randomAgent;
-        log("Random agent it is");
-        Metrics::getInstance().add("randomAgent", 1);
-    }
-    
-    // log("decided the role");
 }
 
 void Shuttle::surveyJobBoard(JobBoard &jobBoard) {
@@ -165,7 +94,6 @@ Shuttle::Shuttle(int id, ShuttleType type, GameMap& gameMap)
 
     //Populating Agent role classes
 
-    // log("Going to create explorer roles");
     // Explorers
     agentRoles["HaloNodeExplorerAgentRole"] = new HaloNodeExplorerAgentRole(shuttleData, gameMap);
     agentRoles["TrailblazerAgentRole"] = new TrailblazerAgentRole(shuttleData, gameMap);
@@ -185,7 +113,6 @@ Shuttle::Shuttle(int id, ShuttleType type, GameMap& gameMap)
 
     // log("Shuttle instance created");
 }
-
 
 bool Shuttle::isTileUnvisited(Direction direction) {
     GameTile& shuttleTile = gameMap.getTile(shuttleData.position[0], shuttleData.position[1]);

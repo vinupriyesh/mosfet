@@ -6,9 +6,7 @@
 #include "logger.h"
 #include "metrics.h"
 
-class Communicator {
-    public:
-        std::set<int> attackingTileIds;
+class Communicator {    
 
 };
 

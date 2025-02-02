@@ -41,3 +41,25 @@ pip3 install --upgrade luxai-s3
     - Seed 12310
     - Step 173, player 0
     - From step 172 to 173, we should've got 8 points, but received only 7!
+
+## Benchmarks
+
+### GPU
+
+```
+start recording reset + for loop jax.step metrics
+reset + for loop jax.step (5 trials)
+AVG: 4035.529 steps/s, 63.055 parallel steps/s, 505.0 steps in 8.024s
+STD: 173.418 steps/s, 2.710 parallel steps/s, 0.0 steps in 0.363s
+    CPU mem: 831.195 MB, GPU mem: 0.000 MB
+start recording reset + jax.lax.scan(jax.step) metrics
+reset + jax.lax.scan(jax.step) (5 trials)
+AVG: 74349.404 steps/s, 1161.709 parallel steps/s, 505.0 steps in 0.435s
+STD: 1787.101 steps/s, 27.923 parallel steps/s, 0.0 steps in 0.010s
+    CPU mem: 877.367 MB, GPU mem: 0.000 MB
+start recording jit(reset + jax.lax.scan(jax.step)) metrics
+jit(reset + jax.lax.scan(jax.step)) (5 trials)
+AVG: 62159.862 steps/s, 971.248 parallel steps/s, 505.0 steps in 0.522s
+STD: 4249.818 steps/s, 66.403 parallel steps/s, 0.0 steps in 0.035s
+    CPU mem: 1066.133 MB, GPU mem: 0.000 MB
+```

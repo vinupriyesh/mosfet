@@ -53,6 +53,8 @@ void Planner::populateJobs(JobBoard& jobBoard) {
 }
 
 void Planner::plan() {
+    auto start = std::chrono::high_resolution_clock::now();
+
     log("Planning now");
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     JobBoard jobBoard;  
@@ -65,6 +67,8 @@ void Planner::plan() {
 
         shuttles[i]->surveyJobBoard(jobBoard);
     }
+
+    Metrics::getInstance().add("job_applications", jobBoard.getJobApplications().size());
     
     jobBoard.sortJobApplications();
 
@@ -138,5 +142,9 @@ void Planner::plan() {
         }
         
     }
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    Metrics::getInstance().add("plan_duration", duration.count());
 
 }

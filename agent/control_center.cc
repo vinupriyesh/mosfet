@@ -50,7 +50,7 @@ void ControlCenter::init(GameState& gameState) {
  */
 void ControlCenter::update(GameState& gameState) {
 
-    auto start = std::chrono::high_resolution_clock::now();    
+    auto start = std::chrono::high_resolution_clock::now();
 
     if (shuttles == nullptr) {
         init(gameState);

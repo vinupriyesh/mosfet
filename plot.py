@@ -83,29 +83,27 @@ def prepare_charts(df):
 
     # Relic exploration
     images = create_heading("Relic Exploration", json_data)
-    plot(df, images, "constraint_set_size", "size")
-    plot(df, images, 'add_constraint_duration', "micro seconds")
+    plot(df, images, "constraint_set_size", "size")    
     plot(df, images, 'phased_out_constraints', "size", sum_values=True)
     
     # Relic exploitation
     images = create_heading("Relic Exploitation", json_data)
     plot(df, images, "unexploited_vantage_points")
 
+    # Planning
+    images = create_heading("Planning", json_data)
+    plot(df, images, "jobs_created", "count")
+    plot(df, images, "job_applications", "count")
+
     # Timing
     images = create_heading("Timing", json_data)
     plot(df, images, "visualizer_overhead", "ms")
-    plot(df, images, "act_duration", "ms")
+    # plot(df, images, "act_duration", "ms")
     plot(df, images, "update_duration", "micro seconds")
+    plot(df, images, "plan_duration", "ms")
     plot(df, images, "pathing_duration", "ms")
-
-    # Agents
-    images = create_heading("Agents", json_data)
-    plot(df, images, "defender", sum_values=True)
-    plot(df, images, ["relicMiner", "relicMiningNavigator"], sum_values=True)
-    plot(df, images, ["haloNodeExplorer", "haloNodeNavigator"], sum_values=True)
-    plot(df, images, "trailblazer" , sum_values=True)
-    plot(df, images, "randomAgent", sum_values=True)
-
+    plot(df, images, 'add_constraint_duration', "micro seconds")
+    
     return json.dumps(json_data, indent=4)
 
 # Example usage

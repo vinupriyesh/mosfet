@@ -22,13 +22,10 @@ private:
     std::mt19937 gen; // Mersenne Twister random number generator 
     std::uniform_int_distribution<> dis; // Uniform distribution
 
-    AgentRole* activeRole = nullptr;
     std::map<std::string, AgentRole*> agentRoles;
 
     //Transients
     Pathing* leastEnergyPathing;  
-    Pathing* leastEnergyPathingStopAtHaloTiles;
-    Pathing* leastEnergyPathingStopAtVantagePoints;
 
 public:
     std::vector<int> bestPlan;
@@ -42,8 +39,7 @@ public:
     void updateUnitsData(std::vector<int> position, int energy);
     void updateVisibility(bool isVisible);
 
-    void computePath();
-    void iteratePlan(int planIteration, Communicator& communicator);
+    void computePath();    
 
     void surveyJobBoard(JobBoard& jobBoard);
 
