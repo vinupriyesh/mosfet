@@ -46,3 +46,17 @@ void HaloNodeNavigatorAgentRole::iteratePlan(int planIteration, Communicator &co
         unableToAct = true;
     }
 }
+
+void HaloNodeNavigatorAgentRole::surveyJobBoard(JobBoard& jobBoard) {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    if (shuttle.energy <= gameEnvConfig.unitMoveCost) {
+        // This shuttle cant move!
+        return;
+    }
+
+    for (Job* job : jobBoard.getJobs()) {
+        if (job->type == JobType::HALO_NODE_NAVIGATOR) {
+            surveyJob(jobBoard, job);
+        }
+    }
+}

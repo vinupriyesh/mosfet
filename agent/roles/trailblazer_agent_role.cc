@@ -27,3 +27,18 @@ void TrailblazerAgentRole::iteratePlan(int planIteration, Communicator &communic
     bestPlan = {directionToInt(direction), 0, 0};
     log("Prepared the trailblazer best plan");
 }
+
+
+void TrailblazerAgentRole::surveyJobBoard(JobBoard& jobBoard) {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    if (shuttle.energy <= gameEnvConfig.unitMoveCost) {
+        // This shuttle cant move!
+        return;
+    }
+
+    for (Job* job : jobBoard.getJobs()) {
+        if (job->type == JobType::TRAILBLAZER_NAVIGATOR) {
+            surveyJob(jobBoard, job);
+        }
+    }
+}

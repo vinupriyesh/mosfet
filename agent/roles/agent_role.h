@@ -45,10 +45,10 @@ class ExplorerAgentRole : public AgentRole {
 };
 
 class NavigatorAgentRole: public AgentRole {
+    protected:
+        void surveyJob(JobBoard& jobBoard, Job *job);
     public:
         using AgentRole::AgentRole;
-        // std::vector<int> getNavigationTo(int x, int y);
-        void surveyJobBoard(JobBoard &jobBoard) override;
 };
 
 class RelicMinerAgentRole : public AgentRole {
@@ -69,6 +69,7 @@ class RelicMiningNavigatorAgentRole: public NavigatorAgentRole {
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
+        void surveyJobBoard(JobBoard &jobBoard) override;
 };
 
 class HaloNodeExplorerAgentRole: public ExplorerAgentRole {
@@ -82,7 +83,7 @@ class HaloNodeExplorerAgentRole: public ExplorerAgentRole {
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
-        void surveyJobBoard(JobBoard &jobBoard);
+        void surveyJobBoard(JobBoard &jobBoard) override;
 };
 
 class HaloNodeNavigatorAgentRole: public NavigatorAgentRole {
@@ -92,6 +93,7 @@ class HaloNodeNavigatorAgentRole: public NavigatorAgentRole {
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
+        void surveyJobBoard(JobBoard &jobBoard) override;
 };
 
 class TrailblazerAgentRole: public NavigatorAgentRole {
@@ -101,6 +103,8 @@ class TrailblazerAgentRole: public NavigatorAgentRole {
 
         bool isRolePossible() override;
         void iteratePlan(int planIteration, Communicator& communicator) override;
+
+        void surveyJobBoard(JobBoard& jobBoard) override;
 };
 
 class RandomAgentRole: public AgentRole {

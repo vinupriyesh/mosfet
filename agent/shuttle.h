@@ -31,7 +31,7 @@ private:
     Pathing* leastEnergyPathingStopAtVantagePoints;
 
 public:
-    Job* currentJob;
+    std::vector<int> bestPlan;
 
     bool isTileUnvisited(Direction direction);
 

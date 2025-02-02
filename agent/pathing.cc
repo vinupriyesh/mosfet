@@ -60,6 +60,8 @@ void Pathing::findAllPaths(GameTile &startTile) {
             continue;
         }
 
+        allDestinations.push({currentDistance, currentTile});
+
         // Record this tile if it is explored
         if (config.captureUnexploredTileDestinations && !currentTile->isExplored()) {
             unexploredDestinations.push({currentDistance, currentTile});

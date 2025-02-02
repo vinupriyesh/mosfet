@@ -56,6 +56,9 @@ class Pathing : public PathingBase {
         
     public:
         using TileDistancePair = std::pair<int, GameTile*>;
+
+        IterablePriorityQueue<TileDistancePair> allDestinations;
+        
         /**
          *  Will be populated only if captureUnexploredTileDestinations is true, closest tiles first
          */

@@ -273,15 +273,6 @@ void ControlCenter::update(GameState& gameState) {
 void ControlCenter::plan() {
     log("planning");
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
-    log("gameEnvConfig fetched");
-    int planIteration = 0;
-    Communicator communicator;
-    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
-        log("Surveying shuttle " + std::to_string(i));
-        shuttles[i]->computePath();
-        log("Suverying shuttle 2");
-        shuttles[i]->iteratePlan(planIteration, communicator);
-    }
 
     planner->plan();
     log("Planning complete");

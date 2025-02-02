@@ -2,6 +2,7 @@
 #define SHUTTLE_DATA_H
 
 #include <vector>
+#include <sstream>
 
 enum ShuttleType {
     player,
@@ -27,6 +28,13 @@ struct ShuttleData {
 
     int getY() {
         return position[1];
+    }
+
+    std::string to_string() {
+        std::ostringstream ss;
+        ss << "ShuttleData: id=" << id << ", energy=" << energy << ", visible=" << visible << ", ghost=" << ghost << ", type=" << type
+              << ", position=(" << position[0] << ", " << position[1] << ")";
+        return ss.str();
     }
 };
 

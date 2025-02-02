@@ -42,7 +42,7 @@ void Planner::populateJobs(JobBoard& jobBoard) {
 
             if (currentTile.isUnExploredFrontier()) {
                 TrailblazerNavigatorJob* trailblazerJob = new TrailblazerNavigatorJob(jobIdCounter++, x, y);
-                log("Created Trailblazer job");
+                log("Created Trailblazer job at " + std::to_string(x) + ", " + std::to_string(y));
                 jobBoard.addJob(trailblazerJob);
             }
         }
@@ -54,11 +54,12 @@ void Planner::populateJobs(JobBoard& jobBoard) {
 
 void Planner::plan() {
     log("Planning now");
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     JobBoard jobBoard;  
 
     populateJobs(jobBoard);
 
-    for(int i = 0; i < 2; ++i) {
+    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         Shuttle* shuttle = shuttles[i];
         log("Planning for shuttle " + std::to_string(shuttle->getShuttleData().id));
 
@@ -109,9 +110,12 @@ void Planner::plan() {
         }
 
         // Job Assignment Confirmed :: Below this point is a success case!
-        // Copy and assign unique pointer to currentJob        
-        shuttles[jobApplication.shuttleData->id]->currentJob = jobApplication.job; // Do not delete this pointer.  It is owned by the shuttle now.
-        jobBoard.addJobDeletionExclusion(jobApplication.job->id);
+        // Copy and assign unique pointer to currentJob        //TODO: Revisit this mess!
+        // shuttles[jobApplication.shuttleData->id]->currentJob = jobApplication.job; // Do not delete this pointer.  It is owned by the shuttle now.
+        shuttles[jobApplication.shuttleData->id]->bestPlan = jobApplication.bestPlan;
+        // jobBoard.addJobDeletionExclusion(jobApplication.id);
+
+        log("JobApplication accepted " + jobApplication.to_string());
 
         jobApplication.setStatus(JobApplicationStatus::ACCEPTED);
         assignedShuttleIds.insert(jobApplication.shuttleData->id);

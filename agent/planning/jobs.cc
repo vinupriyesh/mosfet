@@ -1,5 +1,8 @@
 #include "jobs.h"
 
+#include <string>
+#include <sstream>
+
 // **Job class implementations**
 
 Job::Job(int id, JobType type) : Job(id, type, 0, 0) {
@@ -82,6 +85,15 @@ DefenderJob::DefenderJob(int id, int opponentPositionX, int opponentPositionY)
 JobApplication::JobApplication(int id, ShuttleData* shuttleData, Job* job, std::vector<int>&& bestPlan)
     : id(id), shuttleData(shuttleData), job(job), bestPlan(std::move(bestPlan)), status(APPLIED), stepsNeededToExecute(0), energyNeededToExecute(0), priority(0) {}
 
+std::string JobApplication::to_string() {
+    std::ostringstream ss;
+    ss << "JobApplication: id=" << id << ", status=" << status
+    << ", priority=" << priority <<
+    ", shuttleData=" << shuttleData->to_string()
+    << ", job=" << job->to_string();
+    return ss.str();
+}
+
 JobApplication::JobApplication(const JobApplication& other)
     : id(other.id), status(other.status), stepsNeededToExecute(other.stepsNeededToExecute),
       energyNeededToExecute(other.energyNeededToExecute), priority(other.priority),
@@ -153,6 +165,7 @@ JobApplication& JobBoard::applyForJob(Job* job, ShuttleData* shuttleData, std::v
     jobApplicationsByShuttleId[shuttleData->id].push_back(jobApplication);
     jobApplicationsByJobId[job->id].push_back(jobApplication);
     jobTypeToJobIdMap[job->type].insert(job->id);
+    log("Application received for job " + job->to_string() + " from shuttle " + shuttleData->to_string());
     return jobApplications.back();
 }
 

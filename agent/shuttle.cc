@@ -61,39 +61,16 @@ void Shuttle::computePath() {
     PathingConfig config = {};
     config.pathingHeuristics = LEAST_ENERGY;
     config.captureEverything();
-    config.stopAtUnexploredTiles = true;
+    config.stopAtUnexploredTiles = false;
     config.doNotBumpIntoOpponentShuttles = true;
 
     leastEnergyPathing = new Pathing(gameMap, config);
     leastEnergyPathing->findAllPaths(startTile);
     log("First path complete");
 
-    // Pathing halo tiles
-    PathingConfig config2 = {};
-    config2.pathingHeuristics = LEAST_ENERGY;
-    config2.captureEverything();
-    config2.stopAtHaloTiles= true;
-    config2.doNotBumpIntoOpponentShuttles = true;
-
-    leastEnergyPathingStopAtHaloTiles = new Pathing(gameMap, config2);
-    leastEnergyPathingStopAtHaloTiles->findAllPaths(startTile);
-    log("Second path complete");
-
-    // Pathing capture vantage points
-    PathingConfig config3 = {};
-    config3.pathingHeuristics = LEAST_ENERGY;
-    config3.captureEverything();
-    config3.stopAtVantagePointTiles= true;
-    config3.doNotBumpIntoOpponentShuttles = true;
-    log("Third path complete");
-
-    leastEnergyPathingStopAtVantagePoints = new Pathing(gameMap, config3);
-    leastEnergyPathingStopAtVantagePoints->findAllPaths(startTile);
 
     for (const auto& pair : agentRoles) {
         pair.second->setLeastEnergyPathing(leastEnergyPathing);
-        pair.second->setLeastEnergyPathingStopAtHaloTiles(leastEnergyPathingStopAtHaloTiles);
-        pair.second->setLeastEnergyPathingStopAtVantagePoints(leastEnergyPathingStopAtVantagePoints);
     }
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -182,7 +159,7 @@ ShuttleData &Shuttle::getShuttleData() {
 }
 
 Shuttle::Shuttle(int id, ShuttleType type, GameMap& gameMap)
-        :shuttleData(ShuttleData(id, type)), gameMap(gameMap), currentJob(nullptr) {
+        :shuttleData(ShuttleData(id, type)), gameMap(gameMap) {
 
     leastEnergyPathing = nullptr;
 
@@ -229,12 +206,16 @@ bool Shuttle::isTileUnvisited(Direction direction) {
 std::vector<int> Shuttle::act() {
     
     if (!shuttleData.visible) {
-        //TODO: Check if we can still move invisible shuttle (If it is inside Nebula!)
         return {0, 0, 0};
     }
 
-    log("Inside act2 -> " + std::to_string(activeRole == nullptr));
-    return activeRole->bestPlan;
+    if (bestPlan.size() == 0) {
+        log("Unable to prepare a plan");
+        std::cerr<<"Unable to prepare a plan"<<std::endl;
+        return {0, 0, 0};
+    }
+
+    return bestPlan;
 }
 
 Shuttle::~Shuttle() {

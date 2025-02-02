@@ -41,6 +41,12 @@ struct Job {
     Job(int id, JobType type, int targetX, int targetY);
 
     std::string getJobTypeString(JobType jobType);
+
+    std::string to_string() {
+        std::ostringstream ss;
+        ss << "Job: id=" << id << ", type=" << getJobTypeString(type) << ", target=(" << targetX << ", " << targetY << ")";
+        return ss.str();
+    }
 };
 
 // Derived job structures
@@ -82,13 +88,13 @@ enum JobApplicationStatus {
 };
 
 class JobApplication {
-private:
-    int id;
+private:    
     JobApplicationStatus status;
     int stepsNeededToExecute;
     int energyNeededToExecute;
 
 public:
+    int id;
     int priority;
     ShuttleData* shuttleData;
     std::vector<int> bestPlan;
@@ -103,6 +109,8 @@ public:
 
     void setPriority(int applicationPriority);
     void setStatus(JobApplicationStatus status);
+
+    std::string to_string();
 };
 
 //----------------------------------------------
