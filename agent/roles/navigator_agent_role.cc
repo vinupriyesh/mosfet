@@ -1,16 +1,16 @@
 #include "agent_role.h"
 
 void NavigatorAgentRole::surveyJob(JobBoard& jobBoard, Job* job) {
-    log("Evaluating job " + job->to_string());
+    // log("Evaluating job " + job->to_string());
     NavigatorJob* navigatorJob = static_cast<NavigatorJob*>(job);
 
     for (const auto [distance, destinationTile] : leastEnergyPathing->allDestinations) { //TODO: change this to a hashMap instead of loop
 
         if (destinationTile->x == navigatorJob->targetX && destinationTile->y == navigatorJob->targetY) {
-            log("Found the destination tile - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
+            // log("Found the destination tile - (" + std::to_string(destinationTile->x) + ", " + std::to_string(destinationTile->y) + ") with distance " + std::to_string(distance));
             std::vector<GameTile*> pathToDestination = leastEnergyPathing->distances[destinationTile].second;
             if (pathToDestination.size() < 2) {
-                log("We are already in the closest destination tile");
+                // log("We are already in the closest destination tile");
                 continue;
             }
             Direction direction = getDirectionTo(*pathToDestination[1]);

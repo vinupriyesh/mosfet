@@ -86,13 +86,14 @@ void Planner::plan() {
         }
 
         if (jobApplication.job->type == JobType::RELIC_MINER && 
-            assignedTilesForRelicMining.find(targetId) != assignedTilesForRelicMining.end()) {            
+            assignedTilesForRelicMining.find(targetId) != assignedTilesForRelicMining.end()) {
             jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);            
             continue;
         }
 
         if (jobApplication.job->type == JobType::RELIC_MINING_NAVIGATOR && 
-            assignedTilesForRelicMiningNavigation.find(targetId) != assignedTilesForRelicMiningNavigation.end()) {            
+            (assignedTilesForRelicMiningNavigation.find(targetId) != assignedTilesForRelicMiningNavigation.end() || 
+            assignedTilesForRelicMining.find(targetId) != assignedTilesForRelicMining.end())) {
             jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);
             continue;
         }
