@@ -66,15 +66,18 @@ void Planner::plan() {
         log("Planning for shuttle " + std::to_string(shuttle->getShuttleData().id));
 
         shuttles[i]->surveyJobBoard(jobBoard);
+        shuttles[i]->bestPlan.clear();
     }
 
     Metrics::getInstance().add("job_applications", jobBoard.getJobApplications().size());
     
-    jobBoard.sortJobApplications();
+    jobBoard.sortJobApplications(gameMap);
 
     std::unordered_set<int> assignedShuttleIds;
     std::unordered_set<int> assignedTilesForRelicMining;
     std::unordered_set<int> assignedTilesForRelicMiningNavigation;
+    std::unordered_set<int> assignedTilesForHaloNodeExploration;
+    std::unordered_set<int> assignedTilesForHaloNodeNavigation;
     std::unordered_set<int> assignedTilesForTrailblazing;
     std::unordered_set<int> assignedTilesForDefending;
 
@@ -98,6 +101,18 @@ void Planner::plan() {
         if (jobApplication.job->type == JobType::RELIC_MINING_NAVIGATOR && 
             (assignedTilesForRelicMiningNavigation.find(targetId) != assignedTilesForRelicMiningNavigation.end() || 
             assignedTilesForRelicMining.find(targetId) != assignedTilesForRelicMining.end())) {
+            jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);
+            continue;
+        }
+
+        if (jobApplication.job->type == JobType::HALO_NODE_EXPLORER && 
+            assignedTilesForHaloNodeExploration.find(targetId) != assignedTilesForHaloNodeExploration.end()) {            
+            jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);
+            continue;
+        }
+
+        if (jobApplication.job->type == JobType::HALO_NODE_NAVIGATOR && 
+            assignedTilesForHaloNodeNavigation.find(targetId) != assignedTilesForHaloNodeNavigation.end()) {            
             jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);
             continue;
         }
@@ -131,6 +146,14 @@ void Planner::plan() {
 
         if (jobApplication.job->type == JobType::RELIC_MINING_NAVIGATOR) {
             assignedTilesForRelicMiningNavigation.insert(targetId);
+        }
+
+        if (jobApplication.job->type == JobType::HALO_NODE_EXPLORER) {
+            assignedTilesForHaloNodeExploration.insert(targetId);
+        }
+
+        if (jobApplication.job->type == JobType::HALO_NODE_NAVIGATOR) {
+            assignedTilesForHaloNodeNavigation.insert(targetId);
         }
 
         if (jobApplication.job->type == JobType::TRAILBLAZER_NAVIGATOR) {

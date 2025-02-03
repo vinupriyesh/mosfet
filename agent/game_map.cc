@@ -3,6 +3,7 @@
 #include <stdexcept>
 #include <tuple>
 #include <iostream>
+#include <cmath>
 
 
 void GameMap::log(std::string message) {
@@ -14,11 +15,14 @@ void GameTile::log(std::string message) {
 }
 
 GameMap::GameMap(int width, int height) : width(width), height(height) {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     map.resize(height);
     for (int y = 0; y < height; ++y) {
         map[y].reserve(width);
         for (int x = 0; x < width; ++x) {
             map[y].emplace_back(x, y);
+            map[y][x].manhattanFromOrigin = std::abs(x - gameEnvConfig.originX) + std::abs(y - gameEnvConfig.originY);
+            map[y][x].manhattanToOpponentOrigin = std::abs(x - gameEnvConfig.opponentOriginX) + std::abs(y - gameEnvConfig.opponentOriginY);
         }
     }
 }

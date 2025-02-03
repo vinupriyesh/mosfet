@@ -23,20 +23,14 @@ struct GameEnvConfig {
     int mapWidth;
     bool initialized = false;
     int nebulaTileEnergyReduction;
+    int originX, originY;
+    int opponentOriginX, opponentOriginY;
     
     void init(GameState& gameState) {
         // Player ID and team ID
         playerName = gameState.player;
         Logger::getInstance().setPlayerName(playerName);
         Metrics::getInstance().setPlayerName(playerName);
-
-        if (playerName == "player_0") {
-            teamId = 0;
-            opponentTeamId = 1;
-        } else {
-            teamId = 1;
-            opponentTeamId = 0;
-        }
 
         // Game info
         matchCountPerEpisode = gameState.info.envCfg["match_count_per_episode"];
@@ -48,6 +42,22 @@ struct GameEnvConfig {
         unitSapCost = gameState.info.envCfg["unit_sap_cost"];
         unitSapRange = gameState.info.envCfg["unit_sap_range"];
         unitSensorRange = gameState.info.envCfg["unit_sensor_range"];
+
+        if (playerName == "player_0") {
+            teamId = 0;
+            opponentTeamId = 1;
+            originX = 0;
+            originY = 0;
+            opponentOriginX = mapWidth - 1;
+            opponentOriginY = mapHeight - 1;
+        } else {
+            teamId = 1;
+            opponentTeamId = 0;
+            originX = mapWidth - 1;
+            originY = mapHeight - 1;
+            opponentOriginX = 0;
+            opponentOriginY = 0;
+        }
 
         nebulaTileEnergyReduction = 10; //TODO:  This has to be identified dynamically, lets start with 10!
         relicCount = gameState.obs.relicNodesMask.size();

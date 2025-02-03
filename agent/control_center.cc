@@ -155,9 +155,6 @@ void ControlCenter::update(GameState& gameState) {
             if (gameState.obs.sensorMask[i][j]) {
                 // Update energy only if the node is visible.
                 currentTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], state.currentStep);
-            }            
-
-            if (gameState.obs.sensorMask[i][j]) {
                 gameMap->exploreTile(currentTile, state.currentStep);
             }
 

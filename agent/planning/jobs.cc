@@ -173,10 +173,19 @@ void JobBoard::addJobDeletionExclusion(int jobId) {
     jobDeletionExclusions.insert(jobId);
 }
 
-void JobBoard::sortJobApplications() {
-    auto compare = [](const JobApplication& a, const JobApplication& b) {
-        return a.priority > b.priority;
+void JobBoard::sortJobApplications(GameMap& gameMap) {
+    auto compare = [&gameMap](const JobApplication& a, const JobApplication& b) {
+        GameTile& aTile = gameMap.getTile(a.job->targetX, a.job->targetY);
+        GameTile& bTile = gameMap.getTile(b.job->targetX, b.job->targetY);
+        if (aTile.manhattanFromOrigin < bTile.manhattanFromOrigin) {
+            return true;
+        } else if (aTile.manhattanFromOrigin > bTile.manhattanFromOrigin) {
+            return false;
+        } else {
+            return a.priority > b.priority;
+        }
     };
+    
     std::sort(jobApplications.begin(), jobApplications.end(), compare);
 }
 

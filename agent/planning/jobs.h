@@ -1,8 +1,9 @@
 #ifndef JOBS_H
 #define JOBS_H
 
-#include "agent/shuttle_data.h"
 #include "logger.h"
+#include "agent/shuttle_data.h"
+#include "agent/game_map.h"
 #include <vector>
 #include <string>
 #include <algorithm>
@@ -134,7 +135,7 @@ public:
     std::unordered_set<int> getJobsForType(JobType jobType);
     std::vector<JobApplication> getJobApplicationsForId(int jobId);
     JobApplication& applyForJob(Job* job, ShuttleData* shuttleData, std::vector<int>&& bestPlan);
-    void sortJobApplications();
+    void sortJobApplications(GameMap& gameMap);
     std::vector<JobApplication>& getJobApplications();
     void addJobDeletionExclusion(int jobId);
     ~JobBoard();
