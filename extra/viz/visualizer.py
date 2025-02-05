@@ -152,12 +152,17 @@ class Visualizer:
     def draw_shuttle(self, sid, position, color):
         if color == blue:
             team_blue = True
+            energy_value = self.game_state.blue_shuttles_energy[sid]
         else:
             team_blue = False
+            energy_value = self.game_state.red_shuttles_energy[sid]
+        
         x, y = position
 
+        cell_size = 16 + int (energy_value * 16.0 / 400.0)
+        offset = (self.cell_size - cell_size) / 2
 
-        rect = pygame.Rect(x * self.cell_size, y * self.cell_size, self.cell_size, self.cell_size)
+        rect = pygame.Rect(x * self.cell_size + offset, y * self.cell_size + offset, cell_size, cell_size)
         pygame.draw.rect(self.screen, color, rect)
 
         if self.mouse_pos_x == x and self.mouse_pos_y == y:
