@@ -12,6 +12,8 @@ enum ShuttleType {
 struct ShuttleData {
     int id;
     int energy;
+    int lastKnownEnergy;
+    int lastEnergyUpdateTime;
     bool visible;
     bool ghost;
     ShuttleType type;

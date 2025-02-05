@@ -51,6 +51,10 @@ std::string VisualizerClient::get_data() {
 
     // Add grid_size
     jsonObject["grid_size"] = {gameEnvConfig.mapWidth, gameEnvConfig.mapHeight};
+    jsonObject["unit_move_cost"] = gameEnvConfig.unitMoveCost;
+    jsonObject["unit_sap_cost"] = gameEnvConfig.unitSapCost;
+    jsonObject["unit_sap_range"] = gameEnvConfig.unitSapRange;
+    jsonObject["unit_sensor_range"] = gameEnvConfig.unitSensorRange;
 
     log("Looking for relics");
     // Add relics
@@ -77,6 +81,9 @@ std::string VisualizerClient::get_data() {
             if (gameMap.getTile(i, j).isVantagePoint()) {
                 jsonObject["vantage_points"].push_back({i, j});
             }
+            if (gameMap.getTile(i, j).isUnExploredFrontier()) {
+                jsonObject["unexplored_frontier"].push_back({i, j});
+            }
             jsonObject["energy"].push_back(gameMap.getTile(i, j).getLastKnownEnergy());
         }
     }
@@ -88,6 +95,7 @@ std::string VisualizerClient::get_data() {
             continue;
         }
         jsonObject["blue_shuttles"].push_back(shuttles[i]->getShuttleData().position);
+        jsonObject["blue_shuttles_energy"].push_back(shuttles[i]->getShuttleData().lastKnownEnergy);
     }
 
     log("Looking for opponent shuttles");
@@ -98,6 +106,7 @@ std::string VisualizerClient::get_data() {
             continue;
         }
         jsonObject["red_shuttles"].push_back(opponentShuttles[i]->getShuttleData().position);
+        jsonObject["red_shuttles_energy"].push_back(opponentShuttles[i]->getShuttleData().lastKnownEnergy);
     }
 
     log("Done collecing data");

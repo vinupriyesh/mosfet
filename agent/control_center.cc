@@ -90,17 +90,20 @@ void ControlCenter::update(GameState& gameState) {
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
 
         // log("OldTile positions for unit " + std::to_string(i) + " - " + std::to_string(oldX) + ", " + std::to_string(oldY));
-
+        
+        shuttles[i]->updateVisibility(gameState.obs.unitsMask[gameEnvConfig.teamId][i]);
+        opponentShuttles[i]->updateVisibility(gameState.obs.unitsMask[gameEnvConfig.opponentTeamId][i]);
+        
         // Update unit's current position and energy
         shuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig.teamId][i],
-                                     gameState.obs.units.energy[gameEnvConfig.teamId][i]);
+                                     gameState.obs.units.energy[gameEnvConfig.teamId][i],
+                                     state.currentStep);
 
                                          
         opponentShuttles[i]->updateUnitsData(gameState.obs.units.position[gameEnvConfig.opponentTeamId][i],
-                                          gameState.obs.units.energy[gameEnvConfig.opponentTeamId][i]);
-                                          
-        shuttles[i]->updateVisibility(gameState.obs.unitsMask[gameEnvConfig.teamId][i]);
-        opponentShuttles[i]->updateVisibility(gameState.obs.unitsMask[gameEnvConfig.opponentTeamId][i]);     
+                                          gameState.obs.units.energy[gameEnvConfig.opponentTeamId][i],
+                                          state.currentStep);
+                                                  
 
         if (gameMap->isValidTile(shuttles[i]->getShuttleData().getX(), shuttles[i]->getShuttleData().getY())) {
             // log("Updating visited for tile " + std::to_string(shuttles[i]->getX()) + ", " + std::to_string(shuttles[i]->getY()));

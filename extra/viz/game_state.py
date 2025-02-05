@@ -12,8 +12,15 @@ class GameState:
         self.vantage_points = []
         self.halo_tiles = []
         self.energy = []
+        self.unexplored_frontier = []
+        self.blue_shuttles_energy = []
+        self.red_shuttles_energy = []
         self.step = 0
         self.match_step = 0
+        self.unit_move_cost = 0
+        self.unit_sap_cost = 0
+        self.unit_sap_range = 0
+        self.unit_sensor_range = 0
 
     def update_state(self, data):
         if 'step' not in data:
@@ -21,6 +28,10 @@ class GameState:
             return
         self.step = data.get('step', [])[0]
         self.match_step = data.get('match_step', [])[0]
+        self.unit_move_cost = data.get('unit_move_cost', [])
+        self.unit_sap_cost = data.get('unit_sap_cost', [])
+        self.unit_sap_range = data.get('unit_sap_range', [])
+        self.unit_sensor_range = data.get('unit_sensor_range', [])
         self.asteroids = data.get('asteroids', [])
         self.blue_shuttles = data.get('blue_shuttles', [])
         self.red_shuttles = data.get('red_shuttles', [])
@@ -29,3 +40,6 @@ class GameState:
         self.vantage_points = data.get('vantage_points', [])
         self.halo_tiles = data.get('halo_tiles', [])
         self.energy = data.get('energy', [])
+        self.unexplored_frontier = data.get('unexplored_frontier', [])
+        self.blue_shuttles_energy = data.get('blue_shuttles_energy', [])
+        self.red_shuttles_energy = data.get('red_shuttles_energy', [])

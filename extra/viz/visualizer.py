@@ -37,6 +37,8 @@ class Visualizer:
         self.relic_image = pygame.image.load('img/relic.png')
         self.relic_image = pygame.transform.scale(self.relic_image, (self.cell_size, self.cell_size))
         self.vantage_point_image = pygame.image.load('img/vantage_point.png')
+        self.frontier_tile_image = pygame.image.load('img/frontier.png')
+        self.frontier_tile_image = pygame.transform.scale(self.frontier_tile_image, (self.cell_size, self.cell_size))
         self.vantage_point_image = pygame.transform.scale(self.vantage_point_image, (self.cell_size, self.cell_size))
         self.replay_handler = None
         self.running = True
@@ -81,7 +83,9 @@ class Visualizer:
 
     def draw_elements(self):
         for asteroid in self.game_state.asteroids:
-            self.draw_asteroid(asteroid)        
+            self.draw_asteroid(asteroid)
+        for frontier in self.game_state.unexplored_frontier:
+            self.draw_frontier(frontier)
         for shuttle in self.game_state.blue_shuttles:
             self.draw_shuttle(shuttle, blue)
         for shuttle in self.game_state.red_shuttles:
@@ -110,6 +114,11 @@ class Visualizer:
         x, y = position
         rect = self.nebula_image.get_rect(center=(x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2))
         self.screen.blit(self.nebula_image, rect.topleft)
+
+    def draw_frontier(self, position):
+        x, y = position
+        rect = self.frontier_tile_image.get_rect(center=(x * self.cell_size + self.cell_size // 2, y * self.cell_size + self.cell_size // 2))
+        self.screen.blit(self.frontier_tile_image, rect.topleft)
 
     def draw_asteroid(self, position):
         x, y = position

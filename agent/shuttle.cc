@@ -13,14 +13,19 @@ void Shuttle::log(std::string message) {
     Logger::getInstance().log(visibilityMark + "Shuttle-" + std::to_string(shuttleData.id) + " -> " + message);
 }
 
-void Shuttle::updateUnitsData(std::vector<int> position, int energy) {
+void Shuttle::updateUnitsData(std::vector<int> position, int energy, int timestep) {
     this->shuttleData.previousPosition = this->shuttleData.position;
     this->shuttleData.position = position;
     this->shuttleData.energy = energy;
     if (energy < 0) {
         this->shuttleData.ghost = true;
     } else {
-        this->shuttleData.ghost = false;
+        this->shuttleData.ghost = false;        
+    }
+
+    if (this->shuttleData.visible) {
+        this->shuttleData.lastKnownEnergy = energy;
+        this->shuttleData.lastEnergyUpdateTime = timestep;
     }
 }
 
