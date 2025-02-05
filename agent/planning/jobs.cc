@@ -174,16 +174,55 @@ void JobBoard::addJobDeletionExclusion(int jobId) {
 }
 
 void JobBoard::sortJobApplications(GameMap& gameMap) {
+    if (Config::prioritizationStrategy == 1) {
+        sortJobApplicationsStrategy1(gameMap);
+    } else {
+        sortJobApplicationsStrategy0(gameMap);
+    }
+}
+
+/**
+ * Nearest job from Origin first strategy
+ */
+void JobBoard::sortJobApplicationsStrategy1(GameMap& gameMap) {
+
     auto compare = [&gameMap](const JobApplication& a, const JobApplication& b) {
         GameTile& aTile = gameMap.getTile(a.job->targetX, a.job->targetY);
         GameTile& bTile = gameMap.getTile(b.job->targetX, b.job->targetY);
-        if (aTile.manhattanFromOrigin < bTile.manhattanFromOrigin) {
-            return true;
-        } else if (aTile.manhattanFromOrigin > bTile.manhattanFromOrigin) {
-            return false;
-        } else {
+        
+        if (a.job->type == JobType::DEFENDER || b.job->type == JobType::DEFENDER) { //Defenders always gets priority
             return a.priority > b.priority;
+        } else if (std::abs(aTile.manhattanFromOrigin - bTile.manhattanFromOrigin) <= Config::prioritizationTolerance) {  //A AND B are almost closer
+            return a.priority > b.priority;        
+        } else {
+            return aTile.manhattanFromOrigin < bTile.manhattanFromOrigin;
         }
+    };
+    
+    std::sort(jobApplications.begin(), jobApplications.end(), compare);
+}
+
+/**
+ * Nearest job from Shuttle first strategy
+ */
+void JobBoard::sortJobApplicationsStrategy0(GameMap& gameMap) {
+    auto compare = [&gameMap](const JobApplication& a, const JobApplication& b) {
+        GameTile& aTile = gameMap.getTile(a.job->targetX, a.job->targetY);
+        GameTile& bTile = gameMap.getTile(b.job->targetX, b.job->targetY);
+        
+        GameTile& aShuttleTile = gameMap.getTile(a.shuttleData->getX(), a.shuttleData->getY());
+        GameTile& bShuttleTile = gameMap.getTile(b.shuttleData->getX(), b.shuttleData->getY());
+
+        int aManhattanFromShuttle = std::abs(a.job->targetX - a.shuttleData->getX()) + std::abs(a.job->targetY - a.shuttleData->getY());
+        int bManhattanFromShuttle = std::abs(b.job->targetX - b.shuttleData->getX()) + std::abs(b.job->targetY - b.shuttleData->getY());
+        
+        if (a.job->type == JobType::DEFENDER || b.job->type == JobType::DEFENDER) { //Defenders always gets priority
+            return a.priority > b.priority;
+        } else if (std::abs(aManhattanFromShuttle - bManhattanFromShuttle) <= Config::prioritizationTolerance) {  //A AND B are almost closer
+            return a.priority > b.priority;        
+        } else {
+            return aManhattanFromShuttle < bManhattanFromShuttle;
+        } 
     };
     
     std::sort(jobApplications.begin(), jobApplications.end(), compare);

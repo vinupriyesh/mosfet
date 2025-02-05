@@ -16,6 +16,8 @@ public:
     static int portPlayer1;
     static int seed;
     static bool phaseOutConstraints;
+    static int prioritizationStrategy;
+    static int prioritizationTolerance;
 
     static void parseConfig(const std::string& filename);
 };

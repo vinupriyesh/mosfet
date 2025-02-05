@@ -13,6 +13,8 @@ int Config::portPlayer0 = 0;
 int Config::portPlayer1 = 0;
 int Config::seed = 0;
 bool Config::phaseOutConstraints = true;
+int Config::prioritizationStrategy = 0;
+int Config::prioritizationTolerance = 3;
 
 void Config::parseConfig(const std::string& filename) {
     std::ifstream configFile(filename);
@@ -45,5 +47,7 @@ void Config::parseConfig(const std::string& filename) {
     portPlayer0 = livePlayPlayer0 ? std::stoi(configMap["port_player0"]) : 0;
     portPlayer1 = livePlayPlayer1 ? std::stoi(configMap["port_player1"]) : 0;
     phaseOutConstraints = (configMap["phase_out_constraints"] == "true");
+    prioritizationStrategy = std::stoi(configMap["prioritization_strategy"]);
+    prioritizationTolerance = std::stoi(configMap["prioritization_tolerance"]);
     seed = std::stoi(configMap["seed"]);
 }

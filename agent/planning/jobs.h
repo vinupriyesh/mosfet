@@ -2,6 +2,7 @@
 #define JOBS_H
 
 #include "logger.h"
+#include "config.h"
 #include "agent/shuttle_data.h"
 #include "agent/game_map.h"
 #include <vector>
@@ -127,6 +128,8 @@ private:
     std::unordered_set<int> jobDeletionExclusions;
     void log(std::string message);
 
+    void sortJobApplicationsStrategy0(GameMap& gameMap);
+    void sortJobApplicationsStrategy1(GameMap& gameMap);
 public:
     JobBoard();
 
