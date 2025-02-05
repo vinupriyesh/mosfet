@@ -89,6 +89,7 @@ std::string VisualizerClient::get_data() {
                 jsonObject["unexplored_frontier"].push_back({i, j});
             }
             jsonObject["energy"].push_back(gameMap.getTile(i, j).getLastKnownEnergy());
+            jsonObject["vision"].push_back(gameMap.getTile(i, j).isVisible()? 1 : 0);
         }
     }
 

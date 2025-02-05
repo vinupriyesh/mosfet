@@ -12,6 +12,7 @@ class GameState:
         self.vantage_points = []
         self.halo_tiles = []
         self.energy = []
+        self.vision = []
         self.unexplored_frontier = []
         self.blue_shuttles_energy = []
         self.red_shuttles_energy = []
@@ -46,6 +47,7 @@ class GameState:
         self.vantage_points = data.get('vantage_points', [])
         self.halo_tiles = data.get('halo_tiles', [])
         self.energy = data.get('energy', [])
+        self.vision = data.get('vision', [])
         self.unexplored_frontier = data.get('unexplored_frontier', [])
         self.blue_shuttles_energy = data.get('blue_shuttles_energy', [])
         self.red_shuttles_energy = data.get('red_shuttles_energy', [])
