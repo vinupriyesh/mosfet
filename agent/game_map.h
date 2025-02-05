@@ -116,6 +116,8 @@ class GameTile {
 struct DerivedGameState {
     int teamPoints;
     int opponentTeamPoints;
+    int teamWins;
+    int opponentWins;
     int teamPointsDelta;
     int opponentTeamPointsDelta;
     int currentStep;

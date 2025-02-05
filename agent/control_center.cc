@@ -72,6 +72,9 @@ void ControlCenter::update(GameState& gameState) {
     state.opponentTeamPointsDelta = gameState.obs.teamPoints[gameEnvConfig.opponentTeamId] - state.opponentTeamPoints;
     state.opponentTeamPoints = gameState.obs.teamPoints[gameEnvConfig.opponentTeamId];
 
+    state.teamWins = gameState.obs.teamWins[gameEnvConfig.teamId];
+    state.opponentWins = gameState.obs.teamWins[gameEnvConfig.opponentTeamId];
+
     // At the start of each set, the team points delta is 0
     if (state.currentMatchStep == 0) {
         state.teamPointsDelta = 0;

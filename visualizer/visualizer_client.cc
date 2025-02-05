@@ -48,6 +48,10 @@ std::string VisualizerClient::get_data() {
 
     jsonObject["step"].push_back(gameMap.derivedGameState.currentStep);
     jsonObject["match_step"].push_back(gameMap.derivedGameState.currentMatchStep);
+    jsonObject["points"].push_back(gameMap.derivedGameState.teamPoints);
+    jsonObject["points"].push_back(gameMap.derivedGameState.opponentTeamPoints);
+    jsonObject["wins"].push_back(gameMap.derivedGameState.teamWins);
+    jsonObject["wins"].push_back(gameMap.derivedGameState.opponentWins);
 
     // Add grid_size
     jsonObject["grid_size"] = {gameEnvConfig.mapWidth, gameEnvConfig.mapHeight};

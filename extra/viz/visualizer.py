@@ -25,7 +25,7 @@ class Visualizer:
         self.cell_size = 32
         self.screen_width = self.grid_width * self.cell_size
         self.screen_height = self.grid_height * self.cell_size
-        self.button_rect = pygame.Rect(20, self.screen_height + 10, 100, 40)
+        self.button_rect = pygame.Rect(0, self.screen_height , 100, 40)
         pygame.init()
         self.screen = pygame.display.set_mode((self.screen_width, self.screen_height + 60), pygame.SRCALPHA)
         pygame.display.set_caption('LuxS3 Visualizer')
@@ -150,8 +150,11 @@ class Visualizer:
         self.screen.blit(text_surface, (self.button_rect.x + 10, self.button_rect.y + 5))
 
     def draw_score(self):
-        text_surface = self.font.render(f'{self.game_state.step} / {self.game_state.match_step}', True, (0, 0, 0))
-        self.screen.blit(text_surface, (self.button_rect.x + 10, self.button_rect.y + 5))
+        text_surface = self.font.render(f'step: {self.game_state.step}/{self.game_state.match_step}, ' +
+                                        f'points: {self.game_state.blue_points}/{self.game_state.red_points}, ' +
+                                        f'wins: {self.game_state.blue_wins}/{self.game_state.red_wins}',
+                                          True, black)
+        self.screen.blit(text_surface, (self.button_rect.x + 5, self.button_rect.y + 5))        
 
     def handle_events(self):
         for event in pygame.event.get():
