@@ -124,11 +124,9 @@ struct DerivedGameState {
     int currentMatchStep;
     int remainingOverageTime;
 
-    bool allRelicsFound = false;
     bool allTilesExplored = false;
     bool allTilesVisited = false;
-
-    int relicsFound = 0;
+    
     int tilesExplored = 0;
     int tilesVisited = 0;
     int vantagePointsFound = 0;
@@ -152,6 +150,7 @@ class GameMap {
         void exploreTile(GameTile &tile, int currentStep);
         bool isValidTile(int x, int y);
         GameTile& getTile(int x, int y);
+        GameTile& getMirroredTile(int x, int y);
 
         GameTile& getTile(GameTile &fromTile, Direction direction);
 

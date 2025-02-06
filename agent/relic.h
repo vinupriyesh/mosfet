@@ -6,14 +6,12 @@
 class Relic {
 
 private:
-    int id;    
+    int id;
 
 public:
-    bool visible;
-    bool revealed;
     std::vector<int> position;
-    Relic(int id);    
-    bool updateRelicData(std::vector<int> position, bool isVisible);
+    Relic(int id, std::vector<int> position);
+    std::vector<int> getMirroredPosition(int width, int height);
 };
 
 #endif // RELIC_H

@@ -60,13 +60,10 @@ std::string VisualizerClient::get_data() {
     jsonObject["unit_sap_range"] = gameEnvConfig.unitSapRange;
     jsonObject["unit_sensor_range"] = gameEnvConfig.unitSensorRange;
 
-    log("Looking for relics");
+    log("Looking for relics - " + std::to_string(relics.size()));
     // Add relics
-    for (int i = 0; i < gameEnvConfig.relicCount; ++i) {
-        if (!relics[i]->revealed) {
-            continue;
-        }
-        jsonObject["relics"].push_back(relics[i]->position);
+    for (const auto& pair : relics) {
+        jsonObject["relics"].push_back(pair.second->position);
     }
 
     log("Looking for asteroids");
@@ -118,7 +115,7 @@ std::string VisualizerClient::get_data() {
     return jsonObject.dump();
 }
 
-VisualizerClient::VisualizerClient(GameMap &gameMap, Shuttle **shuttles, Shuttle **opponentShuttles, Relic **relics) 
+VisualizerClient::VisualizerClient(GameMap &gameMap, Shuttle **shuttles, Shuttle **opponentShuttles, std::map<int, Relic *>& relics) 
                                     : gameMap(gameMap), shuttles(shuttles), opponentShuttles(opponentShuttles), relics(relics) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     if (gameEnvConfig.teamId == 0) {

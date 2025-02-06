@@ -17,7 +17,7 @@ class VisualizerClient {
         GameMap& gameMap;
         Shuttle** shuttles;
         Shuttle** opponentShuttles;
-        Relic** relics;
+        std::map<int, Relic*>& relics;
 
         std::ofstream log_file;
 
@@ -27,7 +27,7 @@ class VisualizerClient {
         std::string upload_data(std::string data);
 
     public:
-        VisualizerClient(GameMap& gameMap, Shuttle** shuttles, Shuttle** oppponentShuttles, Relic** relics);
+        VisualizerClient(GameMap& gameMap, Shuttle** shuttles, Shuttle** oppponentShuttles, std::map<int, Relic*>& relics);
         int send_game_data();
         ~VisualizerClient();
 };

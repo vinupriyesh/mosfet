@@ -276,3 +276,7 @@ int GameTile::getLastKnownEnergy() {
 std::string GameTile::toString() {
     return "(" + std::to_string(x) + "," + std::to_string(y) + ")";
 }
+
+GameTile & GameMap::getMirroredTile(int x, int y) {
+    return getTile(height - y - 1, width - x - 1);
+}

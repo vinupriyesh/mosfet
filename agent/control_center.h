@@ -25,7 +25,7 @@ private:
     // dynamic objects
     Shuttle** shuttles; 
     Shuttle** opponentShuttles;
-    Relic** relics;    
+    std::map<int, Relic*> relics;
 
     // private methods
     void log(std::string message);

@@ -11,7 +11,6 @@ struct GameEnvConfig {
     std::string playerName;
     int maxUnits;
     int teamId;
-    int relicCount;
     int opponentTeamId;    
     int unitMoveCost;
     int unitSapCost;
@@ -60,7 +59,6 @@ struct GameEnvConfig {
         }
 
         nebulaTileEnergyReduction = 10; //TODO:  This has to be identified dynamically, lets start with 10!
-        relicCount = gameState.obs.relicNodesMask.size();
 
         initialized = true;
     }

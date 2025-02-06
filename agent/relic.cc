@@ -1,22 +1,10 @@
 #include "relic.h"
 
-Relic::Relic(int id) {
+Relic::Relic(int id, std::vector<int> position) {
     this->id = id;
-    this->visible = false;
-    this->revealed = false;
+    this->position = position;
 }
 
-bool Relic::updateRelicData(std::vector<int> position, bool visible) {
-
-    bool firstTimeReveal = false;
-
-    // Relics dont change positions.  So once found, dont forget them!
-    if (position[0] != -1 && position[1] != -1 && !this->revealed) {
-        this->position = position;
-        this->revealed = true;  
-        firstTimeReveal = true;
-    }
-    
-    this->visible = visible;
-    return firstTimeReveal;
+std::vector<int> Relic::getMirroredPosition(int width, int height) {
+    return { height - position[1] - 1, width - position[0] - 1};
 }

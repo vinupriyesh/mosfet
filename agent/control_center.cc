@@ -21,11 +21,6 @@ void ControlCenter::init(GameState& gameState) {
     log("creating GameMap");
     gameMap = new GameMap(gameEnvConfig.mapWidth, gameEnvConfig.mapHeight);
 
-    relics = new Relic*[gameEnvConfig.relicCount];
-    for (int i = 0; i < gameEnvConfig.relicCount; ++i) {
-        relics[i] = new Relic(i);     
-    }
-
     // Shuttles (player and opponent).  This is created once and reused.
     shuttles = new Shuttle*[gameEnvConfig.maxUnits];
     opponentShuttles = new Shuttle*[gameEnvConfig.maxUnits];
@@ -119,30 +114,41 @@ void ControlCenter::update(GameState& gameState) {
     // Exploring all relics (cost 8)
     // REQUIREMENTS:
     // 1. Visited nodes should be updated. i.e. Unit movements should've already happened
-    state.allRelicsFound = true;
-    state.relicsFound = 0;
 
     std::vector<int> forcedHaloTileIds;
-    for (int i = 0; i < gameEnvConfig.relicCount; ++i) {
-        bool firstTimeRevealed = relics[i]->updateRelicData(gameState.obs.relicNodes[i], gameState.obs.relicNodesMask[i]);
-        if (firstTimeRevealed) {
-            log("Relic " + std::to_string(i) + " found at " + std::to_string(relics[i]->position[0]) + ", " + std::to_string(relics[i]->position[1]));
-            gameMap->addRelic(relics[i], state.currentStep, forcedHaloTileIds);
+    for (int i = 0; i < gameState.obs.relicNodesMask.size(); ++i) {
+        if (!gameState.obs.relicNodesMask[i]) {
+            // Return if not visible
+            continue;
         }
 
-        if (!relics[i]->revealed) {
-            state.allRelicsFound = false;
-        } else {
-            state.relicsFound++;
+        int positionId = gameState.obs.relicNodes[i][1] * gameEnvConfig.mapWidth + gameState.obs.relicNodes[i][0];
+
+        if (relics.find(positionId) == relics.end()) {
+            // This is a new relic
+            Relic* relic = new Relic(positionId, gameState.obs.relicNodes[i]);
+            relics[positionId] = relic;
+
+            log("Relic " + std::to_string(positionId) + " found at " + std::to_string(relic->position[0]) + ", " + std::to_string(relic->position[1]));
+            gameMap->addRelic(relic, state.currentStep, forcedHaloTileIds);
+
+            std::vector<int> mirroredPosition = relic->getMirroredPosition(gameEnvConfig.mapWidth, gameEnvConfig.mapHeight);
+            int mirroredPositionId = mirroredPosition[1] * gameEnvConfig.mapWidth + mirroredPosition[0];
+
+            if (mirroredPositionId != positionId) {
+                //Mirrored relic does not sit on the diagonal, so it is a new relic
+                Relic* mirroredRelic = new Relic(mirroredPositionId, mirroredPosition);
+                relics[mirroredPositionId] = mirroredRelic;
+
+                log("Mirrored Relic " + std::to_string(mirroredPositionId) + " found at " + std::to_string(mirroredRelic->position[0]) + ", " + std::to_string(mirroredRelic->position[1]));
+                gameMap->addRelic(mirroredRelic, state.currentStep, forcedHaloTileIds);
+            }
         }
     }
+
+    log("Count of relics " + std::to_string(relics.size()));
+
     haloConstraints->reconsiderNormalizedTile(forcedHaloTileIds);
-
-    if (state.allRelicsFound) {
-        log("All relics found :)");
-    }
-    
-
 
     log("Exploring contents of each tile");
     // Exploring contents of each tile (cost 24x24)
@@ -285,8 +291,7 @@ ControlCenter::ControlCenter() {
     // Empty constructor
     log("Starting the game");
     shuttles = nullptr;
-    opponentShuttles = nullptr;
-    relics = nullptr;
+    opponentShuttles = nullptr;    
 }
 
 ControlCenter::~ControlCenter() {
