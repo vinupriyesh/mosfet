@@ -113,27 +113,68 @@ class GameTile {
         
 };
 
+enum RelicDiscoveryStatus {
+    INIT,
+    SEARCHING,
+    FOUND,
+    NOT_FOUND,
+    NOT_APPLICABLE
+};
+
 struct DerivedGameState {
-    int teamPoints;
-    int opponentTeamPoints;
-    int teamWins;
-    int opponentWins;
-    int teamPointsDelta;
-    int opponentTeamPointsDelta;
-    int currentMatch = 0;
-    int currentStep;
-    int currentMatchStep;
-    int remainingOverageTime;
 
-    bool allTilesExplored = false;
-    bool allTilesVisited = false;
-    
-    int tilesExplored = 0;
-    int tilesVisited = 0;
-    int vantagePointsFound = 0;
-    int vantagePointsOccupied = 0;
+    private:
+        inline void log(std::string message) {
+            Logger::getInstance().log("DerivedGameState -> " + message);
+        }
 
-    bool relicsPendingThisMatch = false;
+    public:
+        int teamPoints;
+        int opponentTeamPoints;
+        int teamWins;
+        int opponentWins;
+        int teamPointsDelta;
+        int opponentTeamPointsDelta;
+        int currentMatch = -1;
+        int currentStep;
+        int currentMatchStep;
+        int remainingOverageTime;
+
+        bool allTilesExplored = false;
+        bool allTilesVisited = false;
+        
+        int tilesExplored = 0;
+        int tilesVisited = 0;
+        int vantagePointsFound = 0;
+        int vantagePointsOccupied = 0;
+
+        std::vector<RelicDiscoveryStatus> relicDiscoveryStatus;
+
+        inline bool isThereAHuntForRelic() {
+            for (int i = currentMatch; i >= 0 ; i--) {
+                if (relicDiscoveryStatus[i] == RelicDiscoveryStatus::SEARCHING) {
+                    // log("There is hunt for relic from match " + std::to_string(i) + ", currentMatch = " + std::to_string(currentMatch));
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        inline void setRelicDiscoveryStatus(RelicDiscoveryStatus status) {
+            bool success = false;
+            for (int i = currentMatch; i >= 0 ; i--) {
+                if (relicDiscoveryStatus[i] == RelicDiscoveryStatus::SEARCHING) {
+                    relicDiscoveryStatus[i] = status;
+                    log("Relic search for match #" + std::to_string(i+1) + " is found in match #" + std::to_string(currentMatch + 1));
+                    success = true;
+                    break;
+                }
+            }
+            if (!success) {
+                log("Problem: The relic discovery status doesn't match with any searching relics");
+                std::cerr<<"Problem: The relic discovery status cannot be set to any match"<<std::endl;
+            }
+        }
 };
 
 class GameMap {

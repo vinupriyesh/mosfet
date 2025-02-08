@@ -29,6 +29,7 @@ void ControlCenter::init(GameState& gameState) {
     shuttles = new Shuttle*[gameEnvConfig.maxUnits];
     opponentShuttles = new Shuttle*[gameEnvConfig.maxUnits];
     relicDiscoveryKey.insert(relicDiscoveryKey.end(),  gameState.obs.relicNodes.size(), -1);
+    gameMap->derivedGameState.relicDiscoveryStatus.resize(gameEnvConfig.matchCountPerEpisode, RelicDiscoveryStatus::INIT);
 
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         shuttles[i] = new Shuttle(i, ShuttleType::player, *gameMap);
@@ -81,12 +82,11 @@ void ControlCenter::update(GameState& gameState) {
         state.teamPointsDelta = 0;
         state.opponentTeamPointsDelta = 0;        
         state.currentMatch += 1;
-        log(" --> Match " + std::to_string(state.currentMatch) + " start <----");
-
-        if (state.currentMatch > 3) {
-            state.relicsPendingThisMatch = false;
+        log(" --> Match " + std::to_string(state.currentMatch) + " start <----");  
+        if (state.currentMatch >= 3) {
+            state.relicDiscoveryStatus[state.currentMatch] = RelicDiscoveryStatus::NOT_APPLICABLE;
         } else {
-            state.relicsPendingThisMatch = true;
+            state.relicDiscoveryStatus[state.currentMatch] = RelicDiscoveryStatus::SEARCHING;
         }
     }
 
@@ -145,6 +145,7 @@ void ControlCenter::update(GameState& gameState) {
             relics[positionId] = relic;
             relic->addDiscoveryId(i);
             relicDiscoveryKey[i] = positionId;
+            state.setRelicDiscoveryStatus(RelicDiscoveryStatus::FOUND);
 
             log("Relic " + std::to_string(positionId) + " found at " + std::to_string(relic->position[0]) + ", " + std::to_string(relic->position[1]));
             gameMap->addRelic(relic, state.currentStep, forcedHaloTileIds);
@@ -197,6 +198,7 @@ void ControlCenter::update(GameState& gameState) {
 
             if (respawned) {
                 gameMap->addRelic(relic, state.currentStep, forcedHaloTileIds);
+                state.setRelicDiscoveryStatus(RelicDiscoveryStatus::FOUND);
             }
         }
     }
@@ -272,7 +274,8 @@ void ControlCenter::update(GameState& gameState) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) { 
             GameTile& currentTile = gameMap->getTile(i, j);
             
-            if (currentTile.isOccupied() && (currentTile.isVantagePoint() || currentTile.isHaloTile() || gameMap->hasPotentialInvisibleRelicNode(currentTile))) {
+            if (state.currentMatchStep != 0 && currentTile.isOccupied() && 
+                    (currentTile.isVantagePoint() || currentTile.isHaloTile() || gameMap->hasPotentialInvisibleRelicNode(currentTile))) {
                 // This is a halo tile, and is occupied.  This is a needed for constraint resolution
                 if (!currentTile.isHaloTile() && !currentTile.isVantagePoint()) {
                     // for (auto& shuttle : currentTile.getShuttles()) {

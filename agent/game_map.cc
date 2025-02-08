@@ -64,6 +64,10 @@ void GameMap::getAllOpponentsInRadius(int radius, int x, int y, std::vector<Shut
 }
 
 bool GameMap::hasPotentialInvisibleRelicNode(GameTile& gameTile) {
+    if (!derivedGameState.isThereAHuntForRelic()) {
+        log("No potential for a relic node nearby tile " + gameTile.toString());
+        return false;
+    }
     int x = gameTile.x;
     int y = gameTile.y;
     for (int i = x-2;i <= x+2; ++i) {
