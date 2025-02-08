@@ -152,10 +152,16 @@ class Visualizer:
     def draw_shuttle(self, sid, position, color):
         if color == blue:
             team_blue = True
-            energy_value = self.game_state.blue_shuttles_energy[sid]
+            if len(self.game_state.blue_shuttles_energy) > sid: # backwards compatibility
+                energy_value = self.game_state.blue_shuttles_energy[sid]
+            else:
+                energy_value = 400
         else:
             team_blue = False
-            energy_value = self.game_state.red_shuttles_energy[sid]
+            if len(self.game_state.red_shuttles_energy) > sid: # backwards compatibility
+                energy_value = self.game_state.red_shuttles_energy[sid]
+            else:
+                energy_value = 400
         
         x, y = position
 

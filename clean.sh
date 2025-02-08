@@ -10,7 +10,8 @@ remove_file() {
 
 files=(
     "*.tar.gz"
-    "application.log"
+    "application_0.log"
+    "application_1.log"
     "custom_replay_0.json"
     "custom_replay_1.json"
     "test.log"

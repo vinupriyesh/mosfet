@@ -53,7 +53,7 @@ std::string ConstraintObservation::toString() const {
 
 bool ConstraintObservation::isValid() const {
     if (haloPointSet.empty()) {
-        log("Empty halo point set, not a problem, silenty fail");        
+        log("Empty halo point set");
         return false;
     }
 

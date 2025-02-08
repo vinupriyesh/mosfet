@@ -12,6 +12,7 @@
 #include "agent/planning/planner.h"
 #include "agent/roles/communicator.h"
 #include "visualizer/visualizer_client.h"
+#include "symmetry_util.h"
 
 #include <vector>
 #include <string>
@@ -26,6 +27,7 @@ private:
     Shuttle** shuttles; 
     Shuttle** opponentShuttles;
     std::map<int, Relic*> relics;
+    std::vector<int> relicDiscoveryKey; //Matches with the relic masks array
 
     // private methods
     void log(std::string message);

@@ -28,6 +28,8 @@ void ControlCenter::init(GameState& gameState) {
     // Shuttles (player and opponent).  This is created once and reused.
     shuttles = new Shuttle*[gameEnvConfig.maxUnits];
     opponentShuttles = new Shuttle*[gameEnvConfig.maxUnits];
+    relicDiscoveryKey.insert(relicDiscoveryKey.end(),  gameState.obs.relicNodes.size(), -1);
+
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         shuttles[i] = new Shuttle(i, ShuttleType::player, *gameMap);
         opponentShuttles[i] = new Shuttle(i, ShuttleType::opponent, *gameMap);
@@ -77,7 +79,15 @@ void ControlCenter::update(GameState& gameState) {
     // At the start of each set, the team points delta is 0
     if (state.currentMatchStep == 0) {
         state.teamPointsDelta = 0;
-        state.opponentTeamPointsDelta = 0;
+        state.opponentTeamPointsDelta = 0;        
+        state.currentMatch += 1;
+        log(" --> Match " + std::to_string(state.currentMatch) + " start <----");
+
+        if (state.currentMatch > 3) {
+            state.relicsPendingThisMatch = false;
+        } else {
+            state.relicsPendingThisMatch = true;
+        }
     }
 
     Metrics::getInstance().add("points", state.teamPoints);
@@ -126,12 +136,15 @@ void ControlCenter::update(GameState& gameState) {
             continue;
         }
 
-        int positionId = gameState.obs.relicNodes[i][1] * gameEnvConfig.mapWidth + gameState.obs.relicNodes[i][0];
+        
+        int positionId = symmetry_utils::toID(gameState.obs.relicNodes[i][0], gameState.obs.relicNodes[i][1]);                
 
         if (relics.find(positionId) == relics.end()) {
             // This is a new relic
             Relic* relic = new Relic(positionId, gameState.obs.relicNodes[i]);
             relics[positionId] = relic;
+            relic->addDiscoveryId(i);
+            relicDiscoveryKey[i] = positionId;
 
             log("Relic " + std::to_string(positionId) + " found at " + std::to_string(relic->position[0]) + ", " + std::to_string(relic->position[1]));
             gameMap->addRelic(relic, state.currentStep, forcedHaloTileIds);
@@ -146,6 +159,44 @@ void ControlCenter::update(GameState& gameState) {
 
                 log("Mirrored Relic " + std::to_string(mirroredPositionId) + " found at " + std::to_string(mirroredRelic->position[0]) + ", " + std::to_string(mirroredRelic->position[1]));
                 gameMap->addRelic(mirroredRelic, state.currentStep, forcedHaloTileIds);
+            }
+        }
+
+        if (relicDiscoveryKey[i] == -1) {
+            //This could mean one of the following
+            // 1. This relic is a mirror that we have already onboarded
+            // 2. This relic is on the diagonal that is already created
+            // 3. This relic is a re-spawn in the same tile
+            log("Relic discovery key is null for relic " + std::to_string(i));
+
+            bool isDiagonal = symmetry_utils::isOnDiagonal(positionId);
+            bool respawned = false;
+            int diagonalCount = 0;
+            for (int j = 0; j < gameState.obs.relicNodesMask.size() ; ++j) {
+                if (j == i) {
+                    continue;
+                }
+                if (relicDiscoveryKey[j] == positionId) {
+                    if (isDiagonal) {
+                        if (diagonalCount > 0) {
+                            //This is a respawned diagonal, atleast 3rd time encounting the same positionId
+                            respawned = true;
+                        } else {
+                            diagonalCount++;
+                        }
+                    } else {
+                        //This is not a diagonal, so it should've been respawned
+                        respawned = true;
+                    }
+                }
+            }
+
+            Relic* relic = relics[positionId];
+            relic->addDiscoveryId(i);
+            relicDiscoveryKey[i] = positionId;
+
+            if (respawned) {
+                gameMap->addRelic(relic, state.currentStep, forcedHaloTileIds);
             }
         }
     }

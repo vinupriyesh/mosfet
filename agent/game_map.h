@@ -120,6 +120,7 @@ struct DerivedGameState {
     int opponentWins;
     int teamPointsDelta;
     int opponentTeamPointsDelta;
+    int currentMatch = 0;
     int currentStep;
     int currentMatchStep;
     int remainingOverageTime;
@@ -131,6 +132,8 @@ struct DerivedGameState {
     int tilesVisited = 0;
     int vantagePointsFound = 0;
     int vantagePointsOccupied = 0;
+
+    bool relicsPendingThisMatch = false;
 };
 
 class GameMap {

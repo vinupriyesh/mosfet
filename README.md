@@ -63,3 +63,8 @@ AVG: 62159.862 steps/s, 971.248 parallel steps/s, 505.0 steps in 0.522s
 STD: 4249.818 steps/s, 66.403 parallel steps/s, 0.0 steps in 0.035s
     CPU mem: 1066.133 MB, GPU mem: 0.000 MB
 ```
+
+
+## Seeds
+
+- 616838891 - Relics respawn in the same location

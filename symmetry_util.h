@@ -10,12 +10,19 @@
 namespace symmetry_utils {
     inline int toID(int x, int y) {
         return y * GameEnvConfig::getInstance().mapWidth + x;
-    }    
+    }
 
     inline void toXY(int id, int &x, int &y) {
         int& width = GameEnvConfig::getInstance().mapWidth;
         y = id / width;
         x = id % width;
+    }
+
+    inline bool isOnDiagonal(int id) {
+        int& width = GameEnvConfig::getInstance().mapWidth;
+        int x, y;        
+        toXY(id, x, y);
+        return x + y == width - 1;
     }
 
     inline std::pair<int, int> toXY(int id) {

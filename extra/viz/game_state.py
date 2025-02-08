@@ -32,8 +32,12 @@ class GameState:
             self.clear();
             return
         self.step = data.get('step', [])[0]
-        self.blue_points, self.red_points  = data.get('points', [])
-        self.blue_wins, self.red_wins  = data.get('wins', [])
+        points_data  = data.get('points', [])
+        if len(points_data) == 2:
+            self.blue_points, self.red_points = points_data
+        wins_data  = data.get('wins', [])
+        if len(wins_data) == 2:
+            self.blue_wins, self.red_wins = wins_data
         self.match_step = data.get('match_step', [])[0]
         self.unit_move_cost = data.get('unit_move_cost', [])
         self.unit_sap_cost = data.get('unit_sap_cost', [])
