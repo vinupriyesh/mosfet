@@ -143,7 +143,7 @@ std::vector<int> Shuttle::act() {
 
     if (bestPlan.size() == 0) {
         log("Unable to prepare a plan");
-        std::cerr<<"Unable to prepare a plan"<<std::endl;
+        // std::cerr<<"Unable to prepare a plan"<<std::endl;
         return {0, 0, 0};
     }
 

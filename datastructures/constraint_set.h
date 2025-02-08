@@ -11,19 +11,36 @@
 #include "metrics.h"
 #include "logger.h"
 #include "config.h"
+#include "game_env_config.h"
+#include "symmetry_util.h"
 
 
 struct ConstraintObservation {
+
     int pointsValue;
     std::set<int> haloPointSet;
+    std::set<int> extraMirroredHaloPointSet;
+
+    void log(const std::string message) const;
 
     // Constructor accepting const reference
-    ConstraintObservation(int pv, const std::set<int>& hps)
-        : pointsValue(pv), haloPointSet(hps) {}
+    ConstraintObservation(int pv, const std::set<int>& hps);
+
+    bool simplify(std::vector<ConstraintObservation> &nextRecursionCycle) const;
 
     // Move constructor
     ConstraintObservation(int pv, std::set<int>&& hps)
         : pointsValue(pv), haloPointSet(std::move(hps)) {}
+
+    // Constructor accepting const reference
+    ConstraintObservation(int pv, const std::set<int>& hps, const std::set<int>& mhps)
+        : pointsValue(pv), haloPointSet(hps), extraMirroredHaloPointSet(mhps) {}
+
+    // Move constructor
+    ConstraintObservation(int pv, std::set<int>&& hps, std::set<int>&& mhps)
+        : pointsValue(pv), haloPointSet(std::move(hps)), extraMirroredHaloPointSet(std::move(mhps)) {}
+
+    void insertAllMirrors(std::set<int>& target) const;
 };
 
 class ConstraintSet {

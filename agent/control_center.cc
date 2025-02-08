@@ -18,6 +18,10 @@ void ControlCenter::init(GameState& gameState) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     gameEnvConfig.init(gameState);
 
+    if (Config::enableLogging) {
+        Logger::getInstance().enableLogging("application_" + std::to_string(gameEnvConfig.teamId)+ ".log");
+    }
+
     log("creating GameMap");
     gameMap = new GameMap(gameEnvConfig.mapWidth, gameEnvConfig.mapHeight);
 
@@ -241,7 +245,7 @@ void ControlCenter::update(GameState& gameState) {
     for (auto& regularTile : haloConstraints->identifiedRegularTiles) {
         int x = regularTile % gameEnvConfig.mapWidth;
         int y = regularTile / gameEnvConfig.mapWidth;
-        log("Marking regular tile at " + std::to_string(x) + ", " + std::to_string(y));
+        log("Marking regular tile " + std::to_string(regularTile) + " at " + std::to_string(x) + ", " + std::to_string(y));
         GameTile& currentTile = gameMap->getTile(x, y);
         currentTile.setHaloTile(false);
         currentTile.setForcedRegularTile(true);

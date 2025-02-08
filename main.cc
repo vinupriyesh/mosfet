@@ -81,10 +81,6 @@ int main(int argc, char* argv[]) {
 
     std::srand(Config::seed);
 
-    if (Config::enableLogging) {
-        Logger::getInstance().enableLogging("application.log");
-    }
-
     if (Config::enableMetrics) {
         Metrics::getInstance().enableMetrics("metrics.csv");
     }
