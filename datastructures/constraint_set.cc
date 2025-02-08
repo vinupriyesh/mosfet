@@ -24,7 +24,6 @@ bool isSubset(const std::set<int>& set1, const std::set<int>& set2) {
     return std::includes(set2.begin(), set2.end(), set1.begin(), set1.end());
 }
 
-//TODO: why this is returning a value instead of reference?
 std::set<int> subtractSets(const std::set<int>& set1, const std::set<int>& set2) {
     std::set<int> result;
     std::set_difference(set1.begin(), set1.end(), set2.begin(), set2.end(),
@@ -40,44 +39,103 @@ void removeValue(std::set<int>& haloPointSet, int value) {
     haloPointSet.erase(value);
 }
 
+// ----------------------------------------------------------------------------
+
+std::string ConstraintObservation::toString() const {
+    std::ostringstream oss;
+    oss << pointsValue << " @ " << setToString(haloPointSet);
+    if (extraMirroredHaloPointSet.size() > 0) {
+        oss<< " | " << setToString(extraMirroredHaloPointSet);
+    }
+
+    return oss.str();
+}
+
+bool ConstraintObservation::isValid() const {
+    if (haloPointSet.empty()) {
+        log("Empty halo point set, not a problem, silenty fail");        
+        return false;
+    }
+
+    if (pointsValue < 0) {
+        log("Problem:Points value is negative "+ toString());
+        std::cerr<<"Problem:Points value is negative "<<std::endl;
+        return false;
+    }
+
+    if (pointsValue > haloPointSet.size() + extraMirroredHaloPointSet.size()) {
+        log("Problem:Points value is more than the number of halo nodes " + toString());
+        std::cerr<<"Problem:Points value is higher than nodes "<<std::endl;
+        return false;
+    }
+
+    for (int tileId :extraMirroredHaloPointSet) {
+        if (!contains(haloPointSet, tileId)) {
+            log("Problem:Mirror point not found in haloPoint " + toString());
+            std::cerr<<"Problem:Mirror point not found in haloPoint "<<std::endl;
+            return false;
+        }
+    }
+
+    return true;
+}
+
+void ConstraintObservation::collectRegularAndVantagePoints(std::set<int> &identifiedRegularTiles, std::set<int> &identifiedVantagePoints) const{
+
+    if (pointsValue == 0) {
+        log("Regular tiles found: " + setToString(haloPointSet));
+        identifiedRegularTiles.insert(haloPointSet.begin(), 
+                                      haloPointSet.end());
+        insertAllMirrors(identifiedRegularTiles);
+    } else if (pointsValue == haloPointSet.size() + extraMirroredHaloPointSet.size()) {
+        log("Vantage points found: " + setToString(haloPointSet));
+        identifiedVantagePoints.insert(haloPointSet.begin(), 
+                                       haloPointSet.end());
+        insertAllMirrors(identifiedVantagePoints);        
+    }
+}
+
+/**
+ * Is 'this' a subset of other?
+ */
+bool ConstraintObservation::isSubsetObservation(ConstraintObservation &other) const {
+    return isSubset(haloPointSet, other.haloPointSet) && isSubset(extraMirroredHaloPointSet, other.extraMirroredHaloPointSet);
+}
+
+bool ConstraintObservation::isSupersetObservation(ConstraintObservation &other) const {
+    return isSuperset(haloPointSet, other.haloPointSet) && isSuperset(extraMirroredHaloPointSet, other.extraMirroredHaloPointSet);
+}
+
 void ConstraintObservation::log(const std::string message) const {
     Logger::getInstance().log("ConstraintObservation -> " + message);
 }
 
 /**
- * Inside constraint set we deal only with the first half tiles.  The 2nd half tiles will be converted
+ * The constructor converts the points to the first half of the map tiles.  Inside constraints set we deal only with the
+ * first half of the tiles, the second half is called the mirrors.  Mirrors are used to augment faster detection of vantage points
  */
 ConstraintObservation::ConstraintObservation(int pv, const std::set<int>& hps) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     pointsValue = pv;
     for (auto& haloPoint : hps) {
-        int x = haloPoint % gameEnvConfig.mapWidth;
-        int y = haloPoint / gameEnvConfig.mapWidth;
-        if (x+y >= gameEnvConfig.mapHeight) {
-            //This point is in 2nd half, move it to first
-            int xMir = gameEnvConfig.mapHeight - y - 1;
-            int yMir = gameEnvConfig.mapWidth - x - 1;
+        int firstHalfHaloPoint = symmetry_utils::toFirstHalfID(haloPoint);
 
-            int haloPointMir = yMir * gameEnvConfig.mapWidth + xMir;
-
-            if (haloPointSet.find(haloPointMir) == haloPointSet.end()) {
-                //This is a new node
-                haloPointSet.insert(haloPointMir);
-            } else {
-                extraMirroredHaloPointSet.insert(haloPointMir);
-            }
+        if (!contains(haloPointSet, firstHalfHaloPoint)) {
+            haloPointSet.insert(firstHalfHaloPoint);
         } else {
-            //This point is in 1st half, use as is
-            if (haloPointSet.find(haloPoint) == haloPointSet.end()) {
-                //This is a new node
-                haloPointSet.insert(haloPoint);
-            } else {
-                extraMirroredHaloPointSet.insert(haloPoint);
-            }
+            extraMirroredHaloPointSet.insert(firstHalfHaloPoint);
         }
     }
+
+    log("Created a new observation from "  + setToString(hps) + " = " + toString());
 }
 
+/**
+ * Simplify uses the mirrored tiles to split the constraint.   
+ * 
+ * For example, " 2 @ {a, b} | {a'} " this constraint can have only a = 1, b = 0 resolution.  
+ * Simply will split this into " 2 @ {a} | {a'}" and "0 @ {b}" which will further resolve in the set.
+ */
 bool ConstraintObservation::simplify(std::vector<ConstraintObservation> &nextRecursionCycle) const{
     if (extraMirroredHaloPointSet.size() == 0) {
         return false;
@@ -90,7 +148,7 @@ bool ConstraintObservation::simplify(std::vector<ConstraintObservation> &nextRec
             if (i + 2*j == pointsValue) {
                 if (iMatch == -1 && jMatch == -1) {
                     iMatch = i;
-                    jMatch = j;
+                    jMatch = j * 2;
                 } else {
                     //More than 1 possible values.  Cant simplify
                     return false;
@@ -102,14 +160,15 @@ bool ConstraintObservation::simplify(std::vector<ConstraintObservation> &nextRec
     // The non mirrored observation
     auto splitSet = subtractSets(haloPointSet, extraMirroredHaloPointSet);
     if (splitSet.size() == 0) {
-        //This one only has mirrored point set
         return false;
     }
-    nextRecursionCycle.push_back(ConstraintObservation(iMatch, splitSet));
-    nextRecursionCycle.push_back(ConstraintObservation(jMatch, extraMirroredHaloPointSet, extraMirroredHaloPointSet));
 
-    log("Split the haloPointSet and extraMirroredHaloPointSet " + setToString(haloPointSet) + " extra: " + setToString(extraMirroredHaloPointSet) +
-             " with points " + std::to_string(iMatch) + " and " + std::to_string(jMatch) + ", original point = " + std::to_string(pointsValue));
+    auto normalObservation = ConstraintObservation(iMatch, splitSet);
+    auto mirrorObservation = ConstraintObservation(jMatch, extraMirroredHaloPointSet, extraMirroredHaloPointSet);
+    nextRecursionCycle.push_back(std::move(normalObservation));
+    nextRecursionCycle.push_back(std::move(mirrorObservation));
+
+    log("Simplified " + toString() + " into " + normalObservation.toString() + " and " + mirrorObservation.toString());
     return true;
 }
 
@@ -128,16 +187,20 @@ void ConstraintObservation::insertAllMirrors(std::set<int> &target) const{
     }
 }
 
+
 void ConstraintSet::log(const std::string message) const {
     Logger::getInstance().log("ConstraintSet -> " + message);
 }
 
 void ConstraintSet::logMasterSet() const {
+    log(" ---- Master Set ----");
     for (const auto& observation : masterSet) {
-        std::string message = "Points Value: " + std::to_string(observation.pointsValue) +
-                              ", Halo Point Set: " + setToString(observation.haloPointSet);
-        log(message);
+        log(observation.toString());
     }
+    log(" --------------------");
+    log("Vantage points: " + setToString(identifiedVantagePoints));
+    log("Regular tiles : " + setToString(identifiedRegularTiles));
+    log(" --------------------");
 }
 
 void ConstraintSet::clear() {
@@ -153,17 +216,17 @@ void ConstraintSet::clear() {
  * but its sad to forget the hard found constraints. :(
  */
 void ConstraintSet::phaseOutOlderConstraints(int tileId) {
-    tileId = SymmetryUtils::toFirstHalfID(tileId);
+    tileId = symmetry_utils::toFirstHalfID(tileId);
     log("Phasing out older constraints for tile " + std::to_string(tileId));    
     auto it = masterSet.begin();
     int count = 0;
     while (it != masterSet.end()) {
         if (contains(it->haloPointSet, tileId)) {
             log("Removing constraint with points value " + std::to_string(it->pointsValue) + " and halo point set" + setToString(it->haloPointSet));
-            it = masterSet.erase(it); // Erase and get the next valid iterator 
+            it = masterSet.erase(it);
             count++;
         } else {
-            ++it; // Move to the next element
+            ++it;
         }
     }
     Metrics::getInstance().add("phased_out_constraints", count);
@@ -181,10 +244,10 @@ void ConstraintSet::pruneConstraints() {
         while (itPoints != it->haloPointSet.end()) {
             int value = *itPoints;
             if (identifiedRegularTiles.find(value) != identifiedRegularTiles.end()) {
-                log("Prune regular tiles " + std::to_string(value));
+                log("Prune regular tiles " + std::to_string(value) + " - " + symmetry_utils::toXYString(value));
                 itPoints = it->haloPointSet.erase(itPoints);                
             } else if (identifiedVantagePoints.find(value) != identifiedVantagePoints.end()) {
-                log("Prune vantage point " + std::to_string(value));
+                log("Prune vantage point " + std::to_string(value) + " - " + symmetry_utils::toXYString(value));
                 itPoints = it->haloPointSet.erase(itPoints);
                 it->pointsValue--;
             } else {
@@ -196,10 +259,10 @@ void ConstraintSet::pruneConstraints() {
         while (itPointsExtra != it->extraMirroredHaloPointSet.end()) {
             int value = *itPointsExtra;
             if (identifiedRegularTiles.find(value) != identifiedRegularTiles.end()) {
-                log("Prune regular tiles mirror " + std::to_string(value));
+                log("Prune regular tiles mirror " + std::to_string(value) + " - " + symmetry_utils::toXYString(value));
                 itPointsExtra = it->extraMirroredHaloPointSet.erase(itPointsExtra);                
             } else if (identifiedVantagePoints.find(value) != identifiedVantagePoints.end()) {
-                log("Prune vantage point mirror" + std::to_string(value));
+                log("Prune vantage point mirror" + std::to_string(value) + " - " + symmetry_utils::toXYString(value));
                 itPointsExtra = it->extraMirroredHaloPointSet.erase(itPointsExtra);
                 it->pointsValue--;
             } else {
@@ -212,7 +275,7 @@ void ConstraintSet::pruneConstraints() {
             it = masterSet.erase(it);
         } else if(it->haloPointSet.size() + it->extraMirroredHaloPointSet.size() == it->pointsValue || it->pointsValue == 0) {
             log("Constraint is terminal, removing the constraint");
-            nextRecursionCycle.push_back(ConstraintObservation(it->pointsValue, std::move(it->haloPointSet)));
+            nextRecursionCycle.push_back(ConstraintObservation(it->pointsValue, std::move(it->haloPointSet), std::move(it->extraMirroredHaloPointSet)));
             it = masterSet.erase(it);            
         }else {
             ++it;
@@ -241,7 +304,7 @@ void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) 
             it = haloPointSet.erase(it); 
             pointsValue--;
         } else {
-            ++it; // Move to the next element
+            ++it;
         }
     }
 
@@ -256,8 +319,8 @@ void ConstraintSet::addConstraint(int pointsValue, std::set<int>& haloPointSet) 
 }
 
 void ConstraintSet::reconsiderNormalizedTile(int tileId) {    
-    int mirroredTileId = SymmetryUtils::toMirroredID(tileId);
-    if (identifiedRegularTiles.find(tileId) != identifiedRegularTiles.end() || identifiedRegularTiles.find(mirroredTileId) != identifiedRegularTiles.end()) {
+    int mirroredTileId = symmetry_utils::toMirroredID(tileId);
+    if (contains(identifiedRegularTiles, tileId) || contains(identifiedRegularTiles, mirroredTileId)) {
         identifiedRegularTiles.erase(tileId);
         identifiedRegularTiles.erase(mirroredTileId);
         log("Removing regular tile " + std::to_string(tileId) + " and " + std::to_string(mirroredTileId));        
@@ -274,42 +337,14 @@ void ConstraintSet::reconsiderNormalizedTile(std::vector<int> tileIds) {
     }
 }
 
-void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
-    log("Adding constraint with points value " + std::to_string(observation.pointsValue) + " and halo point set " +
-         setToString(observation.haloPointSet) + ", mirror set " + setToString(observation.extraMirroredHaloPointSet));
-
-    if (observation.haloPointSet.empty()) {
-        log("Empty halo point set");
-        // std::cerr<<"Problem:Empty halo point set";
+void ConstraintSet::addConstraint(const ConstraintObservation& observation) {    
+    if (!observation.isValid()) {
         return;
     }
 
-    if (observation.pointsValue < 0) {
-        log("Problem:Points value is negative");
-        std::cerr<<"Problem:Points value is negative"<<std::endl;
-        return;
-    }
+    log("Adding observation - " + observation.toString());
 
-    if (observation.pointsValue > observation.haloPointSet.size() + observation.extraMirroredHaloPointSet.size()) {
-        log("Problem:Points value is more than the number of halo nodes " + std::to_string(observation.pointsValue) +
-                 ", " + std::to_string(observation.haloPointSet.size()) + " + " + std::to_string(observation.extraMirroredHaloPointSet.size()));
-        std::cerr<<"Problem:Points value is higher than nodes"<<std::endl;
-    }
-    
-
-    if (observation.pointsValue == 0) {
-        log("Regular tiles found: " + setToString(observation.haloPointSet));
-        identifiedRegularTiles.insert(observation.haloPointSet.begin(), 
-                                      observation.haloPointSet.end());
-        observation.insertAllMirrors(identifiedRegularTiles);
-    } else if (observation.pointsValue == observation.haloPointSet.size() + observation.extraMirroredHaloPointSet.size()) {
-        log("Vantage points found: " + setToString(observation.haloPointSet));
-        identifiedVantagePoints.insert(observation.haloPointSet.begin(), 
-                                       observation.haloPointSet.end());
-        observation.insertAllMirrors(identifiedVantagePoints);        
-    }
-
-    log("Resolved regular and vantage tiles");
+    observation.collectRegularAndVantagePoints(identifiedRegularTiles, identifiedVantagePoints);
 
     std::vector<ConstraintObservation> nextRecursionCycle;
     bool isSubsetFound = false;
@@ -317,42 +352,66 @@ void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
 
     auto it = masterSet.begin();
     while (it != masterSet.end()) {
-        log("Comparing with existing constraint with points value " + std::to_string(it->pointsValue) + " and halo point set" + setToString(it->haloPointSet));
+        log("Comparing observation with " + it->toString());
 
         bool iterated = false;
 
-        if (it->haloPointSet == observation.haloPointSet) {
+        if (it->haloPointSet == observation.haloPointSet && it->extraMirroredHaloPointSet == observation.extraMirroredHaloPointSet) {
             // The same constraint already exists
 
             if (it->pointsValue != observation.pointsValue) {
                 log("Problem:The constraint already exists with a different points value"
                  + std::to_string(observation.pointsValue) + " vs " + std::to_string(it->pointsValue));
 
-                std::cerr<<"Problem:The constraint already exists with a different points value"
-                 + std::to_string(observation.pointsValue) + " vs " + std::to_string(it->pointsValue)<<std::endl;
+                std::cerr<<"Problem:The constraint already exists with a different points value"<<std::endl;
             }
 
             log("Constraint already existing, no action");
             return;
-        } else if (isSubset(observation.haloPointSet, it->haloPointSet)) {
+        } else if (observation.isSubsetObservation(*it)) {
             log("Subset found: " + setToString(observation.haloPointSet) + " is subset of " + setToString(it->haloPointSet));
-            isSubsetFound = true;
+            isSubsetFound = true;            
 
             int newPointsValue = it->pointsValue - observation.pointsValue;
             auto newSubset = subtractSets(it->haloPointSet, observation.haloPointSet);
             auto newMirrorSubset = subtractSets(it->extraMirroredHaloPointSet, observation.extraMirroredHaloPointSet);
+            std::set<int> elementsToTransfer;
+            for (int tileId: newMirrorSubset) {
+                if (!contains(newSubset, tileId)){
+                    elementsToTransfer.insert(tileId);
+                }
+            }
+
+            for (const int& elem : elementsToTransfer) {
+                newMirrorSubset.erase(elem);
+                newSubset.insert(elem);
+            }
+
             nextRecursionCycle.push_back(ConstraintObservation(newPointsValue, std::move(newSubset), std::move(newMirrorSubset)));
 
             log("Erasing the superset " + setToString(it->haloPointSet));
             it = masterSet.erase(it);
             iterated = true;
-        } else if (isSuperset(observation.haloPointSet, it->haloPointSet)) {
+        } else if (observation.isSupersetObservation(*it)) {
             log("Superset found: " + setToString(observation.haloPointSet) + " is superset of " + setToString(it->haloPointSet));
             isSupersetFound = true;
 
             int newPointsValue = observation.pointsValue - it->pointsValue;
             auto newSuperset = subtractSets(observation.haloPointSet, it->haloPointSet);
             auto newMirrorSuperset = subtractSets(observation.extraMirroredHaloPointSet, it->extraMirroredHaloPointSet);
+
+            std::set<int> elementsToTransfer;
+            for (int tileId: newMirrorSuperset) {
+                if (!contains(newSuperset, tileId)){
+                    elementsToTransfer.insert(tileId);
+                }
+            }
+
+            for (const int& elem : elementsToTransfer) {
+                newMirrorSuperset.erase(elem);
+                newSuperset.insert(elem);
+            }
+
             nextRecursionCycle.push_back(ConstraintObservation(newPointsValue, std::move(newSuperset), std::move(newMirrorSuperset)));
         }
 
@@ -363,8 +422,8 @@ void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
     }
     
     if (observation.haloPointSet.size() != observation.pointsValue && observation.pointsValue != 0) {
-        log("This observation is not a terminal, adding it to set " + setToString(observation.haloPointSet));
-        addSet(observation.pointsValue, observation.haloPointSet);
+        log("This observation is not a terminal, adding it to master set " + setToString(observation.haloPointSet));
+        masterSet.emplace_back(observation);
     }
 
     if (observation.simplify(nextRecursionCycle) || isSubsetFound || isSupersetFound) {        
@@ -377,8 +436,4 @@ void ConstraintSet::addConstraint(const ConstraintObservation& observation) {
     pruneConstraints();
 
     log("All done");
-}
-
-void ConstraintSet::addSet(int pointsValue, const std::set<int> &haloPointSet) {
-    masterSet.emplace_back(pointsValue, std::move(haloPointSet));
 }

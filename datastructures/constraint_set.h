@@ -15,32 +15,43 @@
 #include "symmetry_util.h"
 
 
-struct ConstraintObservation {
+class ConstraintObservation {
 
-    int pointsValue;
-    std::set<int> haloPointSet;
-    std::set<int> extraMirroredHaloPointSet;
+    private:
+        void log(const std::string message) const;
 
-    void log(const std::string message) const;
+    public:
+        int pointsValue;
+        std::set<int> haloPointSet;
+        std::set<int> extraMirroredHaloPointSet;
+        
 
-    // Constructor accepting const reference
-    ConstraintObservation(int pv, const std::set<int>& hps);
+        // Constructor accepting const reference
+        ConstraintObservation(int pv, const std::set<int>& hps);
 
-    bool simplify(std::vector<ConstraintObservation> &nextRecursionCycle) const;
+        bool simplify(std::vector<ConstraintObservation> &nextRecursionCycle) const;
 
-    // Move constructor
-    ConstraintObservation(int pv, std::set<int>&& hps)
-        : pointsValue(pv), haloPointSet(std::move(hps)) {}
+        // Move constructor
+        ConstraintObservation(int pv, std::set<int>&& hps)
+            : pointsValue(pv), haloPointSet(std::move(hps)) {}
 
-    // Constructor accepting const reference
-    ConstraintObservation(int pv, const std::set<int>& hps, const std::set<int>& mhps)
-        : pointsValue(pv), haloPointSet(hps), extraMirroredHaloPointSet(mhps) {}
+        // Constructor accepting const reference
+        ConstraintObservation(int pv, const std::set<int>& hps, const std::set<int>& mhps)
+            : pointsValue(pv), haloPointSet(hps), extraMirroredHaloPointSet(mhps) {}
 
-    // Move constructor
-    ConstraintObservation(int pv, std::set<int>&& hps, std::set<int>&& mhps)
-        : pointsValue(pv), haloPointSet(std::move(hps)), extraMirroredHaloPointSet(std::move(mhps)) {}
+        // Move constructor
+        ConstraintObservation(int pv, std::set<int>&& hps, std::set<int>&& mhps)
+            : pointsValue(pv), haloPointSet(std::move(hps)), extraMirroredHaloPointSet(std::move(mhps)) {}
 
-    void insertAllMirrors(std::set<int>& target) const;
+        void insertAllMirrors(std::set<int>& target) const;
+
+        std::string toString() const;
+
+        bool isValid() const;
+        void collectRegularAndVantagePoints(std::set<int> & identifiedNormalTiles, std::set<int> & identifiedVantagePoints) const;
+
+        bool isSubsetObservation(ConstraintObservation& other) const;
+        bool isSupersetObservation(ConstraintObservation& other) const;
 };
 
 class ConstraintSet {
@@ -50,8 +61,7 @@ class ConstraintSet {
         void pruneConstraints();
 
         std::vector<ConstraintObservation> masterSet;
-
-        void addSet(int pointsValue, const std::set<int>& newSet);
+        
         // std::tuple<bool, ConstraintObservation&> isSubset(const std::set<int> &querySet);
 
         // std::tuple<bool, ConstraintObservation&> isSuperset(const std::set<int> &querySet);

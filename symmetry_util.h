@@ -2,10 +2,12 @@
 #define SYMMETRY_UTILS_H
 
 #include <utility>
+#include <sstream>
+#include <string>
 
 #include "game_env_config.h"
 
-namespace SymmetryUtils {
+namespace symmetry_utils {
     inline int toID(int x, int y) {
         return y * GameEnvConfig::getInstance().mapWidth + x;
     }    
@@ -20,6 +22,14 @@ namespace SymmetryUtils {
         int x, y;
         toXY(id, x, y);
         return std::make_pair(x, y);
+    }
+
+    inline std::string toXYString(int id) {
+        int x, y;
+        toXY(id, x, y);
+        std::ostringstream oss;
+        oss << "(" << x << ", " << y << ")";
+        return oss.str();
     }
 
     inline void toMirroredXY(int x, int y, int &xMir, int &yMir) {
