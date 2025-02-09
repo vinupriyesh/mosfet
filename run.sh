@@ -15,7 +15,7 @@ done
 
 # Generate a random seed if not provided
 if [ -z "$seed" ]; then
-    random_seed=$((RANDOM))
+    random_seed=$(shuf -i 0-1000000000 -n 1)
     seed="--seed=$random_seed"
     echo "Generated random seed: $random_seed"
 fi

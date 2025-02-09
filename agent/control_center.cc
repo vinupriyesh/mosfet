@@ -219,12 +219,20 @@ void ControlCenter::update(GameState& gameState) {
     for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
             GameTile& currentTile = gameMap->getTile(i, j);
+            GameTile& currentMirrorTile = gameMap->getMirroredTile(i, j);
+
             currentTile.setType(gameState.obs.mapFeatures.tileType[i][j], state.currentStep);
+            currentMirrorTile.setType(gameState.obs.mapFeatures.tileType[i][j], state.currentStep);
+
             currentTile.setVisible(gameState.obs.sensorMask[i][j]);
+            
             if (gameState.obs.sensorMask[i][j]) {
                 // Update energy only if the node is visible.
                 currentTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], state.currentStep);
                 gameMap->exploreTile(currentTile, state.currentStep);
+
+                currentMirrorTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], state.currentStep);
+                gameMap->exploreTile(currentMirrorTile, state.currentStep);
             }
 
             currentTile.clearShuttles();

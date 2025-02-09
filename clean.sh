@@ -1,12 +1,13 @@
 #!/bin/bash
 
 remove_file() {
-    if [ -f "$1" ]; then
-        rm "$1"
-        echo "Removed $1"
-    fi
+    for file in $1; do
+        if [ -f "$file" ]; then
+            rm "$file"
+            echo "Removed $file"
+        fi
+    done
 }
-
 
 files=(
     "*.tar.gz"
