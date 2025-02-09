@@ -46,7 +46,7 @@ class GameTile {
     private:    
         void log(std::string message);
         TileType type;
-        TileType lastKnownTileType;
+        TileType previousType;
         bool visible;
         bool visited;
         bool explored;
@@ -60,7 +60,8 @@ class GameTile {
         int lastVisitedTime;
         int lastExploredTime;
         int lastEnergyUpdateTime;
-        int lastTypeUpdateTime; 
+        int typeUpdateStep;
+        int previousTypeUpdateStep;
 
     public:
         int x;
@@ -72,8 +73,9 @@ class GameTile {
         std::vector<ShuttleData*> opponentShuttles;
         
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
-                forcedRegularTile(false), relic(nullptr), shuttles({}), lastKnownTileType(UNKNOWN) {};
-        int getId(int width);
+                forcedRegularTile(false), relic(nullptr), shuttles({}), type(TileType::UNKNOWN), previousType(TileType::UNKNOWN),
+                typeUpdateStep(-1), previousTypeUpdateStep(-1) {};
+        int getId(int width);        
         bool isVisible() {return visible;};
         bool isVisited() { return visited; };
         bool isExplored() { return explored; };
@@ -85,7 +87,6 @@ class GameTile {
         bool isOpponentOccupied();
         int getLastVisitedTime() { return lastVisitedTime; };
         TileType getType() const;
-        TileType getLastKnownType() const;
 
         void setVisible(bool visible) { this->visible = visible; };
         void setVisited(bool visited, int time);
@@ -103,12 +104,16 @@ class GameTile {
         void clearShuttles();
         void clearOpponentShuttles();
 
-        TileType setType(int tileTypeCode, int time);
-        TileType getLastKnownTileType();
+        void setType(TileType tileType, int time);
+        TileType getType();
+        TileType getPreviousType();
+        int getTypeUpdateStep();
+        int getPreviousTypeUpdateStep();
         void setEnergy(int energy, int time);
         int getEnergy();
         int getLastKnownEnergy();
 
+        static TileType translateTileType(int tileTypeCode);
         std::string toString();
         
 };

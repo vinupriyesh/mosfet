@@ -185,10 +185,6 @@ TileType GameTile::getType() const
     return type;
 }
 
-TileType GameTile::getLastKnownType() const {
-    return lastKnownTileType;
-}
-
 void GameTile::setVisited(bool visited, int time) {
     this->visited = visited;
     this->lastVisitedTime = time;
@@ -238,27 +234,40 @@ void GameTile::setExplored(bool explored, int time) {
     }
 }
 
-TileType GameTile::setType(int tileTypeCode, int time) {
-     if (tileTypeCode == 0) {
-        type = TileType::EMPTY;
+TileType GameTile::translateTileType(int tileTypeCode) {
+    if (tileTypeCode == 0) {
+        return TileType::EMPTY;
     } else if (tileTypeCode == 1) {
-        type = TileType::NEBULA;
+        return TileType::NEBULA;
     } else if (tileTypeCode == 2) {
-        type = TileType::ASTEROID;
+        return TileType::ASTEROID;
     } else {
-        type = TileType::UNKNOWN;
+        return TileType::UNKNOWN;
     }
-    
-    if (type != TileType::UNKNOWN) {
-        lastKnownTileType = type;
-    }
+}
 
-    lastTypeUpdateTime = time;
+void GameTile::setType(TileType tileType, int step) {
+    previousType = type;    
+    type = tileType;
+
+    previousTypeUpdateStep = typeUpdateStep;
+    typeUpdateStep = step;    
+}
+
+TileType GameTile::getType() {
     return type;
 }
 
-TileType GameTile::getLastKnownTileType() {
-    return lastKnownTileType;
+TileType GameTile::getPreviousType() {
+    return previousType;
+}
+
+int GameTile::getTypeUpdateStep() {
+    return typeUpdateStep;
+}
+
+int GameTile::getPreviousTypeUpdateStep() {
+    return previousTypeUpdateStep;
 }
 
 void GameTile::setEnergy(int energyValue, int time) {

@@ -70,10 +70,10 @@ std::string VisualizerClient::get_data() {
     // Add asteroids
     for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
-            if (gameMap.getTile(i, j).getLastKnownType() == TileType::ASTEROID) {
+            if (gameMap.getTile(i, j).getType() == TileType::ASTEROID) {
                 jsonObject["asteroids"].push_back({i, j});
             }
-            if (gameMap.getTile(i, j).getLastKnownType() == TileType::NEBULA) {
+            if (gameMap.getTile(i, j).getType() == TileType::NEBULA) {
                 jsonObject["nebula"].push_back({i, j});
             }
             if (gameMap.getTile(i, j).isHaloTile()) {

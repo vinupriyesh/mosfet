@@ -13,6 +13,7 @@
 #include "agent/roles/communicator.h"
 #include "visualizer/visualizer_client.h"
 #include "symmetry_util.h"
+#include "agent/drift_detector.h"
 
 #include <vector>
 #include <string>
@@ -21,7 +22,8 @@ class ControlCenter {
 private:
     VisualizerClient* visualizerClientPtr;
     ConstraintSet* haloConstraints = nullptr; 
-    Planner* planner = nullptr;     
+    Planner* planner = nullptr;
+    DriftDetector* driftDetector = nullptr;
 
     // dynamic objects
     Shuttle** shuttles; 

@@ -38,7 +38,7 @@ void ControlCenter::init(GameState& gameState) {
 
     haloConstraints = new ConstraintSet();
     planner = new Planner(shuttles, *gameMap);
-
+    driftDetector = new DriftDetector(*gameMap);
 
     visualizerClientPtr = new VisualizerClient(*gameMap, shuttles, opponentShuttles, relics);
 
@@ -135,7 +135,6 @@ void ControlCenter::update(GameState& gameState) {
             // Return if not visible
             continue;
         }
-
         
         int positionId = symmetry_utils::toID(gameState.obs.relicNodes[i][0], gameState.obs.relicNodes[i][1]);                
 
@@ -205,7 +204,7 @@ void ControlCenter::update(GameState& gameState) {
 
     log("Count of relics " + std::to_string(relics.size()));
 
-    haloConstraints->reconsiderNormalizedTile(forcedHaloTileIds);
+    haloConstraints->reconsiderNormalizedTile(forcedHaloTileIds);    
 
     log("Exploring contents of each tile");
     // Exploring contents of each tile (cost 24x24)
@@ -221,16 +220,18 @@ void ControlCenter::update(GameState& gameState) {
             GameTile& currentTile = gameMap->getTile(i, j);
             GameTile& currentMirrorTile = gameMap->getMirroredTile(i, j);
 
-            currentTile.setType(gameState.obs.mapFeatures.tileType[i][j], state.currentStep);
-            currentMirrorTile.setType(gameState.obs.mapFeatures.tileType[i][j], state.currentStep);
-
             currentTile.setVisible(gameState.obs.sensorMask[i][j]);
+
+            auto tileType = GameTile::translateTileType(gameState.obs.mapFeatures.tileType[i][j]);            
             
             if (gameState.obs.sensorMask[i][j]) {
-                // Update energy only if the node is visible.
+                //Visible tile updates
+
+                currentTile.setType(tileType, state.currentStep);
                 currentTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], state.currentStep);
                 gameMap->exploreTile(currentTile, state.currentStep);
 
+                currentMirrorTile.setType(tileType, state.currentStep);
                 currentMirrorTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], state.currentStep);
                 gameMap->exploreTile(currentMirrorTile, state.currentStep);
             }
@@ -258,12 +259,24 @@ void ControlCenter::update(GameState& gameState) {
                 state.allTilesExplored = false;
                 state.tilesExplored--;
             }
-            
         }
     }
 
     if (state.allTilesExplored) {
         log("All tiles explored :)");
+    }
+
+    log("Detecting drift");
+
+    for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
+        for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
+            GameTile& currentTile = gameMap->getTile(i, j);
+            if (currentTile.isVisible() && currentTile.getTypeUpdateStep() == state.currentStep
+                    && currentTile.getType() != currentTile.getPreviousType() && currentTile.getPreviousType() != TileType::UNKNOWN) {
+                // This tile is visible and drifted since last seen
+                driftDetector->reportNebulaDrift(currentTile);
+            }
+        }
     }
 
     log("Checking for constraints");
@@ -371,6 +384,7 @@ ControlCenter::~ControlCenter() {
     delete[] opponentShuttles;
     delete haloConstraints;
     delete planner;
+    delete driftDetector;
 }
 
 

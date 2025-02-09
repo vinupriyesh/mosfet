@@ -23,7 +23,7 @@ float Pathing::getCost(GameTile &neighbor) {
             energyGain = 10;
         }
 
-        if (neighbor.getLastKnownTileType() == TileType::NEBULA) {
+        if (neighbor.getType() == TileType::NEBULA) {
             energyGain -= GameEnvConfig::getInstance().nebulaTileEnergyReduction;
         }
 
