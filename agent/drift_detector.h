@@ -11,22 +11,21 @@
 enum NebulaDriftStatus {
     UNKNOWN_DRIFT,
     NO_DRIFT,
-    POSITIVE_DRIFT,
-    NEGATIVE_DRIFT,
+    FOUND_DRIFT,
     UNCONCLUSIVE_DRIFT
 };
 
 class DriftDetector {
-    private:
+    private:        
         void log(std::string message);
         int compareDrift(GameTile &sourceTile, int x, int y);
-        NebulaDriftStatus identifyDriftType(GameTile &gameTile, int moveCount);
         std::map<int, std::vector<int>> stepToDriftSpeedMap;
         std::map<int, NebulaDriftStatus> driftSpeedToStatusMap;
         GameMap& gameMap;
     public:
+        bool driftFinalized;
+        int finalSpeed = 0;
         void reportNebulaDrift(GameTile& gameTile);
-        NebulaDriftStatus getCurrentNebulaDriftStatus();
 
         DriftDetector(GameMap& gameMap);
 };

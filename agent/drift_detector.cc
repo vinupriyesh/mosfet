@@ -24,7 +24,7 @@ int DriftDetector::compareDrift(GameTile& sourceTile, int x, int y) {
         y += gameMap.height;
     }
 
-    GameTile& targetTile = gameMap.getTile(x, x);
+    GameTile& targetTile = gameMap.getTile(x, y);
 
     if (!targetTile.isVisible()) {
         return -1; // Not possible to verify
@@ -37,80 +37,97 @@ int DriftDetector::compareDrift(GameTile& sourceTile, int x, int y) {
     }
 }
 
-NebulaDriftStatus DriftDetector::identifyDriftType(GameTile& gameTile, int moveCount) {
-    moveCount = moveCount % gameMap.width;
-    int xPlus = gameTile.x + moveCount;
-    int yPlus = gameTile.y - moveCount;
-    
-    int positiveSpeedStatus = compareDrift(gameTile, xPlus, yPlus);
-
-    int xMinus = gameTile.x - moveCount;
-    int yMinus = gameTile.y + moveCount;
-    
-    int negativeSpeedStatus = compareDrift(gameTile, xMinus, yMinus);
-    
-    if (positiveSpeedStatus == 1 && negativeSpeedStatus == 0) {        
-        return NebulaDriftStatus::POSITIVE_DRIFT;
-    }
-
-    if (negativeSpeedStatus == 1 && positiveSpeedStatus == 0) {
-        return NebulaDriftStatus::NEGATIVE_DRIFT;
-    }
-
-    log("Unconclusive from " + gameTile.toString() + " negative - " + std::to_string(negativeSpeedStatus) + ", positive = " + std::to_string(positiveSpeedStatus));
-    return NebulaDriftStatus::UNCONCLUSIVE_DRIFT;
-}
-
-void DriftDetector::reportNebulaDrift(GameTile& gameTile) {
-    log("Drift reported by " + gameTile.toString());
-
+void DriftDetector::reportNebulaDrift(GameTile& gameTile) {    
     int lastSeenStart = gameTile.getPreviousTypeUpdateStep();
     int lastSeenEnd = gameTile.getTypeUpdateStep();
 
+    log("Drift reported by " + gameTile.toString() + " last seen " + std::to_string(gameTile.getPreviousType()) + " at " + std::to_string(lastSeenStart) + " but now " + std::to_string(gameTile.getType()));
+
     std::map<int, int> speedCounter;
-    for (int i = lastSeenStart; i <= lastSeenEnd; i++) {
-        log("Checking for step " + std::to_string(i));
+    for (int i = lastSeenStart + 1; i <= lastSeenEnd; i++) {
+        // log("Checking for step " + std::to_string(i));
         auto it = stepToDriftSpeedMap.find(i);
         if (it != stepToDriftSpeedMap.end()) {
             for (int speed : it->second) {
-                speedCounter[speed] += 1;
+                if (driftSpeedToStatusMap[speed] != NebulaDriftStatus::NO_DRIFT) {
+                    speedCounter[speed] += 1;
+                }
             }
         }
     }
 
-    for (const auto &pair : speedCounter) {
-        log("Checking possibility for speed - " + std::to_string(pair.first) + ", steps - " + std::to_string(pair.second));
-        auto status = identifyDriftType(gameTile, pair.second);
-        if (status == NebulaDriftStatus::POSITIVE_DRIFT || NebulaDriftStatus::NEGATIVE_DRIFT) {
-            log("Drift found at speed " + std::to_string(pair.first) + " direction=" + std::to_string(status));
-            driftSpeedToStatusMap[pair.first] = status;
-        }        
-    }    
-}
+    for ( const auto &speed : POSSIBLE_NEBULA_DRIFT_SPEEDS) {
+        if (speedCounter.find(speed) == speedCounter.end()) {
+            //This speed isn't possible in the provided drift times.
+            driftSpeedToStatusMap[speed] = NebulaDriftStatus::NO_DRIFT;
+        }
+    }
 
-NebulaDriftStatus DriftDetector::getCurrentNebulaDriftStatus() {
-    return NebulaDriftStatus::UNKNOWN_DRIFT;
+    for (const auto &pair : speedCounter) {
+        int moveCount = pair.second % gameMap.width;
+
+        int multiplier = 1;
+    
+        if (pair.first < 0) {
+            multiplier = -1;
+        }
+    
+        int x = gameTile.x + moveCount * multiplier;
+        int y = gameTile.y - moveCount * multiplier;
+
+        int driftStatus =  compareDrift(gameTile, x, y);
+
+        if (driftStatus == 0) {
+            driftSpeedToStatusMap[pair.first] = NebulaDriftStatus::NO_DRIFT;
+        }
+
+        if (driftSpeedToStatusMap[pair.first] != NebulaDriftStatus::NO_DRIFT) {
+            //NO_DRIFT is a conclusive evidence, do not override that!
+            if (driftStatus == 1) {
+                log("Possible drift found - " + std::to_string(pair.first) + ", that has moved steps - " + std::to_string(pair.second));
+                driftSpeedToStatusMap[pair.first] = NebulaDriftStatus::FOUND_DRIFT;
+            } else if (driftStatus == -1) {
+                driftSpeedToStatusMap[pair.first] = NebulaDriftStatus::UNCONCLUSIVE_DRIFT;
+            }
+        }
+    }
+
+    int outstandingPossibilities = driftSpeedToStatusMap.size();        
+    for (const auto &speedStatus : driftSpeedToStatusMap) {
+        if (speedStatus.second == NebulaDriftStatus::NO_DRIFT) {
+            outstandingPossibilities--;
+        } else if(speedStatus.second == NebulaDriftStatus::FOUND_DRIFT) {
+            finalSpeed = speedStatus.first;
+        }
+    }
+
+    log("Drift outstanding possibilities " + std::to_string(outstandingPossibilities) + ",size of map - " + std::to_string(driftSpeedToStatusMap.size()));
+
+    if (outstandingPossibilities == 1) {
+        log("Drift finalized - " + std::to_string(finalSpeed));
+        driftFinalized = true;
+    }
+
+    if (outstandingPossibilities == 0) {
+        log("Problem: Drift Detector bugged!");
+        std::cerr<<"Drift Detector bugged!"<<std::endl;
+        driftFinalized = false;
+    }
 }
 
 DriftDetector::DriftDetector(GameMap &gameMap) : gameMap(gameMap) {
+    driftFinalized = false;
     GameEnvConfig& config = GameEnvConfig::getInstance();
 
     for (int speed: POSSIBLE_NEBULA_DRIFT_SPEEDS) {
         driftSpeedToStatusMap[speed] = NebulaDriftStatus::UNKNOWN_DRIFT;
     }
 
-    for (int i = 1; i <= config.matchCountPerEpisode * (config.maxStepsInMatch + 1); i++ ) {        
+    for (int i = 0; i <= config.matchCountPerEpisode * (config.maxStepsInMatch + 1); i++ ) {        
         for (int speed: POSSIBLE_NEBULA_DRIFT_SPEEDS) {            
             if (std::fmod((i - 1) * std::fabs(speed/1000.0f), 1.0f) > std::fmod(i * std::fabs(speed/1000.0f), 1.0f)) {
                 stepToDriftSpeedMap[i+1].push_back(speed); //We track everything from the start of the match, so +1.  It will be 8, 11, 15, 21, 28, 3, etc
             }
         }
     }
-
-    // for (const auto &pair : stepToDriftSpeedMap) {
-    //     log("Speeds for step: " + std::to_string(pair.first));
-    //     for (const auto& vpair: pair.second) {
-    //         log("Speed -- " + std::to_string(vpair));
-    //     }
-    // }    
 }
