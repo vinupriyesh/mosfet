@@ -138,6 +138,26 @@ GameTile& GameMap::getTile(int x, int y){
     return map[y][x];
 }
 
+GameTile& GameMap::getRolledOverTile(int x, int y) {
+    if (x >= width) {
+        x -= width;
+    }
+
+    if (x < 0) {
+        x += width;
+    }
+
+    if (y >= height) {
+        y -= height;
+    }
+
+    if (y < 0) {
+        y += height;
+    }
+
+    return getTile(x, y);
+}
+
 GameTile &GameMap::getTile(GameTile &fromTile, Direction direction) {
     int x = fromTile.x;
     int y = fromTile.y;

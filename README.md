@@ -69,3 +69,5 @@ STD: 4249.818 steps/s, 66.403 parallel steps/s, 0.0 steps in 0.035s
 
 - 616838891 - Relics respawn in the same location
 - 24959 - No vantage points in entire game.  2 Relics are there
+
+- 931884472 - Late relic, bugged exploration

@@ -186,7 +186,7 @@ class GameMap {
     private:
         void log(std::string message);
         std::vector<std::vector<GameTile>> map;
-
+        std::vector< std::vector<std::vector<TileType>>* > driftAwareTileType;
     public:
         
         int width;
@@ -199,6 +199,7 @@ class GameMap {
         void exploreTile(GameTile &tile, int currentStep);
         bool isValidTile(int x, int y);
         GameTile& getTile(int x, int y);
+        GameTile& getRolledOverTile(int x, int y);
         GameTile& getMirroredTile(int x, int y);
 
         GameTile& getTile(GameTile &fromTile, Direction direction);
@@ -206,8 +207,8 @@ class GameMap {
         std::tuple<bool, GameTile&> isMovable(GameTile& fromTile, Direction direction);
 
         void getAllOpponentsInRadius(int radius, int x, int y, std::vector<ShuttleData*>& opponents);
-        
-        
+        std::vector< std::vector<std::vector<TileType>>* >& getDriftAwareTileType() {return driftAwareTileType;};
+
 };
 
 #endif // GAMEMAP_H

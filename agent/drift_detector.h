@@ -16,18 +16,32 @@ enum NebulaDriftStatus {
 };
 
 class DriftDetector {
-    private:        
+    private:
         void log(std::string message);
         int compareDrift(GameTile &sourceTile, int x, int y);
-        std::map<int, std::vector<int>> stepToDriftSpeedMap;
-        std::map<int, NebulaDriftStatus> driftSpeedToStatusMap;
+        std::map<int, std::vector<int>> stepToDriftSpeedMap; // In this step what are all the drift speeds possible?
+        std::map<int, NebulaDriftStatus> driftSpeedToStatusMap; // What is the current status for the drift speed?
+        std::vector< std::vector<std::vector<TileType>>* > allDriftTileTypeVectors;
+        int currentDriftTileTypeVectorIndex = 0;
         GameMap& gameMap;
+
+        TileType getEstimatedDriftTile(int x, int y, std::vector<std::vector<TileType>> *previousStepValues);
+
+        // void fillDriftAwareTileType(int stepId, std::vector<int>& values);
+        std::vector<std::vector<TileType>>* estimateDrift(std::vector<std::vector<TileType>>* previousStepValues);
+        int computeMoveCountBetween(int from, int to);
+        void forecastTileTypeAt(int step, GameTile &tile, std::vector<std::vector<TileType>> &tileTypesArray);
+        std::vector<std::vector<TileType>> *prepareCurrentTileTypes();
+        void estimateTileTypesforFinalizedDrift();
+
     public:
         bool driftFinalized;
         int finalSpeed = 0;
         void reportNebulaDrift(GameTile& gameTile);
+        void step();
 
         DriftDetector(GameMap& gameMap);
+        ~DriftDetector();
 };
 
 #endif //DRIFT_DETECTOR_H

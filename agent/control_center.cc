@@ -279,6 +279,8 @@ void ControlCenter::update(GameState& gameState) {
         }
     }
 
+    driftDetector->step();
+
     log("Checking for constraints");
     // Monitor change in points to observe the relic capture
     // Collect all positions that are on a halo node or possibly on a halo node with an invisible relic

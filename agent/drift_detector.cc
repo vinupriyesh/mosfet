@@ -1,5 +1,6 @@
 #include "drift_detector.h"
 #include <cmath>
+#include <unordered_set>
 
 const int POSSIBLE_NEBULA_DRIFT_SPEEDS[] = {-150, -100, -50, -25, 150, 100, 50, 25};  //Representing as x1000 to avoid floating point precision inside map
 
@@ -7,24 +8,187 @@ void DriftDetector::log(std::string message) {
     Logger::getInstance().log("DriftDetector -> " + message);
 }
 
+// void DriftDetector::fillDriftAwareTileType(int stepId, std::vector<int> &values) {
+//     auto& driftAwareTileType = gameMap.getDriftAwareTileType();
+//     int currentKeyId = driftAwareTileType.size();
+
+//     if (currentKeyId == 0 && stepId != 0) {
+//         log("Problem: Unable to add to an empty drift aware list");
+//         std::cerr<<"Problem: Unable to add to an empty drift aware tile type list"<<std::endl;
+//     }
+    
+//     if (currentKeyId != 0) {
+//         std::vector<int>& currentValueRef = driftAwareTileType[currentKeyId - 1];
+
+//         // Fill current values
+//         for (int i = currentKeyId; i < stepId; i++) {
+//             driftAwareTileType[i] = currentValueRef;
+//         }
+//     }
+
+//     driftAwareTileType[stepId] = values;
+// }
+
+TileType DriftDetector::getEstimatedDriftTile(int x, int y, std::vector<std::vector<TileType>> *previousStepValues) {    
+    if (finalSpeed > 0) {
+        x += 1;
+        y -= 1;
+    } else {
+        x -= 1;
+        y += 1;
+    }
+
+    auto& targetTile = gameMap.getRolledOverTile(x, y);
+    return (*previousStepValues)[targetTile.y][targetTile.y];
+}
+
+std::vector<std::vector<TileType>>* DriftDetector::estimateDrift(std::vector<std::vector<TileType>> *previousStepValues) {
+    GameEnvConfig& config = GameEnvConfig::getInstance();
+    std::vector<std::vector<TileType>>* tileTypesArray = new std::vector<std::vector<TileType>>;
+    tileTypesArray->resize(config.mapHeight);
+    for (int y = 0; y < config.mapHeight; ++y) {
+        tileTypesArray->operator[](y).reserve(config.mapWidth);
+        for (int x = 0; x < config.mapWidth; ++x) {
+            tileTypesArray->operator[](y).emplace_back(getEstimatedDriftTile(x, y, previousStepValues));
+        }
+    }
+    return tileTypesArray;
+}
+
+int DriftDetector::computeMoveCountBetween(int from, int to) {
+    if (from == to) {
+        return 0;
+    }
+
+    int start = from;
+    int end = to;
+    int multiplier = 1;
+
+    if (to < from) {
+        start = to;
+        end = from;
+        multiplier = -1;
+    }
+
+    int moveCount = 0;
+    for (int i = start + 1; i <= end; i++) {
+        auto& speedVector = stepToDriftSpeedMap[i];
+        if (std::find(speedVector.begin(), speedVector.end(), finalSpeed) != speedVector.end()) {
+            moveCount++;
+        }
+    }
+
+    moveCount %= gameMap.width;
+    log("Retuning moveCount " + std::to_string(moveCount * multiplier) + " between " + std::to_string(from) + " and " + std::to_string(to));
+    return moveCount * multiplier;
+}
+
+void DriftDetector::forecastTileTypeAt(int step, GameTile& tile, std::vector<std::vector<TileType>>& tileTypesArray) {
+
+    //TODO: Do this for all visited tiles! currently we are missing data that we could exploit otherwise!
+
+    if (tile.getType() == TileType::UNKNOWN) {
+        //No point in updating to UNKNOWN, return
+        return;
+    }
+
+    int moveCount = computeMoveCountBetween(tile.getTypeUpdateStep(), step);
+
+    int multiplier = 1;
+    
+    if (finalSpeed < 0) {
+        multiplier = -1;
+    }
+
+    int x = tile.x + moveCount * multiplier;
+    int y = tile.y - moveCount * multiplier;
+
+    auto& targetTile = gameMap.getRolledOverTile(x, y);
+    TileType targetTileType = tileTypesArray[targetTile.x][targetTile.y];    
+
+    if (targetTileType == TileType::UNKNOWN) {
+        log("setting tile " + targetTile.toString() + " to type " + std::to_string(tile.getType()) + " from " + tile.toString() + " moveCount=" + std::to_string(moveCount) + ", last seen =" + std::to_string(tile.getTypeUpdateStep()));
+        tileTypesArray[targetTile.x][targetTile.y] = tile.getType();
+    } else if (targetTileType != tile.getType()) {
+        log("Problem: Wrongly identified tile type " + std::to_string(targetTileType) + " != " + std::to_string(tile.getType()) + " for tile=" + tile.toString());
+        log("Speed = " + std::to_string(finalSpeed) + ", moveCount = " + std::to_string(moveCount) + ", targetTile=" + targetTile.toString());
+        std::cerr<<"Problem: Wrongly identified tile type"<<std::endl;
+    }
+}
+
+std::vector<std::vector<TileType>>* DriftDetector::prepareCurrentTileTypes() {
+    GameEnvConfig& config = GameEnvConfig::getInstance();
+    std::vector<std::vector<TileType>>* tileTypesArray = new std::vector<std::vector<TileType>>;
+    tileTypesArray->resize(config.mapHeight);
+    for (int y = 0; y < config.mapHeight; ++y) {
+        tileTypesArray->operator[](y).reserve(config.mapWidth);
+        for (int x = 0; x < config.mapWidth; ++x) {
+            tileTypesArray->operator[](y).emplace_back(TileType::UNKNOWN);            
+        }
+    }
+
+    for (int y = 0; y < config.mapHeight; ++y) {
+        for (int x = 0; x < config.mapWidth; ++x) {
+            forecastTileTypeAt(gameMap.derivedGameState.currentStep - 1, gameMap.getTile(x, y), *tileTypesArray);
+        }
+    }
+    
+    return tileTypesArray;
+}
+
+
+void DriftDetector::estimateTileTypesforFinalizedDrift() {
+
+    if (finalSpeed == 0) {
+        log("Problem: Speed not finalized to estimate drift");
+        std::cerr<<"Problem: Speed not finalized to estimate drift"<<std::endl;
+        return;
+    }    
+
+    GameEnvConfig& config = GameEnvConfig::getInstance();
+    DerivedGameState& state = gameMap.derivedGameState;
+
+    auto& driftAwareTileType = gameMap.getDriftAwareTileType();
+
+    if (driftAwareTileType.size() == config.matchCountPerEpisode * (config.maxStepsInMatch + 1)) {
+        log("Already prepared the drift aware tile arrays");
+        return;
+    }
+
+    int lastKnownKey = driftAwareTileType.size() - 1;
+
+    if (lastKnownKey != state.currentStep - 1) {
+        // We are checking if the last known key is of the last step!
+        log("Problem: Previous step's tileTypes are unknown, lastKnownKey=" + std::to_string(lastKnownKey));
+        std::cerr<<"Problem: Previous step's tileTypes are unknown"<<std::endl;
+        return;
+    }
+
+    std::vector<std::vector<TileType>>* currentTileTypes = prepareCurrentTileTypes();//driftAwareTileType[lastKnownKey];        
+    for (int i = state.currentStep; i <  config.matchCountPerEpisode * (config.maxStepsInMatch + 1); i++) {
+        auto& possibleSpeedsThisStep = stepToDriftSpeedMap[i];
+
+        if (std::find(possibleSpeedsThisStep.begin(), possibleSpeedsThisStep.end(), finalSpeed) != possibleSpeedsThisStep.end()) {
+            currentTileTypes = estimateDrift(currentTileTypes);
+            allDriftTileTypeVectors.emplace_back(currentTileTypes);
+        }
+
+        if (allDriftTileTypeVectors.size() == 0) {
+            //If the above condition is not satisfied, allDriftTileTypeVectors should not be empty
+            allDriftTileTypeVectors.emplace_back(currentTileTypes);
+        }
+
+        driftAwareTileType.emplace_back(currentTileTypes);
+
+        std::ostringstream oss;
+        oss << currentTileTypes;
+        log("Pointer added " + oss.str() + " allDriftTileTypeVectors=" + std::to_string(allDriftTileTypeVectors.size() - 1) + ", driftAwareTileType=" + std::to_string(driftAwareTileType.size() -1));
+    }
+}
+
 int DriftDetector::compareDrift(GameTile& sourceTile, int x, int y) {
-    if (x >= gameMap.width) {
-        x -= gameMap.width;
-    }
 
-    if (x < 0) {
-        x += gameMap.width;
-    }
-
-    if (y >= gameMap.height) {
-        y -= gameMap.height;
-    }
-
-    if (y < 0) {
-        y += gameMap.height;
-    }
-
-    GameTile& targetTile = gameMap.getTile(x, y);
+    GameTile& targetTile = gameMap.getRolledOverTile(x, y);
 
     if (!targetTile.isVisible()) {
         return -1; // Not possible to verify
@@ -43,7 +207,7 @@ void DriftDetector::reportNebulaDrift(GameTile& gameTile) {
 
     log("Drift reported by " + gameTile.toString() + " last seen " + std::to_string(gameTile.getPreviousType()) + " at " + std::to_string(lastSeenStart) + " but now " + std::to_string(gameTile.getType()));
 
-    std::map<int, int> speedCounter;
+    std::map<int, int> speedCounter; // (speed, moveCount)
     for (int i = lastSeenStart + 1; i <= lastSeenEnd; i++) {
         // log("Checking for step " + std::to_string(i));
         auto it = stepToDriftSpeedMap.find(i);
@@ -96,7 +260,7 @@ void DriftDetector::reportNebulaDrift(GameTile& gameTile) {
     for (const auto &speedStatus : driftSpeedToStatusMap) {
         if (speedStatus.second == NebulaDriftStatus::NO_DRIFT) {
             outstandingPossibilities--;
-        } else if(speedStatus.second == NebulaDriftStatus::FOUND_DRIFT) {
+        } else {
             finalSpeed = speedStatus.first;
         }
     }
@@ -106,12 +270,72 @@ void DriftDetector::reportNebulaDrift(GameTile& gameTile) {
     if (outstandingPossibilities == 1) {
         log("Drift finalized - " + std::to_string(finalSpeed));
         driftFinalized = true;
+        estimateTileTypesforFinalizedDrift();
     }
 
     if (outstandingPossibilities == 0) {
         log("Problem: Drift Detector bugged!");
         std::cerr<<"Drift Detector bugged!"<<std::endl;
         driftFinalized = false;
+    }
+}
+
+void DriftDetector::step() {
+    auto& driftAwareTileType = gameMap.getDriftAwareTileType();
+    GameEnvConfig& config = GameEnvConfig::getInstance();
+    auto& state = gameMap.derivedGameState;
+
+    // if (state.currentStep == 0) {
+    //     // // Initialize the tile types vector for the first time
+    //     // std::vector<std::vector<TileType>>* tileTypesVector = new std::vector<std::vector<TileType>>;
+    //     // tileTypesVector->resize(config.mapHeight);
+    //     // for (int y = 0; y < config.mapHeight; ++y) {
+    //     //     tileTypesVector->operator[](y).reserve(config.mapWidth);
+    //     //     for (int x = 0; x < config.mapWidth; ++x) {
+    //     //         tileTypesVector->operator[](y).emplace_back(TileType::UNKNOWN);
+    //     //     }
+    //     // }
+
+    //     // gameMap.getDriftAwareTileType().emplace_back(tileTypesVector);
+    //     // allDriftTileTypeVectors.emplace_back(tileTypesVector);    
+    //     gameMap.getDriftAwareTileType().push_back(nullptr);        
+    //     return;
+    // }
+
+    if (!driftFinalized) {
+        // Just set null value value to this step as the drift is not finalized!        
+        // int lastKnownKey = driftAwareTileType.size() - 1;
+        // std::vector<std::vector<TileType>>* currentTileTypes = driftAwareTileType[lastKnownKey];
+        driftAwareTileType.push_back(nullptr);
+    }
+
+    if (driftAwareTileType.size() <= state.currentStep) {
+        log("Problem: There is no tileType available for current step, size of vector = " + std::to_string(driftAwareTileType.size()));
+        std::cerr<<"Problem: There is no tileType available for current step"<<std::endl;
+    }
+
+    if (driftAwareTileType[state.currentStep] != nullptr && allDriftTileTypeVectors.size() > 0 &&
+             driftAwareTileType[state.currentStep] != allDriftTileTypeVectors[currentDriftTileTypeVectorIndex]) {
+        if (allDriftTileTypeVectors.size() <= currentDriftTileTypeVectorIndex + 1) {
+            log("Problem: Unable to switch next drift tile vector = " + std::to_string(allDriftTileTypeVectors.size()) + ", " + std::to_string(currentDriftTileTypeVectorIndex));
+            std::cerr<<"Problem: Unable to switch next drift tile vector"<<std::endl;
+        }        
+
+        currentDriftTileTypeVectorIndex++;
+
+        if (driftAwareTileType[state.currentStep] != allDriftTileTypeVectors[currentDriftTileTypeVectorIndex]) {
+            log("Problem: Next drift tile doesn't match = " + std::to_string(allDriftTileTypeVectors.size()) + ", " + std::to_string(currentDriftTileTypeVectorIndex));
+
+            std::ostringstream oss;
+            oss << driftAwareTileType[state.currentStep];
+
+            std::ostringstream oss1;
+            oss1 << allDriftTileTypeVectors[currentDriftTileTypeVectorIndex];
+
+            log(oss.str() + " != " + oss1.str());
+
+            std::cerr<<"Problem: Next drift tile doesn't match"<<std::endl;
+        }
     }
 }
 
@@ -130,4 +354,17 @@ DriftDetector::DriftDetector(GameMap &gameMap) : gameMap(gameMap) {
             }
         }
     }
+
+    currentDriftTileTypeVectorIndex = 0;
+}
+
+DriftDetector::~DriftDetector() {
+    auto& driftAwareTileType = gameMap.getDriftAwareTileType();
+    
+    for (auto value : allDriftTileTypeVectors) {
+        delete value;
+    }
+
+    allDriftTileTypeVectors.clear();
+    driftAwareTileType.clear();    
 }
