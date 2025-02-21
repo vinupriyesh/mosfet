@@ -70,23 +70,25 @@ std::string VisualizerClient::get_data() {
     // Add asteroids
     for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
-            if (gameMap.getTile(i, j).getType() == TileType::ASTEROID) {
+            GameTile& tile = gameMap.getTile(i, j);          
+            TileType tileType = gameMap.getEstimatedType(tile, gameMap.derivedGameState.currentStep);
+            if (tileType == TileType::ASTEROID) {
                 jsonObject["asteroids"].push_back({i, j});
             }
-            if (gameMap.getTile(i, j).getType() == TileType::NEBULA) {
+            if (tileType == TileType::NEBULA) {
                 jsonObject["nebula"].push_back({i, j});
             }
-            if (gameMap.getTile(i, j).isHaloTile()) {
+            if (tile.isHaloTile()) {
                 jsonObject["halo_tiles"].push_back({i, j});
             }
-            if (gameMap.getTile(i, j).isVantagePoint()) {
+            if (tile.isVantagePoint()) {
                 jsonObject["vantage_points"].push_back({i, j});
             }
-            if (gameMap.getTile(i, j).isUnExploredFrontier()) {
+            if (tile.isUnExploredFrontier()) {
                 jsonObject["unexplored_frontier"].push_back({i, j});
             }
-            jsonObject["energy"].push_back(gameMap.getTile(i, j).getLastKnownEnergy());
-            jsonObject["vision"].push_back(gameMap.getTile(i, j).isVisible()? 1 : 0);
+            jsonObject["energy"].push_back(tile.getLastKnownEnergy());
+            jsonObject["vision"].push_back(tile.isVisible()? 1 : 0);
         }
     }
 

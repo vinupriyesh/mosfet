@@ -180,6 +180,15 @@ GameTile &GameMap::getTile(GameTile &fromTile, Direction direction) {
     
 }
 
+TileType GameMap::getEstimatedType(GameTile &tile, int step) const {
+    if (step >= driftAwareTileType.size() || driftAwareTileType[step] == nullptr) {
+        // Fallback to the known value.  Likely the drift is not finalized!
+        return tile.getType();
+    }
+
+    return driftAwareTileType[step]->at(tile.y).at(tile.x);
+}
+
 std::tuple<bool, GameTile&> GameMap::isMovable(GameTile &fromTile, Direction direction) {
     try {
         GameTile& toTile = this->getTile(fromTile, direction);
@@ -200,8 +209,7 @@ int GameTile::getId(int width){
     return y * width + x;
 }
 
-TileType GameTile::getType() const
-{
+TileType GameTile::getType() const {
     return type;
 }
 
@@ -266,8 +274,14 @@ TileType GameTile::translateTileType(int tileTypeCode) {
     }
 }
 
-void GameTile::setType(TileType tileType, int step) {
-    previousType = type;    
+void GameTile::setType(TileType tileType, int step, bool driftIdentified) {
+    if (!driftIdentified && tileType != TileType::UNKNOWN && (previousTypes.empty() || previousTypes.top() != tileType)) {
+        log("Pushing items to stack");
+        previousTypes.push(tileType);
+        previousTypeUpdateSteps.push(step);
+    }
+
+    previousType = type;
     type = tileType;
 
     previousTypeUpdateStep = typeUpdateStep;
@@ -276,6 +290,14 @@ void GameTile::setType(TileType tileType, int step) {
 
 TileType GameTile::getType() {
     return type;
+}
+
+std::stack<TileType>& GameTile::getPreviousTypes() {
+    return previousTypes;
+}
+
+std::stack<int>& GameTile::getPreviousTypeUpdateSteps() {
+    return previousTypeUpdateSteps;
 }
 
 TileType GameTile::getPreviousType() {

@@ -7,6 +7,7 @@
 #include "game_env_config.h"
 
 #include <vector>
+#include <stack>
 
 enum Direction {
     CENTER,
@@ -47,6 +48,7 @@ class GameTile {
         void log(std::string message);
         TileType type;
         TileType previousType;
+        std::stack<TileType> previousTypes;
         bool visible;
         bool visited;
         bool explored;
@@ -62,6 +64,7 @@ class GameTile {
         int lastEnergyUpdateTime;
         int typeUpdateStep;
         int previousTypeUpdateStep;
+        std::stack<int> previousTypeUpdateSteps;
 
     public:
         int x;
@@ -74,7 +77,7 @@ class GameTile {
         
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
                 forcedRegularTile(false), relic(nullptr), shuttles({}), type(TileType::UNKNOWN), previousType(TileType::UNKNOWN),
-                typeUpdateStep(-1), previousTypeUpdateStep(-1) {};
+                previousTypes(), typeUpdateStep(-1), previousTypeUpdateStep(-1), previousTypeUpdateSteps() {};
         int getId(int width);        
         bool isVisible() {return visible;};
         bool isVisited() { return visited; };
@@ -104,8 +107,10 @@ class GameTile {
         void clearShuttles();
         void clearOpponentShuttles();
 
-        void setType(TileType tileType, int time);
+        void setType(TileType tileType, int time, bool driftIdentified);
         TileType getType();
+        std::stack<TileType>& getPreviousTypes();
+        std::stack<int>& getPreviousTypeUpdateSteps();
         TileType getPreviousType();
         int getTypeUpdateStep();
         int getPreviousTypeUpdateStep();
@@ -203,6 +208,8 @@ class GameMap {
         GameTile& getMirroredTile(int x, int y);
 
         GameTile& getTile(GameTile &fromTile, Direction direction);
+
+        TileType getEstimatedType(GameTile& tile, int step) const;
 
         std::tuple<bool, GameTile&> isMovable(GameTile& fromTile, Direction direction);
 

@@ -34,10 +34,12 @@ class DriftDetector {
         std::vector<std::vector<TileType>> *prepareCurrentTileTypes();
         void estimateTileTypesforFinalizedDrift();
 
+        void exploreTile(int x, int y, TileType tileType, int driftTileTypeIndex);
     public:
         bool driftFinalized;
         int finalSpeed = 0;
         void reportNebulaDrift(GameTile& gameTile);
+        void exploreTile(GameTile& gameTile);        
         void step();
 
         DriftDetector(GameMap& gameMap);

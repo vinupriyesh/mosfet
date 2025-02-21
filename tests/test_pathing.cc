@@ -20,7 +20,7 @@ protected:
         // Set up the tiles (for simplicity, all tiles are empty and movable) 
         for (int y = 0; y < 3; ++y) {
             for (int x = 0; x < 3; ++x) {
-                gameMap->getTile(x, y).setType(TileType::EMPTY, 0);
+                gameMap->getTile(x, y).setType(TileType::EMPTY, 0, false);
             }
         }
     }

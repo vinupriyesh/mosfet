@@ -227,11 +227,11 @@ void ControlCenter::update(GameState& gameState) {
             if (gameState.obs.sensorMask[i][j]) {
                 //Visible tile updates
 
-                currentTile.setType(tileType, state.currentStep);
+                currentTile.setType(tileType, state.currentStep, driftDetector->driftFinalized);                
                 currentTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], state.currentStep);
                 gameMap->exploreTile(currentTile, state.currentStep);
 
-                currentMirrorTile.setType(tileType, state.currentStep);
+                currentMirrorTile.setType(tileType, state.currentStep, driftDetector->driftFinalized);                
                 currentMirrorTile.setEnergy(gameState.obs.mapFeatures.energy[i][j], state.currentStep);
                 gameMap->exploreTile(currentMirrorTile, state.currentStep);
             }
@@ -280,6 +280,21 @@ void ControlCenter::update(GameState& gameState) {
     }
 
     driftDetector->step();
+
+    log("Updating the newly identified tile types to drift tile type vector");
+
+    for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
+        for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
+
+            if (gameState.obs.sensorMask[i][j]) {
+                GameTile& currentTile = gameMap->getTile(i, j);
+                GameTile& currentMirrorTile = gameMap->getMirroredTile(i, j);
+
+                driftDetector->exploreTile(currentTile);
+                driftDetector->exploreTile(currentMirrorTile);
+            }
+        }
+    }
 
     log("Checking for constraints");
     // Monitor change in points to observe the relic capture
