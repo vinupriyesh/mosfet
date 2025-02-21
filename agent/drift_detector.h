@@ -17,7 +17,7 @@ enum NebulaDriftStatus {
 
 class DriftDetector {
     private:
-        void log(std::string message);
+        static void log(std::string message);
         int compareDrift(GameTile &sourceTile, int x, int y);
         std::map<int, std::vector<int>> stepToDriftSpeedMap; // In this step what are all the drift speeds possible?
         std::map<int, NebulaDriftStatus> driftSpeedToStatusMap; // What is the current status for the drift speed?

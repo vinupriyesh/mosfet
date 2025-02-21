@@ -18,7 +18,7 @@
 class ConstraintObservation {
 
     private:
-        void log(const std::string message) const;
+        static void log(const std::string message);
 
     public:
         int pointsValue;

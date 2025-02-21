@@ -21,7 +21,7 @@ class VisualizerClient {
 
         std::ofstream log_file;
 
-        void log(std::string message);
+        static void log(std::string message);
         std::string exec(const char* cmd);
         std::string get_data();
         std::string upload_data(std::string data);

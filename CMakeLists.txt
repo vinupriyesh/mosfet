@@ -44,7 +44,7 @@ file(GLOB VISUALIZER_SOURCES ${PROJECT_SOURCE_DIR}/visualizer/*.cc)
 file(GLOB DATASTRUCTURE_SOURCES ${PROJECT_SOURCE_DIR}/datastructures/*.cc)
 
 # Add your library with a different name
-add_library(libmosfet STATIC ${AGENT_SOURCES} ${AGENT_ROLES_SOURCES} ${AGENT_PLANNING_SOURCES} ${VISUALIZER_SOURCES} ${DATASTRUCTURE_SOURCES} main.cc parser.cc config.cc)
+add_library(libmosfet STATIC ${AGENT_SOURCES} ${AGENT_ROLES_SOURCES} ${AGENT_PLANNING_SOURCES} ${VISUALIZER_SOURCES} ${DATASTRUCTURE_SOURCES} main.cc parser.cc config.cc logger.cc)
 
 # Include directories for header files
 target_include_directories(libmosfet PUBLIC ${PROJECT_SOURCE_DIR})
@@ -55,10 +55,11 @@ target_link_libraries(libmosfet PRIVATE nlohmann_json::nlohmann_json)
 # Set the output name of the library
 set_target_properties(libmosfet PROPERTIES OUTPUT_NAME "libmosfet")
 # Add your executable
-add_executable(mosfet main.cc parser.cc config.cc ${AGENT_SOURCES} ${AGENT_ROLES_SOURCES} ${AGENT_PLANNING_SOURCES} ${VISUALIZER_SOURCES} ${DATASTRUCTURE_SOURCES})
+# add_executable(mosfet main.cc parser.cc config.cc logger.cc ${AGENT_SOURCES} ${AGENT_ROLES_SOURCES} ${AGENT_PLANNING_SOURCES} ${VISUALIZER_SOURCES} ${DATASTRUCTURE_SOURCES})
+add_executable(mosfet main.cc)
 
 # Include directories for header files
 target_include_directories(mosfet PUBLIC ${PROJECT_SOURCE_DIR})
 
 # Link nlohmann/json statically to your executable
-target_link_libraries(mosfet PRIVATE nlohmann_json::nlohmann_json -static)
+target_link_libraries(mosfet PRIVATE libmosfet nlohmann_json::nlohmann_json -static)

@@ -106,7 +106,7 @@ bool ConstraintObservation::isSupersetObservation(ConstraintObservation &other) 
     return isSuperset(haloPointSet, other.haloPointSet) && isSuperset(extraMirroredHaloPointSet, other.extraMirroredHaloPointSet);
 }
 
-void ConstraintObservation::log(const std::string message) const {
+void ConstraintObservation::log(const std::string message) {
     Logger::getInstance().log("ConstraintObservation -> " + message);
 }
 

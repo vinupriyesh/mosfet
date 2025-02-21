@@ -32,7 +32,7 @@ private:
     std::vector<int> relicDiscoveryKey; //Matches with the relic masks array
 
     // private methods
-    void log(std::string message);
+    static void log(std::string message);
     void init(GameState &gameState);
 
 public: 

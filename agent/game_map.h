@@ -45,7 +45,7 @@ enum TileType {
 class GameTile {    
 
     private:    
-        void log(std::string message);
+        static void log(std::string message);
         TileType type;
         TileType previousType;
         std::stack<TileType> previousTypes;
@@ -189,7 +189,7 @@ struct DerivedGameState {
 
 class GameMap {
     private:
-        void log(std::string message);
+        static void log(std::string message);
         std::vector<std::vector<GameTile>> map;
         std::vector< std::vector<std::vector<TileType>>* > driftAwareTileType;
     public:

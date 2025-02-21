@@ -101,7 +101,7 @@ int DriftDetector::computeMoveCountBetween(int from, int to) {
 void DriftDetector::forecastTileTypeAt(int step, GameTile& tile, std::vector<std::vector<TileType>>& tileTypesArray) {
 
     while(!tile.getPreviousTypes().empty()) {
-        log("The item count for the tile " + tile.toString() + " is " + std::to_string(tile.getPreviousTypes().size()));
+        // log("The item count for the tile " + tile.toString() + " is " + std::to_string(tile.getPreviousTypes().size()));
         TileType tileType = tile.getPreviousTypes().top();
         int typeUpdateStep = tile.getPreviousTypeUpdateSteps().top();    
         

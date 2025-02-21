@@ -86,7 +86,7 @@ class Pathing : public PathingBase {
 
         Pathing(GameMap& gameMap, PathingConfig config): PathingBase(gameMap), config(config) {};
 
-        void log(std::string message);
+        static void log(std::string message);
 
         float getCost(GameTile &neighbor);
 
