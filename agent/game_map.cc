@@ -63,6 +63,37 @@ void GameMap::getAllOpponentsInRadius(int radius, int x, int y, std::vector<Shut
     }
 }
 
+void GameMap::setRelicExplorationFrontier(GameTile &tile, int match, int cutoffTime) {
+    // Check if adjacent tiles are explored recently, and mark this tile as frontier
+    if (isValidTile(tile.x, tile.y - 1)) {
+        auto& nextTile = getTile(tile.x, tile.y - 1);
+        if (nextTile.getLastExploredTime() >= cutoffTime) {
+            tile.setRelicExplorationFrontier(true, match);
+        }
+    }
+
+    if (isValidTile(tile.x, tile.y + 1)) {
+        auto& nextTile = getTile(tile.x, tile.y + 1);
+        if (nextTile.getLastExploredTime() >= cutoffTime) {
+            tile.setRelicExplorationFrontier(true, match);
+        }
+    }
+
+    if (isValidTile(tile.x - 1, tile.y)) {
+        auto& nextTile = getTile(tile.x - 1, tile.y);
+        if (nextTile.getLastExploredTime() >= cutoffTime) {
+            tile.setRelicExplorationFrontier(true, match);
+        }
+    }
+
+    if (isValidTile(tile.x + 1, tile.y)) {
+        auto& nextTile = getTile(tile.x +1, tile.y);
+        if (nextTile.getLastExploredTime() >= cutoffTime) {
+            tile.setRelicExplorationFrontier(true, match);
+        }
+    }
+}
+
 bool GameMap::hasPotentialInvisibleRelicNode(GameTile& gameTile) {
     if (!derivedGameState.isThereAHuntForRelic()) {
         log("No potential for a relic node nearby tile " + gameTile.toString());
@@ -262,6 +293,18 @@ void GameTile::setExplored(bool explored, int time) {
     if (this->unexploredFrontier) {
         this->unexploredFrontier = false;
     }
+
+    if (time >= 50 && this->relicExplorationFrontier1) {
+        relicExplorationFrontier1 = false;
+    }
+
+    if (time >= 151 && this->relicExplorationFrontier2) {
+        relicExplorationFrontier2 = false;
+    }
+
+    if (time >= 252 && this->relicExplorationFrontier3) {
+        relicExplorationFrontier3 = false;
+    }
 }
 
 TileType GameTile::translateTileType(int tileTypeCode) {
@@ -331,6 +374,20 @@ int GameTile::getLastKnownEnergy() {
 
 std::string GameTile::toString() {
     return "(" + std::to_string(x) + "," + std::to_string(y) + ")";
+}
+
+void GameTile::setRelicExplorationFrontier(bool value, int match) {
+    switch(match) {
+        case 0:
+            relicExplorationFrontier1 = value;
+            break;
+        case 1:
+            relicExplorationFrontier2 = value;
+            break;
+        case 2:
+            relicExplorationFrontier3 = value;
+            break;
+    }
 }
 
 GameTile & GameMap::getMirroredTile(int x, int y) {

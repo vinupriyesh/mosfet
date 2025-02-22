@@ -267,6 +267,45 @@ void ControlCenter::update(GameState& gameState) {
         log("All tiles explored :)");
     }
 
+    log("Check if all tiles are explored for relic discovery");    
+
+    if (state.isThereAHuntForRelic()) {
+        bool relicNotFound[3] = {true, true, true};
+
+        //We have crossed 50 steps, relic should be there if all nodes are explored
+        for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
+            for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
+                GameTile& currentTile = gameMap->getTile(i, j);
+                for (int k = 0; k < 3; ++k) {
+                    if (state.relicDiscoveryStatus[k] == RelicDiscoveryStatus::SEARCHING) {
+                        int cutoffTime = 101 * k + 50;
+                        if (currentTile.getLastExploredTime() < cutoffTime) {
+                            //Assess for Frontier set here!
+                            gameMap->setRelicExplorationFrontier(currentTile, k, cutoffTime);
+                            relicNotFound[k] = false;
+                        }
+                    } else if (relicNotFound[k]) {
+                        //We are not searching for this relic
+                        relicNotFound[k] = false;
+                    }
+                }
+            }
+        }
+
+        for (int i = 0;i < 3; i++) {
+            if (relicNotFound[i]) {
+                log("Relic not found for match " + std::to_string(i+1));
+                state.relicDiscoveryStatus[i] = RelicDiscoveryStatus::NOT_FOUND;
+                // state.setRelicDiscoveryStatus(RelicDiscoveryStatus::NOT_FOUND);
+                for (int j = i+1;j < 3; j++) {
+                    log("Relic not applicable for match " + std::to_string(j+1));
+                    state.relicDiscoveryStatus[j] = RelicDiscoveryStatus::NOT_APPLICABLE;
+                }
+                break;
+            }
+        }
+    }    
+
     log ("Computing battle points");
     battleEvaluator->clear();
     for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
@@ -379,7 +418,7 @@ void ControlCenter::update(GameState& gameState) {
 
 
     auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
     Metrics::getInstance().add("update_duration", duration.count());
 
     log("Update complete");

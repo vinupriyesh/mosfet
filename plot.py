@@ -99,7 +99,7 @@ def prepare_charts(df):
     images = create_heading("Timing", json_data)
     plot(df, images, "visualizer_overhead", "ms")
     # plot(df, images, "act_duration", "ms")
-    plot(df, images, "update_duration", "micro seconds")
+    plot(df, images, "update_duration", "ms")
     plot(df, images, "plan_duration", "ms")
     plot(df, images, "pathing_duration", "ms")
     plot(df, images, 'add_constraint_duration', "micro seconds")

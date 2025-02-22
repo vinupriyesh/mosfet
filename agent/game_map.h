@@ -53,6 +53,9 @@ class GameTile {
         bool visited;
         bool explored;
         bool unexploredFrontier;
+        bool relicExplorationFrontier1;
+        bool relicExplorationFrontier2;
+        bool relicExplorationFrontier3;
         bool haloTile;
         bool vantagePoint;
         bool forcedRegularTile;
@@ -76,6 +79,7 @@ class GameTile {
         std::vector<ShuttleData*> opponentShuttles;
         
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
+                 unexploredFrontier(false), relicExplorationFrontier1(false), relicExplorationFrontier2(false), relicExplorationFrontier3(false),
                 forcedRegularTile(false), relic(nullptr), shuttles({}), type(TileType::UNKNOWN), previousType(TileType::UNKNOWN),
                 previousTypes(), typeUpdateStep(-1), previousTypeUpdateStep(-1), previousTypeUpdateSteps() {};
         int getId(int width);        
@@ -89,7 +93,12 @@ class GameTile {
         bool isOccupied();
         bool isOpponentOccupied();
         int getLastVisitedTime() { return lastVisitedTime; };
+        int getLastExploredTime() { return lastExploredTime; };
         TileType getType() const;
+
+        bool isRelicExplorationFrontier1() {return relicExplorationFrontier1;};
+        bool isRelicExplorationFrontier2() {return relicExplorationFrontier2;};
+        bool isRelicExplorationFrontier3() {return relicExplorationFrontier3;};
 
         void setVisible(bool visible) { this->visible = visible; };
         void setVisited(bool visited, int time);
@@ -120,6 +129,8 @@ class GameTile {
 
         static TileType translateTileType(int tileTypeCode);
         std::string toString();
+
+        void setRelicExplorationFrontier(bool value, int match);
         
 };
 
@@ -175,7 +186,7 @@ struct DerivedGameState {
 
         inline void setRelicDiscoveryStatus(RelicDiscoveryStatus status) {
             bool success = false;
-            for (int i = currentMatch; i >= 0 ; i--) {
+            for (int i = 0; i <= currentMatch ; i++) {
                 if (relicDiscoveryStatus[i] == RelicDiscoveryStatus::SEARCHING) {
                     relicDiscoveryStatus[i] = status;
                     log("Relic search for match #" + std::to_string(i+1) + " is found in match #" + std::to_string(currentMatch + 1));
@@ -222,7 +233,7 @@ class GameMap {
         std::vector< std::vector<std::vector<TileType>>* >& getDriftAwareTileType() {return driftAwareTileType;};
         std::map<int, std::pair<int, int>>& getOpponentBattlePoints() {return opponentBattlePoints;};
         std::map<int, std::pair<int, int>>& getTeamBattlePoints() {return teamBattlePoints;};
-        
+        void setRelicExplorationFrontier(GameTile &tile, int match, int cutoffTime);
 };
 
 #endif // GAMEMAP_H

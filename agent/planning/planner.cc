@@ -9,6 +9,7 @@ void Planner::log(std::string message) {
 
 void Planner::populateJobs(JobBoard& jobBoard) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    DerivedGameState& state = gameMap.derivedGameState;
 
     int jobIdCounter = 0;
     for (int x = 0; x < gameEnvConfig.mapWidth; ++x) {
@@ -64,6 +65,13 @@ void Planner::populateJobs(JobBoard& jobBoard) {
                 TrailblazerNavigatorJob* trailblazerJob = new TrailblazerNavigatorJob(jobIdCounter++, x, y);
                 log("Created Trailblazer job at " + std::to_string(x) + ", " + std::to_string(y));
                 jobBoard.addJob(trailblazerJob);
+            }
+
+            if (state.isThereAHuntForRelic() &&
+                (currentTile.isRelicExplorationFrontier1() ||currentTile.isRelicExplorationFrontier2() ||currentTile.isRelicExplorationFrontier3() )){
+                    TrailblazerNavigatorJob* trailblazerJob = new TrailblazerNavigatorJob(jobIdCounter++, x, y);
+                    log("Created Frontier exploration job at " + std::to_string(x) + ", " + std::to_string(y));
+                    jobBoard.addJob(trailblazerJob);
             }
         }
     }
