@@ -158,6 +158,9 @@ struct DerivedGameState {
         int vantagePointsFound = 0;
         int vantagePointsOccupied = 0;
 
+        float unitSapDropOffFactor = 0.25f;
+        bool unitSapDropOffFactorSet = false;
+
         std::vector<RelicDiscoveryStatus> relicDiscoveryStatus;
 
         inline bool isThereAHuntForRelic() {
@@ -191,7 +194,9 @@ class GameMap {
     private:
         static void log(std::string message);
         std::vector<std::vector<GameTile>> map;
-        std::vector< std::vector<std::vector<TileType>>* > driftAwareTileType;
+        std::vector< std::vector<std::vector<TileType>>* > driftAwareTileType; //<stepId, y, x>
+        std::map<int, std::pair<int, int>> opponentBattlePoints; //<tileId, <energyDiff, kills>> +ve energyDiff means we lose less energy than opponent
+        std::map<int, std::pair<int, int>> teamBattlePoints; //<tileId, <energyDiff, kills>> +ve energyDiff means we lose less energy than opponent
     public:
         
         int width;
@@ -215,7 +220,9 @@ class GameMap {
 
         void getAllOpponentsInRadius(int radius, int x, int y, std::vector<ShuttleData*>& opponents);
         std::vector< std::vector<std::vector<TileType>>* >& getDriftAwareTileType() {return driftAwareTileType;};
-
+        std::map<int, std::pair<int, int>>& getOpponentBattlePoints() {return opponentBattlePoints;};
+        std::map<int, std::pair<int, int>>& getTeamBattlePoints() {return teamBattlePoints;};
+        
 };
 
 #endif // GAMEMAP_H

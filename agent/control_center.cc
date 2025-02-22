@@ -39,6 +39,7 @@ void ControlCenter::init(GameState& gameState) {
     haloConstraints = new ConstraintSet();
     planner = new Planner(shuttles, *gameMap);
     driftDetector = new DriftDetector(*gameMap);
+    battleEvaluator = new BattleEvaluator(*gameMap);
 
     visualizerClientPtr = new VisualizerClient(*gameMap, shuttles, opponentShuttles, relics);
 
@@ -266,6 +267,15 @@ void ControlCenter::update(GameState& gameState) {
         log("All tiles explored :)");
     }
 
+    log ("Computing battle points");
+    battleEvaluator->clear();
+    for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
+        for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
+            battleEvaluator->computeTeamBattlePoints(i, j);
+            battleEvaluator->computeOpponentBattlePoints(i, j);
+        }
+    }
+
     log("Detecting drift");
 
     for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
@@ -337,7 +347,7 @@ void ControlCenter::update(GameState& gameState) {
     for (auto& regularTile : haloConstraints->identifiedRegularTiles) {
         int x = regularTile % gameEnvConfig.mapWidth;
         int y = regularTile / gameEnvConfig.mapWidth;
-        log("Marking regular tile " + std::to_string(regularTile) + " at " + std::to_string(x) + ", " + std::to_string(y));
+        // log("Marking regular tile " + std::to_string(regularTile) + " at " + std::to_string(x) + ", " + std::to_string(y));
         GameTile& currentTile = gameMap->getTile(x, y);
         currentTile.setHaloTile(false);
         currentTile.setForcedRegularTile(true);
@@ -402,6 +412,7 @@ ControlCenter::~ControlCenter() {
     delete haloConstraints;
     delete planner;
     delete driftDetector;
+    delete battleEvaluator;
 }
 
 

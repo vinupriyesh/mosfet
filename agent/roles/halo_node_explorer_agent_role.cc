@@ -10,7 +10,7 @@ HaloNodeExplorerAgentRole::HaloNodeExplorerAgentRole(ShuttleData& shuttle, GameM
 void HaloNodeExplorerAgentRole::surveyJobBoard(JobBoard& jobBoard) {
 
     for (Job* job : jobBoard.getJobs()) {
-        if (job->type == JobType::HALO_NODE_EXPLORER) {
+        if (job->jobType == JobType::HALO_NODE_EXPLORER) {
             HaloNodeExplorerJob* haloNodeExplorerJob = static_cast<HaloNodeExplorerJob*>(job);
             if (haloNodeExplorerJob->targetX == shuttle.getX() && haloNodeExplorerJob->targetY == shuttle.getY()) {                
                 std::vector<int> bestPlan = {dis(gen), 0, 0};

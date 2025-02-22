@@ -12,7 +12,7 @@ void TrailblazerAgentRole::surveyJobBoard(JobBoard& jobBoard) {
     }
 
     for (Job* job : jobBoard.getJobs()) {
-        if (job->type == JobType::TRAILBLAZER_NAVIGATOR) {
+        if (job->jobType == JobType::TRAILBLAZER_NAVIGATOR) {
             surveyJob(jobBoard, job);
         }
     }

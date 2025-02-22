@@ -12,7 +12,7 @@ void RelicMiningNavigatorAgentRole::surveyJobBoard(JobBoard& jobBoard) {
     }
 
     for (Job* job : jobBoard.getJobs()) {
-        if (job->type == JobType::RELIC_MINING_NAVIGATOR) {
+        if (job->jobType == JobType::RELIC_MINING_NAVIGATOR) {
             surveyJob(jobBoard, job);
         }
     }

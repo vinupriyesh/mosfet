@@ -34,21 +34,23 @@ enum JobType {
 
 struct Job {
     int id;
-    JobType type;
+    JobType jobType;
     int priority;
     int targetX;
     int targetY;
 
-    Job(int id, JobType type);
-    Job(int id, JobType type, int targetX, int targetY);
+    Job(int id, JobType jobType);
+    Job(int id, JobType jobType, int targetX, int targetY);
 
     std::string getJobTypeString(JobType jobType);
 
     std::string to_string() {
         std::ostringstream ss;
-        ss << "Job: id=" << id << ", type=" << getJobTypeString(type) << ", target=(" << targetX << ", " << targetY << ")";
+        ss << "Job: id=" << id << ", type=" << getJobTypeString(jobType) << ", target=(" << targetX << ", " << targetY << ")";
         return ss.str();
     }
+
+    virtual ~Job() = default;
 };
 
 // Derived job structures
@@ -78,6 +80,7 @@ struct HaloNodeExplorerJob : Job {
 
 struct DefenderJob : Job {
     DefenderJob(int id, int opponentPositionX, int opponentPositionY);
+    std::vector<std::pair<int, int>> allOpponentPositions;
 };
 
 //----------------------------------------------
@@ -87,6 +90,10 @@ enum JobApplicationStatus {
     ACCEPTED,
     SHUTTLE_BUSY,
     TARGET_BUSY
+};
+
+enum JobApplicationAdditionalDetailsKey {
+    ADDITIONAL_TARGETS
 };
 
 class JobApplication {
@@ -101,6 +108,7 @@ public:
     ShuttleData* shuttleData;
     std::vector<int> bestPlan;
     Job* job;
+    std::map<JobApplicationAdditionalDetailsKey, std::any> additionalDetails;
 
     JobApplication(int id, ShuttleData* shuttleData, Job* job, std::vector<int>&& bestPlan);
 

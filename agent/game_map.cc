@@ -190,9 +190,11 @@ TileType GameMap::getEstimatedType(GameTile &tile, int step) const {
 }
 
 std::tuple<bool, GameTile&> GameMap::isMovable(GameTile &fromTile, Direction direction) {
+
     try {
         GameTile& toTile = this->getTile(fromTile, direction);
-        if (toTile.getType() == TileType::ASTEROID) {
+        TileType estimatedTileType = getEstimatedType(toTile, derivedGameState.currentStep);
+        if (estimatedTileType == TileType::ASTEROID) {
             // log("Tile is an asteroid - (" + std::to_string(toTile.x) + ", " + std::to_string(toTile.y) + ")");
             return std::make_tuple(false, std::ref(fromTile));
         } else {
@@ -276,7 +278,6 @@ TileType GameTile::translateTileType(int tileTypeCode) {
 
 void GameTile::setType(TileType tileType, int step, bool driftIdentified) {
     if (!driftIdentified && tileType != TileType::UNKNOWN && (previousTypes.empty() || previousTypes.top() != tileType)) {
-        log("Pushing items to stack");
         previousTypes.push(tileType);
         previousTypeUpdateSteps.push(step);
     }

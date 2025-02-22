@@ -9,9 +9,9 @@ Job::Job(int id, JobType type) : Job(id, type, 0, 0) {
     // TODO: For now using 0. Should investigate if we really need this constructor
 }
 
-Job::Job(int id, JobType type, int targetX, int targetY)
-    : id(id), type(type), targetX(targetX), targetY(targetY) {
-    switch (type) {
+Job::Job(int id, JobType jobType, int targetX, int targetY)
+    : id(id), jobType(jobType), targetX(targetX), targetY(targetY) {
+    switch (jobType) {
         case RELIC_MINER:
             priority = PRIORITY_RELIC_MINER;
             break;
@@ -164,7 +164,7 @@ JobApplication& JobBoard::applyForJob(Job* job, ShuttleData* shuttleData, std::v
     jobApplications.push_back(jobApplication);
     jobApplicationsByShuttleId[shuttleData->id].push_back(jobApplication);
     jobApplicationsByJobId[job->id].push_back(jobApplication);
-    jobTypeToJobIdMap[job->type].insert(job->id);
+    jobTypeToJobIdMap[job->jobType].insert(job->id);
     log("Application received for job " + job->to_string() + " from shuttle " + shuttleData->to_string());
     return jobApplications.back();
 }
@@ -190,7 +190,7 @@ void JobBoard::sortJobApplicationsStrategy1(GameMap& gameMap) {
         GameTile& aTile = gameMap.getTile(a.job->targetX, a.job->targetY);
         GameTile& bTile = gameMap.getTile(b.job->targetX, b.job->targetY);
         
-        if (a.job->type == JobType::DEFENDER || b.job->type == JobType::DEFENDER) { //Defenders always gets priority
+        if (a.job->jobType == JobType::DEFENDER || b.job->jobType == JobType::DEFENDER) { //Defenders always gets priority
             return a.priority > b.priority;
         } else if (std::abs(aTile.manhattanFromOrigin - bTile.manhattanFromOrigin) <= Config::prioritizationTolerance) {  //A AND B are almost closer
             return a.priority > b.priority;        
@@ -216,7 +216,7 @@ void JobBoard::sortJobApplicationsStrategy0(GameMap& gameMap) {
         int aManhattanFromShuttle = std::abs(a.job->targetX - a.shuttleData->getX()) + std::abs(a.job->targetY - a.shuttleData->getY());
         int bManhattanFromShuttle = std::abs(b.job->targetX - b.shuttleData->getX()) + std::abs(b.job->targetY - b.shuttleData->getY());
         
-        if (a.job->type == JobType::DEFENDER || b.job->type == JobType::DEFENDER) { //Defenders always gets priority
+        if (a.job->jobType == JobType::DEFENDER || b.job->jobType == JobType::DEFENDER) { //Defenders always gets priority
             return a.priority > b.priority;
         } else if (std::abs(aManhattanFromShuttle - bManhattanFromShuttle) <= Config::prioritizationTolerance) {  //A AND B are almost closer
             return a.priority > b.priority;        

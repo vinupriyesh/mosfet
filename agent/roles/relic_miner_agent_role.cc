@@ -8,7 +8,7 @@ RelicMinerAgentRole::RelicMinerAgentRole(ShuttleData& shuttle, GameMap& gameMap)
 void RelicMinerAgentRole::surveyJobBoard(JobBoard& jobBoard) {
 
     for (Job* job : jobBoard.getJobs()) {
-        if (job->type == JobType::RELIC_MINER) {
+        if (job->jobType == JobType::RELIC_MINER) {
             RelicMinerJob* relicMinerJob = static_cast<RelicMinerJob*>(job);
             if (relicMinerJob->targetX == shuttle.getX() && relicMinerJob->targetY == shuttle.getY()) {                
                 std::vector<int> bestPlan = {Direction::CENTER, 0, 0};

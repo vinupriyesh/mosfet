@@ -72,6 +72,7 @@ std::string VisualizerClient::get_data() {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
             GameTile& tile = gameMap.getTile(i, j);          
             TileType tileType = gameMap.getEstimatedType(tile, gameMap.derivedGameState.currentStep);
+            // TileType tileType = tile.getType();
             if (tileType == TileType::ASTEROID) {
                 jsonObject["asteroids"].push_back({i, j});
             }

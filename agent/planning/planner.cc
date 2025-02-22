@@ -14,6 +14,7 @@ void Planner::populateJobs(JobBoard& jobBoard) {
     for (int x = 0; x < gameEnvConfig.mapWidth; ++x) {
         for (int y = 0; y < gameEnvConfig.mapHeight; ++y) {
             GameTile& currentTile = gameMap.getTile(x, y);
+            int currentTileId = currentTile.getId(gameEnvConfig.mapWidth);
             if (currentTile.isVantagePoint()) {
                 RelicMinerJob* job = new RelicMinerJob(jobIdCounter++, x, y);
                 log("Created RelicMiner job at " + std::to_string(x) + ", " + std::to_string(y));
@@ -34,10 +35,29 @@ void Planner::populateJobs(JobBoard& jobBoard) {
                 jobBoard.addJob(navigatorJob);
             }
 
-            if (currentTile.isOpponentOccupied()) {
-                DefenderJob* job = new DefenderJob(jobIdCounter++, x, y);
-                log("Created Defender job at " + std::to_string(x) + ", " + std::to_string(y));
-                jobBoard.addJob(job);
+            // if (currentTile.isOpponentOccupied()) {
+            //     DefenderJob* job = new DefenderJob(jobIdCounter++, x, y);
+            //     log("Created Defender job at " + std::to_string(x) + ", " + std::to_string(y));
+            //     jobBoard.addJob(job);
+            // }
+            if (gameMap.getOpponentBattlePoints().find(currentTileId) != gameMap.getOpponentBattlePoints().end()) {
+                auto& battlePoint = gameMap.getOpponentBattlePoints()[currentTileId];
+                if (battlePoint.second > 0 || battlePoint.first > gameEnvConfig.unitSapCost/4) {
+                    DefenderJob* job = new DefenderJob(jobIdCounter++, x, y);
+                    log("Created Defender job at " + std::to_string(x) + ", " + std::to_string(y));
+                    jobBoard.addJob(job);
+                    
+                    for (int x = job->targetX - 1; x <= job->targetX + 1; ++x) {
+                        for (int y = job->targetY - 1; y <= job->targetY + 1; ++y) {
+                            if (gameMap.isValidTile(x, y)) {
+                                GameTile& tile = gameMap.getTile(x, y);
+                                if (tile.isOpponentOccupied()) {
+                                    job->allOpponentPositions.push_back(std::make_pair(x, y));
+                                }
+                            }
+                        }
+                    }
+                }
             }
 
             if (currentTile.isUnExploredFrontier()) {
@@ -92,41 +112,58 @@ void Planner::plan() {
             continue;
         }
 
-        if (jobApplication.job->type == JobType::RELIC_MINER && 
+        if (jobApplication.job->jobType == JobType::RELIC_MINER && 
             assignedTilesForRelicMining.find(targetId) != assignedTilesForRelicMining.end()) {
             jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);            
             continue;
         }
 
-        if (jobApplication.job->type == JobType::RELIC_MINING_NAVIGATOR && 
+        if (jobApplication.job->jobType == JobType::RELIC_MINING_NAVIGATOR && 
             (assignedTilesForRelicMiningNavigation.find(targetId) != assignedTilesForRelicMiningNavigation.end() || 
             assignedTilesForRelicMining.find(targetId) != assignedTilesForRelicMining.end())) {
             jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);
             continue;
         }
 
-        if (jobApplication.job->type == JobType::HALO_NODE_EXPLORER && 
+        if (jobApplication.job->jobType == JobType::HALO_NODE_EXPLORER && 
             assignedTilesForHaloNodeExploration.find(targetId) != assignedTilesForHaloNodeExploration.end()) {            
             jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);
             continue;
         }
 
-        if (jobApplication.job->type == JobType::HALO_NODE_NAVIGATOR && 
+        if (jobApplication.job->jobType == JobType::HALO_NODE_NAVIGATOR && 
             assignedTilesForHaloNodeNavigation.find(targetId) != assignedTilesForHaloNodeNavigation.end()) {            
             jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);
             continue;
         }
 
-        if (jobApplication.job->type == JobType::TRAILBLAZER_NAVIGATOR && 
+        if (jobApplication.job->jobType == JobType::TRAILBLAZER_NAVIGATOR && 
             assignedTilesForTrailblazing.find(targetId) != assignedTilesForTrailblazing.end()) {            
             jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);
             continue;
         }
 
-        if (jobApplication.job->type == JobType::DEFENDER && 
-            assignedTilesForDefending.find(targetId) != assignedTilesForDefending.end()) {            
-            jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);
-            continue;
+        if (jobApplication.job->jobType == JobType::DEFENDER) {
+            if (assignedTilesForDefending.find(targetId) != assignedTilesForDefending.end()) {
+                jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);
+                continue;
+            }
+
+            DefenderJob* defenderJob = dynamic_cast<DefenderJob*>(jobApplication.job);
+            
+            bool targetBusy = false;
+            for (auto& opponentXYPair: defenderJob->allOpponentPositions) {
+                int tileId = gameMap.getTile(opponentXYPair.first, opponentXYPair.second).getId(GameEnvConfig::getInstance().mapWidth);
+                if (assignedTilesForDefending.find(tileId) != assignedTilesForDefending.end()) {
+                    jobApplication.setStatus(JobApplicationStatus::TARGET_BUSY);
+                    targetBusy = true;
+                    continue;
+                }
+            }
+
+            if (targetBusy) {
+                continue;
+            }
         }
 
         // Job Assignment Confirmed :: Below this point is a success case!
@@ -140,28 +177,35 @@ void Planner::plan() {
         jobApplication.setStatus(JobApplicationStatus::ACCEPTED);
         assignedShuttleIds.insert(jobApplication.shuttleData->id);
 
-        if (jobApplication.job->type == JobType::RELIC_MINER) {
+        if (jobApplication.job->jobType == JobType::RELIC_MINER) {
             assignedTilesForRelicMining.insert(targetId);
         }
 
-        if (jobApplication.job->type == JobType::RELIC_MINING_NAVIGATOR) {
+        if (jobApplication.job->jobType == JobType::RELIC_MINING_NAVIGATOR) {
             assignedTilesForRelicMiningNavigation.insert(targetId);
         }
 
-        if (jobApplication.job->type == JobType::HALO_NODE_EXPLORER) {
+        if (jobApplication.job->jobType == JobType::HALO_NODE_EXPLORER) {
             assignedTilesForHaloNodeExploration.insert(targetId);
         }
 
-        if (jobApplication.job->type == JobType::HALO_NODE_NAVIGATOR) {
+        if (jobApplication.job->jobType == JobType::HALO_NODE_NAVIGATOR) {
             assignedTilesForHaloNodeNavigation.insert(targetId);
         }
 
-        if (jobApplication.job->type == JobType::TRAILBLAZER_NAVIGATOR) {
+        if (jobApplication.job->jobType == JobType::TRAILBLAZER_NAVIGATOR) {
             assignedTilesForTrailblazing.insert(targetId);
         }
 
-        if (jobApplication.job->type == JobType::DEFENDER) {
+        if (jobApplication.job->jobType == JobType::DEFENDER) {
             assignedTilesForDefending.insert(targetId);
+
+            DefenderJob* defenderJob = dynamic_cast<DefenderJob*>(jobApplication.job);
+
+             for (auto& opponentXYPair: defenderJob->allOpponentPositions) {
+                int tileId = gameMap.getTile(opponentXYPair.first, opponentXYPair.second).getId(GameEnvConfig::getInstance().mapWidth);
+                assignedTilesForDefending.insert(tileId);
+             }
         }
         
     }

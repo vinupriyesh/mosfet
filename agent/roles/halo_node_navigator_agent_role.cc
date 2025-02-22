@@ -12,7 +12,7 @@ void HaloNodeNavigatorAgentRole::surveyJobBoard(JobBoard& jobBoard) {
     }
 
     for (Job* job : jobBoard.getJobs()) {
-        if (job->type == JobType::HALO_NODE_NAVIGATOR) {
+        if (job->jobType == JobType::HALO_NODE_NAVIGATOR) {
             surveyJob(jobBoard, job);
         }
     }
