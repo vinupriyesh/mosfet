@@ -5,6 +5,7 @@ import os
 import glob
 from matplotlib.ticker import MaxNLocator
 import json
+from matplotlib.ticker import ScalarFormatter
 
 def delete_all_files(folder_path):
     # Get a list of all files in the folder
@@ -42,6 +43,10 @@ def plot(df, images, dimensions, ylabel='Value', xlabel='Timestep', output_folde
     ax.set_title(f'{graph_name}', fontsize=16)
     ax.set_xlabel(xlabel, fontsize=14)
     ax.set_ylabel(ylabel, fontsize=14)
+
+    # Format y-axis to show regular decimal numbers
+    ax.yaxis.set_major_formatter(ScalarFormatter(useOffset=False))
+    ax.yaxis.set_major_formatter(plt.FuncFormatter(lambda x, _: f'{x:.1f}'))
 
     fig.autofmt_xdate(rotation=45, ha='right')
     ax.xaxis.set_major_locator(MaxNLocator(integer=True))

@@ -37,7 +37,7 @@ std::string VisualizerClient::exec(const char* cmd) {
     return result;
 }
 
-std::string VisualizerClient::get_data() {
+std::string VisualizerClient::getData(std::vector<std::vector<int>> actions) {
     // Implement the function to return the required data as a JSON string
     // return "{\"grid_size\": [24, 24], \"asteroids\": [[0,0], [0,5],[20,5]], \"blue_shuttles\": [[3,0], [7,5]], \"red_shuttles\": [[4,3], [9,5]]}";
     log("Collecting data");
@@ -94,24 +94,25 @@ std::string VisualizerClient::get_data() {
     }
 
     log("Looking for player shuttles");
-    // Blue is the current player
+    // Blue is always the current player
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         if (shuttles[i]->getShuttleData().getX() == -1) {
             continue;
         }
         jsonObject["blue_shuttles"].push_back(shuttles[i]->getShuttleData().position);
         jsonObject["blue_shuttles_energy"].push_back(shuttles[i]->getShuttleData().lastKnownEnergy);
+        jsonObject["blue_shuttles_actions"].push_back(actions[i]);
     }
 
     log("Looking for opponent shuttles");
-    // Red is the enemy player
+    // Red is always the enemy player
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         log("Checking opponent shuttle " + std::to_string(i));
         if (opponentShuttles[i]->getShuttleData().getX() == -1 || opponentShuttles[i]->getShuttleData().getY() == -1) {
             continue;
         }
         jsonObject["red_shuttles"].push_back(opponentShuttles[i]->getShuttleData().position);
-        jsonObject["red_shuttles_energy"].push_back(opponentShuttles[i]->getShuttleData().lastKnownEnergy);
+        jsonObject["red_shuttles_energy"].push_back(opponentShuttles[i]->getShuttleData().lastKnownEnergy);        
     }
 
     log("Done collecing data");
@@ -143,7 +144,7 @@ VisualizerClient::VisualizerClient(GameMap &gameMap, Shuttle **shuttles, Shuttle
     }
 }
 
-std::string VisualizerClient::upload_data(std::string data) {
+std::string VisualizerClient::uploadData(std::string data) {
     if (!livePlayEnabled) {
         return "";
     }
@@ -161,7 +162,7 @@ std::string VisualizerClient::upload_data(std::string data) {
     return "";
 }
 
-int VisualizerClient::send_game_data() {
+int VisualizerClient::sendGameData(std::vector<std::vector<int>> actions) {
     if (!livePlayEnabled && !recordingEnabled) {
         return 0;
     }
@@ -169,14 +170,14 @@ int VisualizerClient::send_game_data() {
     log("sending game data");
     auto start = std::chrono::high_resolution_clock::now();         
 
-    std::string data = get_data();
+    std::string data = getData(actions);
     
     if (log_file.is_open()) {
         log_file << data << "," << std::endl;
     }
 
     if (livePlayEnabled) {
-        upload_data(data);
+        uploadData(data);
     }
     
     auto end = std::chrono::high_resolution_clock::now();

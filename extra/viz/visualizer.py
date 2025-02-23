@@ -8,6 +8,7 @@ black = (0, 0, 0)
 very_light_grey = (220, 220, 200)
 light_grey = (200, 200, 190)
 blue = (0, 0, 255)
+light_blue = (100, 149, 255)
 red = (255, 0, 0)
 gold_with_transparency = (255, 215, 0, 128)
 grey_with_transparency = (128, 128, 128, 110)
@@ -16,6 +17,21 @@ energy_red = (166, 16, 0)
 
 bottom_dialog_offset = 60
 bottom_dialog_padding = 2
+
+
+def draw_dotted_line(surface, color, start_pos, end_pos, width=4, dot_length=6, space_length=4):
+    x1, y1 = start_pos
+    x2, y2 = end_pos
+    dx = x2 - x1
+    dy = y2 - y1
+    length = (dx ** 2 + dy ** 2) ** 0.5
+    dx /= length
+    dy /= length
+
+    for i in range(0, int(length), dot_length + space_length):
+        start_dot = (x1 + dx * i, y1 + dy * i)
+        end_dot = (x1 + dx * (i + dot_length), y1 + dy * (i + dot_length))
+        pygame.draw.line(surface, color, start_dot, end_dot, width)
 
 def colorize(base_color, energy_value):
     # Assuming energy_value is between 0 and 1 for positive energy and 0 and -1 for negative energy
@@ -151,19 +167,13 @@ class Visualizer:
 
     def draw_shuttle(self, sid, position, color):
         if color == blue:
-            team_blue = True
-            if len(self.game_state.blue_shuttles_energy) > sid: # backwards compatibility
-                energy_value = self.game_state.blue_shuttles_energy[sid]
-            else:
-                energy_value = 400
+            team_blue = True            
+            energy_value = self.game_state.blue_shuttles_energy[sid]            
         else:
-            team_blue = False
-            if len(self.game_state.red_shuttles_energy) > sid: # backwards compatibility
-                energy_value = self.game_state.red_shuttles_energy[sid]
-            else:
-                energy_value = 400
+            team_blue = False            
+            energy_value = self.game_state.red_shuttles_energy[sid]            
         
-        x, y = position
+        x, y = position        
 
         cell_size = 16 + int (energy_value * 16.0 / 400.0)
         offset = (self.cell_size - cell_size) / 2
@@ -191,7 +201,53 @@ class Visualizer:
                 self.selected_shuttle_team = 0
             else:
                 self.selected_shuttle_team = 1
+        
+        if team_blue:
+            action = self.game_state.blue_shuttles_actions[sid]            
+            self.draw_move_action_arrow(x, y, offset, action, light_blue)
     
+    def draw_move_action_arrow(self, x, y, offset, action, color):
+        if action[0] == 0:
+            return
+
+        arrow_offset_neg = 16 - 2
+        arrow_offset_pos = 16 + 1
+
+        if action[0] == 1:
+            # Move up
+            sx = arrow_offset_neg
+            sy = offset
+            ex = arrow_offset_neg
+            ey = -arrow_offset_neg
+        elif action[0] == 2:
+            # Move right
+            sx = self.cell_size - offset
+            sy = arrow_offset_neg
+            ex = self.cell_size + arrow_offset_neg
+            ey = arrow_offset_neg
+        elif action[0] == 3:
+            # Move down
+            sx = self.cell_size - arrow_offset_pos
+            sy = self.cell_size - offset
+            ex = self.cell_size - arrow_offset_pos
+            ey = self.cell_size + arrow_offset_pos
+        elif action[0] == 4:
+            # Move left            
+            sx = 0 + offset
+            sy = self.cell_size - arrow_offset_pos
+            ex = -arrow_offset_pos
+            ey = self.cell_size - arrow_offset_pos
+
+        if action[0] != 5:
+            pygame.draw.line(self.screen, color,
+                            (x * self.cell_size + sx, y * self.cell_size + sy),
+                            (x * self.cell_size + ex, y * self.cell_size + ey),
+                            2)
+        else:
+            target_x = x + action[1]
+            target_y = y + action[2]
+            draw_dotted_line(self.screen, color, (x * self.cell_size + 16, y * self.cell_size + 16),
+                              (target_x * self.cell_size + 16, target_y * self.cell_size + 16))
 
     def draw_halo(self, position, color):
         x, y = position

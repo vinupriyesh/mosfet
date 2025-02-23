@@ -492,7 +492,7 @@ std::vector<std::vector<int>> ControlCenter::act() {
     }
 
     if (visualizerClientPtr != nullptr) {
-        visualizerClientPtr->send_game_data();
+        visualizerClientPtr->sendGameData(results);
     }
 
     auto end = std::chrono::high_resolution_clock::now();

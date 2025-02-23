@@ -6,6 +6,7 @@ class GameState:
     def clear(self):              
         self.asteroids = []
         self.blue_shuttles = []
+        self.blue_shuttles_actions = []
         self.red_shuttles = []
         self.nebula = []
         self.relics = []
@@ -29,7 +30,7 @@ class GameState:
 
     def update_state(self, data):
         if 'step' not in data:
-            self.clear();
+            self.clear()
             return
         self.step = data.get('step', [])[0]
         points_data  = data.get('points', [])
@@ -45,6 +46,7 @@ class GameState:
         self.unit_sensor_range = data.get('unit_sensor_range', [])
         self.asteroids = data.get('asteroids', [])
         self.blue_shuttles = data.get('blue_shuttles', [])
+        self.blue_shuttles_actions = data.get('blue_shuttles_actions', [])
         self.red_shuttles = data.get('red_shuttles', [])
         self.nebula = data.get('nebula', [])
         self.relics = data.get('relics', [])
