@@ -11,10 +11,13 @@ enum EnergyDriftStatus {
 };
 
 class EnergyEstimator {
-    private:        
+    private:
+        int currentEnergyNode = -1;
         GameMap& gameMap;
 
         std::map<int, EnergyDriftStatus> driftSpeedToStatusMap;
+
+        std::vector<std::vector<double>>* energyValuesBuffer;
 
         double energyNodeFns[6][4] = {
             {0, 1.2, 1, 4},
@@ -28,16 +31,23 @@ class EnergyEstimator {
         };
 
         static void log(std::string message);
-    
-    public:
-        int finalEnergyDriftSpeed = -1;
-        EnergyEstimator(GameMap& gameMap);
 
         void getPossibleDrifts(int step, std::unordered_set<int> &possibleDrifts);
 
-        void estimate(std::vector<int> energyNodeTileIds);
+        bool estimate(int energyNodeTileId);
+        void updateEstimatedEnergies();
 
+        void clearEstimatedEnergies();
+
+    public:
+        int energyNodeDriftMagnitude = 6; //We cant find this, so using the max always
+        int finalEnergyDriftSpeed = -1;
+        EnergyEstimator(GameMap& gameMap);
+        ~EnergyEstimator();
         void reportEnergyDrift(GameTile& tile);
+        void updateEnergyNodes();
+
+        int getEnergyNode() { return currentEnergyNode; };
 };
 
 #endif  // ENERGY_ESTIMATOR_H

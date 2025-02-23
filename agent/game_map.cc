@@ -364,6 +364,10 @@ void GameTile::setEnergy(int energyValue, int time) {
     lastEnergyUpdateTime = time;
 }
 
+void GameTile::setEstimatedEnergy(int energy) {
+    estimatedEnergy = energy;
+}
+
 int GameTile::getEnergy() {
     return energy;
 }
@@ -381,8 +385,8 @@ int GameTile::getPreviousEnergyUpdateTime() {
 }
 
 int GameTile::getLastKnownEnergy() {
-    if (lastEnergyUpdateTime == 0) {
-        return 0;
+    if (estimatedEnergy >= -20 and estimatedEnergy <= 20) {
+        return estimatedEnergy;
     }
     return energy;
 }

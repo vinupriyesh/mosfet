@@ -318,6 +318,7 @@ void ControlCenter::update(GameState& gameState) {
 
     log("Detecting drift");
 
+    bool needToUpdateEnergyNodes = false;
     for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
             GameTile& currentTile = gameMap->getTile(i, j);
@@ -331,9 +332,14 @@ void ControlCenter::update(GameState& gameState) {
                 if (currentTile.getEnergy() != currentTile.getPreviousEnergy() && currentTile.getPreviousEnergy() != -1 && currentTile.getEnergy() != -1) {
                     // This tile is visible and drifted since last seen
                     energyEstimator->reportEnergyDrift(currentTile);
+                    needToUpdateEnergyNodes = true;                    
                 }
             }
         }
+    }
+
+    if (needToUpdateEnergyNodes) {
+        energyEstimator->updateEnergyNodes();
     }
 
     driftDetector->step();
@@ -342,9 +348,16 @@ void ControlCenter::update(GameState& gameState) {
 
     for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
+            GameTile& currentTile = gameMap->getTile(i, j);
+            
+            //Verifying if the energy estimate is correct
+            if (currentTile.isVisible() && currentTile.getEnergy() != currentTile.getLastKnownEnergy()) {
+                log("Problem: energy estimate has messed up for " + std::to_string(i) + ", " + std::to_string(j) + " - " + std::to_string(currentTile.getEnergy()) + " & " + std::to_string(currentTile.getLastKnownEnergy()));
+                std::cerr<<"Problem: Energy estimate messed up"<<std::endl;
+            }
 
-            if (gameState.obs.sensorMask[i][j]) {
-                GameTile& currentTile = gameMap->getTile(i, j);
+            // Updating the drift chain to the future
+            if (gameState.obs.sensorMask[i][j]) {                
                 GameTile& currentMirrorTile = gameMap->getMirroredTile(i, j);
 
                 driftDetector->exploreTile(currentTile);

@@ -1,5 +1,6 @@
 seed=""
 debug_mode=0
+no_graph=0
 vs="main.py"
 
 # Parse arguments

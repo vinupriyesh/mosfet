@@ -14,7 +14,7 @@ float Pathing::getCost(GameTile &neighbor) {
 
     if (config.pathingHeuristics == LEAST_ENERGY) {
         // Loss calculation for each step
-        int energyGain = neighbor.getEnergy();
+        int energyGain = neighbor.getLastKnownEnergy();
         // log(neighbor.toString() + "'s energy - " + std::to_string(energyGain));
         if (energyGain < -10) {
             // log("Capping the -ve energy loss to -10" + std::to_string(energyLoss));

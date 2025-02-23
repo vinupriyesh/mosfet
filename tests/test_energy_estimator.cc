@@ -37,12 +37,11 @@ TEST_F(EnergyEstimatorTest, Seed1) {
     cc->update(gameState); 
 
     EnergyEstimator* ee = new EnergyEstimator(*cc->gameMap);
+    
+    ee->updateEnergyNodes();
 
-    std::vector<int> energyNodeTileIds;
-    energyNodeTileIds.push_back(symmetry_utils::toID(11, 0));
-    energyNodeTileIds.push_back(symmetry_utils::toID(23, 12));
-
-    ee->estimate(energyNodeTileIds);
+    int energyNodeTileId = symmetry_utils::toID(11, 0);
+    EXPECT_EQ(ee->getEnergyNode(), energyNodeTileId);
 }
 
 TEST_F(EnergyEstimatorTest, Seed2) {
@@ -53,12 +52,10 @@ TEST_F(EnergyEstimatorTest, Seed2) {
     cc->update(gameState); 
 
     EnergyEstimator* ee = new EnergyEstimator(*cc->gameMap);
-
-    std::vector<int> energyNodeTileIds;
-    energyNodeTileIds.push_back(symmetry_utils::toID(2, 21));
-    energyNodeTileIds.push_back(symmetry_utils::toID(2, 21));
-
-    ee->estimate(energyNodeTileIds);
+    ee->updateEnergyNodes();
+    
+    int energyNodeTileId = symmetry_utils::toID(2, 21);
+    EXPECT_EQ(ee->getEnergyNode(), energyNodeTileId);
 }
 
 TEST_F(EnergyEstimatorTest, Seed4) {
@@ -70,27 +67,10 @@ TEST_F(EnergyEstimatorTest, Seed4) {
 
     EnergyEstimator* ee = new EnergyEstimator(*cc->gameMap);
 
-    std::vector<int> energyNodeTileIds;
-    energyNodeTileIds.push_back(symmetry_utils::toID(8, 13));
-    energyNodeTileIds.push_back(symmetry_utils::toID(10, 15));
-
-    ee->estimate(energyNodeTileIds);
-}
-
-TEST_F(EnergyEstimatorTest, Seed4Inverted) {
-    Logger::getInstance().setPlayerName("Seed4");
-
-    GameState gameState = parse (seed_4);
-    ControlCenter* cc = new ControlCenter();
-    cc->update(gameState); 
-
-    EnergyEstimator* ee = new EnergyEstimator(*cc->gameMap);
-
-    std::vector<int> energyNodeTileIds;
-    energyNodeTileIds.push_back(symmetry_utils::toID(10, 15));
-    energyNodeTileIds.push_back(symmetry_utils::toID(8, 13));    
-
-    ee->estimate(energyNodeTileIds);
+    ee->updateEnergyNodes();
+    
+    int energyNodeTileId = symmetry_utils::toID(8, 13);
+    EXPECT_EQ(ee->getEnergyNode(), energyNodeTileId);
 }
 
 int main(int argc, char **argv) {
