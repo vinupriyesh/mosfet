@@ -77,6 +77,22 @@ TEST_F(EnergyEstimatorTest, Seed4) {
     ee->estimate(energyNodeTileIds);
 }
 
+TEST_F(EnergyEstimatorTest, Seed4Inverted) {
+    Logger::getInstance().setPlayerName("Seed4");
+
+    GameState gameState = parse (seed_4);
+    ControlCenter* cc = new ControlCenter();
+    cc->update(gameState); 
+
+    EnergyEstimator* ee = new EnergyEstimator(*cc->gameMap);
+
+    std::vector<int> energyNodeTileIds;
+    energyNodeTileIds.push_back(symmetry_utils::toID(10, 15));
+    energyNodeTileIds.push_back(symmetry_utils::toID(8, 13));    
+
+    ee->estimate(energyNodeTileIds);
+}
+
 int main(int argc, char **argv) {
     ::testing::InitGoogleTest(&argc, argv);
     return RUN_ALL_TESTS();

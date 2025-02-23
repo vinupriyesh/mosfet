@@ -14,6 +14,7 @@
 #include "visualizer/visualizer_client.h"
 #include "symmetry_util.h"
 #include "agent/drift_detector.h"
+#include "agent/energy_estimator.h"
 #include "agent/battle_evaluator.h"
 
 #include <vector>
@@ -25,6 +26,7 @@ private:
     ConstraintSet* haloConstraints = nullptr; 
     Planner* planner = nullptr;
     DriftDetector* driftDetector = nullptr;
+    EnergyEstimator* energyEstimator = nullptr;
     BattleEvaluator* battleEvaluator = nullptr;
 
     // dynamic objects

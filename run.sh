@@ -8,7 +8,8 @@ while [[ "$#" -gt 0 ]]; do
         --seed=*) seed="$1"; shift ;;
         -s) seed="--seed=$2"; shift; shift ;;
         --debug|-d) debug_mode=1; shift ;;
-        --vs|-vs) vs="$2"; shift; shift ;; 
+        --no-graph|-ng) no_graph=1; shift ;;
+        --vs|-vs) vs="$2"; shift; shift ;;
         *) echo "Unknown parameter passed: $1"; exit 1 ;;
     esac
 done
@@ -34,4 +35,6 @@ if [ $debug_mode -eq 1 ]; then
 fi
 
 # Run the chart
-python3 plot.py
+if [ $no_graph -ne 1 ]; then
+    python3 plot.py
+fi

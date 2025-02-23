@@ -61,10 +61,12 @@ class GameTile {
         bool forcedRegularTile;
         Relic* relic;
         int energy;
+        int previousEnergy;
 
         int lastVisitedTime;
         int lastExploredTime;
         int lastEnergyUpdateTime;
+        int previousEnergyUpdateTime;
         int typeUpdateStep;
         int previousTypeUpdateStep;
         std::stack<int> previousTypeUpdateSteps;
@@ -81,6 +83,7 @@ class GameTile {
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
                  unexploredFrontier(false), relicExplorationFrontier1(false), relicExplorationFrontier2(false), relicExplorationFrontier3(false),
                 forcedRegularTile(false), relic(nullptr), shuttles({}), type(TileType::UNKNOWN), previousType(TileType::UNKNOWN),
+                energy(-1), previousEnergy(-1), lastVisitedTime(-1), lastExploredTime(-1), lastEnergyUpdateTime(-1), previousEnergyUpdateTime(-1), visible(false),
                 previousTypes(), typeUpdateStep(-1), previousTypeUpdateStep(-1), previousTypeUpdateSteps() {};
         int getId(int width);        
         bool isVisible() {return visible;};
@@ -125,6 +128,9 @@ class GameTile {
         int getPreviousTypeUpdateStep();
         void setEnergy(int energy, int time);
         int getEnergy();
+        int getPreviousEnergy();
+        int getLastEnergyUpdateTime();
+        int getPreviousEnergyUpdateTime();
         int getLastKnownEnergy();
 
         static TileType translateTileType(int tileTypeCode);

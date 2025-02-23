@@ -357,12 +357,27 @@ int GameTile::getPreviousTypeUpdateStep() {
 }
 
 void GameTile::setEnergy(int energyValue, int time) {
+    previousEnergy = energy;
     energy = energyValue;
+
+    previousEnergyUpdateTime = lastEnergyUpdateTime;
     lastEnergyUpdateTime = time;
 }
 
 int GameTile::getEnergy() {
     return energy;
+}
+
+int GameTile::getPreviousEnergy() {
+    return previousEnergy;
+}
+
+int GameTile::getLastEnergyUpdateTime() {
+    return lastEnergyUpdateTime;
+}
+
+int GameTile::getPreviousEnergyUpdateTime() {
+    return previousEnergyUpdateTime;
 }
 
 int GameTile::getLastKnownEnergy() {

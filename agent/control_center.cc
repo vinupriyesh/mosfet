@@ -39,6 +39,7 @@ void ControlCenter::init(GameState& gameState) {
     haloConstraints = new ConstraintSet();
     planner = new Planner(shuttles, *gameMap);
     driftDetector = new DriftDetector(*gameMap);
+    energyEstimator = new EnergyEstimator(*gameMap);
     battleEvaluator = new BattleEvaluator(*gameMap);
 
     visualizerClientPtr = new VisualizerClient(*gameMap, shuttles, opponentShuttles, relics);
@@ -320,10 +321,17 @@ void ControlCenter::update(GameState& gameState) {
     for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
             GameTile& currentTile = gameMap->getTile(i, j);
-            if (currentTile.isVisible() && currentTile.getTypeUpdateStep() == state.currentStep
-                    && currentTile.getType() != currentTile.getPreviousType() && currentTile.getPreviousType() != TileType::UNKNOWN) {
-                // This tile is visible and drifted since last seen
-                driftDetector->reportNebulaDrift(currentTile);
+            if (currentTile.isVisible()) {
+                if (currentTile.getTypeUpdateStep() == state.currentStep
+                        && currentTile.getType() != currentTile.getPreviousType() && currentTile.getPreviousType() != TileType::UNKNOWN) {
+                    // This tile is visible and drifted since last seen
+                    driftDetector->reportNebulaDrift(currentTile);
+                }
+
+                if (currentTile.getEnergy() != currentTile.getPreviousEnergy() && currentTile.getPreviousEnergy() != -1 && currentTile.getEnergy() != -1) {
+                    // This tile is visible and drifted since last seen
+                    energyEstimator->reportEnergyDrift(currentTile);
+                }
             }
         }
     }
@@ -451,6 +459,7 @@ ControlCenter::~ControlCenter() {
     delete haloConstraints;
     delete planner;
     delete driftDetector;
+    delete energyEstimator;
     delete battleEvaluator;
 }
 
