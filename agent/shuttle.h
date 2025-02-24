@@ -33,6 +33,7 @@ public:
     bool isTileUnvisited(Direction direction);
 
     bool isGhost();
+    bool isVisible();
     std::vector<int> act();
     
     void log(std::string message);

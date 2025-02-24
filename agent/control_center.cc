@@ -90,6 +90,14 @@ void ControlCenter::update(GameState& gameState) {
         } else {
             state.relicDiscoveryStatus[state.currentMatch] = RelicDiscoveryStatus::SEARCHING;
         }
+        respawnRegistry.reset();
+    }
+
+    if (state.currentMatchStep == 1) {
+        for (int i = 0; i < gameEnvConfig.maxUnits; i ++) {
+            respawnRegistry.pushPlayerUnit(i, state.currentStep);
+            respawnRegistry.pushOpponentUnit(i, state.currentStep);
+        }
     }
 
     Metrics::getInstance().add("points", state.teamPoints);
@@ -123,6 +131,14 @@ void ControlCenter::update(GameState& gameState) {
             // log("Updating visited for tile " + std::to_string(shuttles[i]->getX()) + ", " + std::to_string(shuttles[i]->getY()));
             GameTile& shuttleTile = gameMap->getTile(shuttles[i]->getShuttleData().getX(), shuttles[i]->getShuttleData().getY());
             shuttleTile.setVisited(true, state.currentStep);
+        }
+
+        if (shuttles[i]->isVisible() &&  shuttles[i]->isGhost()) {
+            respawnRegistry.pushPlayerUnit(i, state.currentStep - 1); // TODO: Only sap deaths will need -1, others will be without -1
+        }
+
+        if (opponentShuttles[i]->isVisible() && opponentShuttles[i]->isGhost()) {
+            respawnRegistry.pushOpponentUnit(i, state.currentStep - 1); // TODO: Only sap deaths will need -1, others will be without -1
         }
     }
 

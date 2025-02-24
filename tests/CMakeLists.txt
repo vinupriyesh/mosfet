@@ -18,11 +18,13 @@ add_executable(test_parser test_parser.cc)
 add_executable(test_pathing test_pathing.cc)
 add_executable(test_constraint_set test_constraint_set.cc)
 add_executable(test_energy_estimator test_energy_estimator.cc)
+add_executable(test_respawn_registry test_respawn_registry.cc)
 
 target_link_libraries(test_parser libmosfet nlohmann_json::nlohmann_json gtest gtest_main)
 target_link_libraries(test_pathing libmosfet pthread gtest gtest_main)
 target_link_libraries(test_constraint_set libmosfet pthread gtest gtest_main)
 target_link_libraries(test_energy_estimator libmosfet pthread gtest gtest_main)
+target_link_libraries(test_respawn_registry libmosfet pthread gtest gtest_main)
 
 # Enable testing
 enable_testing()
@@ -32,3 +34,4 @@ gtest_discover_tests(test_parser)
 gtest_discover_tests(test_pathing)
 gtest_discover_tests(test_constraint_set)
 gtest_discover_tests(test_energy_estimator)
+gtest_discover_tests(test_respawn_registry)

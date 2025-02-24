@@ -33,6 +33,10 @@ bool Shuttle::isGhost() {
     return this->shuttleData.ghost;
 }
 
+bool Shuttle::isVisible(){
+    return this->shuttleData.visible;
+}
+
 void Shuttle::updateVisibility(bool isVisible) {
     this->shuttleData.visible = isVisible;
 }

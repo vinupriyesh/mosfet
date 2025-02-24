@@ -16,6 +16,7 @@
 #include "agent/drift_detector.h"
 #include "agent/energy_estimator.h"
 #include "agent/battle_evaluator.h"
+#include "datastructures/respawn_registry.h"
 
 #include <vector>
 #include <string>
@@ -28,6 +29,8 @@ private:
     DriftDetector* driftDetector = nullptr;
     EnergyEstimator* energyEstimator = nullptr;
     BattleEvaluator* battleEvaluator = nullptr;
+
+    RespawnRegistry respawnRegistry;
 
     // dynamic objects
     Shuttle** shuttles; 
