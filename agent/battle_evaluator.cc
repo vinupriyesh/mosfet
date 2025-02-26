@@ -7,10 +7,8 @@ void BattleEvaluator::log(std::string message) {
     Logger::getInstance().log("BattleEvaluator -> " + message);
 }
 
-void BattleEvaluator::computeTeamBattlePoints(int x, int y)
-{
+void BattleEvaluator::computeTeamBattlePoints(int x, int y) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
-    gameMap.derivedGameState.unitSapDropOffFactor;
     int tileId = gameMap.getTile(x, y).getId(gameMap.width);
     int energyDiff = gameEnvConfig.unitSapCost;
     int kills = 0;
@@ -48,7 +46,6 @@ void BattleEvaluator::computeTeamBattlePoints(int x, int y)
 
 void BattleEvaluator::computeOpponentBattlePoints(int x, int y) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
-    gameMap.derivedGameState.unitSapDropOffFactor;
     int tileId = gameMap.getTile(x, y).getId(gameMap.width);
     int energyDiff = -gameEnvConfig.unitSapCost;
     int kills = 0;

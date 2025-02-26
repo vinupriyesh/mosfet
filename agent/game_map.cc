@@ -205,6 +205,8 @@ GameTile &GameMap::getTile(GameTile &fromTile, Direction direction) {
         case Direction::RIGHT:
             x += 1;
             break;
+        case Direction::CENTER:
+            break;
     }
 
     return this->getTile(x, y);    

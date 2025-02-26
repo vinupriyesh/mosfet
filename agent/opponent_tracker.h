@@ -10,10 +10,11 @@ class OpponentTracker {
         RespawnRegistry& respawnRegistry;
 
         std::vector<std::vector<std::vector<double>>> opponentPositionProbabilities; // (16, 24, 24)
+        std::vector<std::vector<std::vector<int>>> opponentMaxPossibleEnergies; // (16, 24, 24)
 
         void log(std::string message);        
     public:
-        OpponentTracker(GameMap& gameMap, RespawnRegistry respawnRegistry);
+        OpponentTracker(GameMap& gameMap, RespawnRegistry& respawnRegistry);
         void step();
 };
 
