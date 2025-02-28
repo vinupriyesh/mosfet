@@ -1,4 +1,5 @@
 #include "agent_role.h"
+#include "game_env_config.h"
 
 TrailblazerAgentRole::TrailblazerAgentRole(ShuttleData& shuttle, GameMap& gameMap) : NavigatorAgentRole(shuttle, gameMap){
     roleClassName = "TrailblazerAgentRole";

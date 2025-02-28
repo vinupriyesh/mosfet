@@ -1,4 +1,5 @@
 #include "agent_role.h"
+#include "game_env_config.h"
 
 DefenderAgentRole::DefenderAgentRole(ShuttleData& shuttles, GameMap& gameMap) : AgentRole(shuttles, gameMap) {
     roleClassName = "DefenderAgentRole";

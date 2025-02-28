@@ -43,6 +43,9 @@ mosfet
 # python
 __pycache__
 
+# clangd
+.cache
+
 # extras
 *replay.html
 *application.log

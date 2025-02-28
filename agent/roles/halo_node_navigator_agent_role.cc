@@ -1,4 +1,5 @@
 #include "agent_role.h"
+#include "game_env_config.h"
 
 HaloNodeNavigatorAgentRole::HaloNodeNavigatorAgentRole(ShuttleData& shuttle, GameMap& gameMap) : NavigatorAgentRole(shuttle, gameMap){
     roleClassName = "HaloNodeNavigatorAgentRole";

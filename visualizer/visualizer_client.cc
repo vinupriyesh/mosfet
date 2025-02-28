@@ -6,6 +6,8 @@
 
 #include "visualizer_client.h"
 #include "logger.h"
+#include "game_env_config.h"
+#include "config.h"
 
 // Custom deleter for FILE pointers
 struct FileCloser {

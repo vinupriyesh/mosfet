@@ -1,13 +1,10 @@
 #ifndef PATHING_H
 #define PATHING_H
 
-#include <queue>
 #include <vector>
 #include <unordered_map>
 
-#include "logger.h"
 #include "agent/game_map.h"
-#include "game_env_config.h"
 #include "datastructures/iterable_priority_queue.h"
 
 

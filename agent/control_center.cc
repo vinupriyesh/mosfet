@@ -3,6 +3,8 @@
 #include "logger.h"
 #include "config.h"
 #include "agent/planning/planner.h"
+#include "game_env_config.h"
+#include "symmetry_util.h"
 
 void ControlCenter::log(std::string message) {
     Logger::getInstance().log("ControlCenter -> " + message);

@@ -4,15 +4,7 @@
 #include <set>
 #include <vector>
 #include <string>
-#include <algorithm>
-#include <tuple>
-#include <sstream>
 
-#include "metrics.h"
-#include "logger.h"
-#include "config.h"
-#include "game_env_config.h"
-#include "symmetry_util.h"
 
 
 class ConstraintObservation {

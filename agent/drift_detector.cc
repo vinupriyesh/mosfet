@@ -1,6 +1,6 @@
 #include "drift_detector.h"
 #include <cmath>
-#include <unordered_set>
+#include "game_env_config.h"
 
 const int POSSIBLE_NEBULA_DRIFT_SPEEDS[] = {-150, -100, -50, -25, 150, 100, 50, 25};  //Representing as x1000 to avoid floating point precision inside map
 

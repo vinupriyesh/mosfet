@@ -4,10 +4,10 @@
 #include "logger.h"
 #include "agent/relic.h"
 #include "shuttle_data.h"
-#include "game_env_config.h"
 
 #include <vector>
 #include <stack>
+#include <map>
 
 enum Direction {
     CENTER,

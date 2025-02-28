@@ -1,7 +1,6 @@
 #ifndef ITERABLE_PRIORITY_QUEUE_H
 #define ITERABLE_PRIORITY_QUEUE_H
 
-#include <iostream>
 #include <queue>
 #include <vector>
 

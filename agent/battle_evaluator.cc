@@ -2,6 +2,7 @@
 #include "logger.h"
 
 #include <algorithm>
+#include "game_env_config.h"
 
 void BattleEvaluator::log(std::string message) {
     Logger::getInstance().log("BattleEvaluator -> " + message);

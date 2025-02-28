@@ -5,12 +5,10 @@
 #include <random>
 #include <map>
 
-#include "logger.h"
 #include "shuttle_data.h"
 #include "agent/game_map.h"
 #include "agent/pathing.h"
 #include "agent/roles/agent_role.h"
-#include "agent/roles/communicator.h"
 #include "agent/planning/jobs.h"
 
 class Shuttle {

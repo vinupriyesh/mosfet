@@ -1,5 +1,4 @@
 #include "agent_role.h"
-#include <memory>
 
 RelicMinerAgentRole::RelicMinerAgentRole(ShuttleData& shuttle, GameMap& gameMap) : AgentRole(shuttle, gameMap) {
     roleClassName = "RelicMinerAgentRole";

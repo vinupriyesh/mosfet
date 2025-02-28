@@ -1,15 +1,13 @@
 #ifndef JOBS_H
 #define JOBS_H
 
-#include "logger.h"
-#include "config.h"
 #include "agent/shuttle_data.h"
 #include "agent/game_map.h"
 #include <vector>
 #include <string>
-#include <algorithm>
 #include <unordered_set>
 #include <map>
+#include <any>
 
 
 // Priority constants

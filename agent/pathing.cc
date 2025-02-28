@@ -1,6 +1,7 @@
 
 #include <limits>
 #include "agent/pathing.h"
+#include "game_env_config.h"
 
 
 void Pathing::log(std::string message) {

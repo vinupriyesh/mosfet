@@ -1,11 +1,8 @@
 #ifndef AGENT_ROLE_H
 #define AGENT_ROLE_H
 
-#include "logger.h"
-#include "metrics.h"
 #include "agent/shuttle_data.h"
 #include "agent/game_map.h"
-#include "game_env_config.h"
 #include "agent/pathing.h"
 #include "agent/roles/communicator.h"
 #include "agent/planning/jobs.h"
@@ -27,6 +24,7 @@ class AgentRole {
         std::tuple<int, int> getRelativePosition(const GameTile &destinationTile);
         AgentRole(ShuttleData& shuttle, GameMap& gameMap);
         virtual void surveyJobBoard(JobBoard& jobBoard) = 0;
+        virtual ~AgentRole() = default;
 };
 
 class ExplorerAgentRole : public AgentRole {

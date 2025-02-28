@@ -1,7 +1,7 @@
 #include "planner.h"
 
 #include <unordered_set>
-#include <memory>
+#include "game_env_config.h"
 
 void Planner::log(std::string message) {
     Logger::getInstance().log("Planner -> " + message);

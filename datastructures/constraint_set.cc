@@ -1,5 +1,12 @@
 #include "constraint_set.h"
+#include <algorithm>
+#include <iostream>
+#include <sstream>
 
+#include "logger.h"
+#include "game_env_config.h"
+#include "symmetry_util.h"
+#include "config.h"
 
 std::string setToString(const std::set<int>& s) {
     std::ostringstream oss;

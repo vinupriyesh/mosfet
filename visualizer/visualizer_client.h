@@ -3,7 +3,6 @@
 
 #include "agent/game_map.h"
 #include "agent/shuttle.h"
-#include "config.h"
 
 #include <string>
 

@@ -2,6 +2,7 @@
 
 #include <string>
 #include <sstream>
+#include "config.h"
 
 // **Job class implementations**
 

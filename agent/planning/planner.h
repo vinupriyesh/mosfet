@@ -1,8 +1,6 @@
 #ifndef PLANNING_H
 #define PLANNING_H
 
-#include "logger.h"
-#include "metrics.h"
 #include "agent/shuttle.h"
 #include "agent/planning/jobs.h"
 

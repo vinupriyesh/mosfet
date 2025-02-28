@@ -2,8 +2,8 @@
 
 #include <stdexcept>
 #include <tuple>
-#include <iostream>
 #include <cmath>
+#include "game_env_config.h"
 
 
 void GameMap::log(std::string message) {

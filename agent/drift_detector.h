@@ -5,7 +5,6 @@
 #include <map>
 #include <vector>
 
-#include "logger.h"
 #include "game_map.h"
 
 enum NebulaDriftStatus {

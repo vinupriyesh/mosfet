@@ -1,8 +1,8 @@
 #include "opponent_tracker.h"
 #include "logger.h"
 #include "metrics.h"
+#include "game_env_config.h"
 
-#include <iostream>
 
 void OpponentTracker::log(std::string message) {
     Logger::getInstance().log("OpponentTracker -> " + message);

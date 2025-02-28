@@ -1,7 +1,7 @@
 #include "datastructures/constraint_set.h"
 #include <gtest/gtest.h>
-
-    
+#include "game_env_config.h"
+#include "symmetry_util.h"    
 
 class ConstraintSetTest : public ::testing::Test {
     
