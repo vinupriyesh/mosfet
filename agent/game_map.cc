@@ -6,11 +6,11 @@
 #include "game_env_config.h"
 
 
-void GameMap::log(std::string message) {
+void GameMap::log(const std::string& message) {
     Logger::getInstance().log("GameMap -> " + message);
 }
 
-void GameTile::log(std::string message) {
+void GameTile::log(const std::string& message) {
     Logger::getInstance().log("GameTile -> " + message);
 }
 
@@ -408,6 +408,8 @@ void GameTile::setRelicExplorationFrontier(bool value, int match) {
         case 2:
             relicExplorationFrontier3 = value;
             break;
+        default:
+            throw std::invalid_argument("Invalid match value: " + std::to_string(match));
     }
 }
 

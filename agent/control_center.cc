@@ -6,7 +6,7 @@
 #include "game_env_config.h"
 #include "symmetry_util.h"
 
-void ControlCenter::log(std::string message) {
+void ControlCenter::log(const std::string& message) {
     Logger::getInstance().log("ControlCenter -> " + message);
 }
 
@@ -60,7 +60,7 @@ void ControlCenter::update(GameState& gameState) {
 
     if (shuttles == nullptr) {
         init(gameState);
-    }    
+    }
 
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap->derivedGameState;
@@ -240,11 +240,11 @@ void ControlCenter::update(GameState& gameState) {
             GameTile& currentTile = gameMap->getTile(i, j);
             GameTile& currentMirrorTile = gameMap->getMirroredTile(i, j);
 
-            currentTile.setVisible(gameState.obs.sensorMask[i][j]);
+            currentTile.setVisible(gameState.obs.sensorMask[i][j] != 0);
 
             auto tileType = GameTile::translateTileType(gameState.obs.mapFeatures.tileType[i][j]);            
             
-            if (gameState.obs.sensorMask[i][j]) {
+            if (gameState.obs.sensorMask[i][j] != 0) {
                 //Visible tile updates
 
                 currentTile.setType(tileType, state.currentStep, driftDetector->driftFinalized);                

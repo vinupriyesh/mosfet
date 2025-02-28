@@ -1,0 +1,224 @@
+[
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/battle_evaluator.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/battle_evaluator.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/battle_evaluator.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/battle_evaluator.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/control_center.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/control_center.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/control_center.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/control_center.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/drift_detector.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/drift_detector.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/drift_detector.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/drift_detector.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/energy_estimator.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/energy_estimator.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/energy_estimator.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/energy_estimator.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/game_map.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/game_map.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/game_map.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/game_map.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/opponent_tracker.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/opponent_tracker.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/opponent_tracker.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/opponent_tracker.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/pathing.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/pathing.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/pathing.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/pathing.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/relic.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/relic.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/relic.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/relic.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/shuttle.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/shuttle.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/shuttle.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/shuttle.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/roles/agent_role.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/roles/agent_role.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/roles/agent_role.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/roles/agent_role.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/roles/defender_agent_role.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/roles/defender_agent_role.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/roles/defender_agent_role.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/roles/defender_agent_role.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/roles/halo_node_explorer_agent_role.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/roles/halo_node_explorer_agent_role.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/roles/halo_node_explorer_agent_role.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/roles/halo_node_explorer_agent_role.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/roles/halo_node_navigator_agent_role.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/roles/halo_node_navigator_agent_role.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/roles/halo_node_navigator_agent_role.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/roles/halo_node_navigator_agent_role.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/roles/navigator_agent_role.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/roles/navigator_agent_role.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/roles/navigator_agent_role.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/roles/navigator_agent_role.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/roles/random_agent_role.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/roles/random_agent_role.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/roles/random_agent_role.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/roles/random_agent_role.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/roles/relic_miner_agent_role.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/roles/relic_miner_agent_role.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/roles/relic_miner_agent_role.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/roles/relic_miner_agent_role.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/roles/relic_mining_navigator_agent_role.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/roles/relic_mining_navigator_agent_role.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/roles/relic_mining_navigator_agent_role.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/roles/relic_mining_navigator_agent_role.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/roles/trailblazer_agent_role.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/roles/trailblazer_agent_role.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/roles/trailblazer_agent_role.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/roles/trailblazer_agent_role.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/planning/jobs.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/planning/jobs.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/planning/jobs.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/planning/jobs.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/agent/planning/planner.cc.o -c /home/vviruay/work/luxs3/mosfet/agent/planning/planner.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/agent/planning/planner.cc",
+  "output": "CMakeFiles/libmosfet.dir/agent/planning/planner.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/visualizer/visualizer_client.cc.o -c /home/vviruay/work/luxs3/mosfet/visualizer/visualizer_client.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/visualizer/visualizer_client.cc",
+  "output": "CMakeFiles/libmosfet.dir/visualizer/visualizer_client.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/datastructures/constraint_set.cc.o -c /home/vviruay/work/luxs3/mosfet/datastructures/constraint_set.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/datastructures/constraint_set.cc",
+  "output": "CMakeFiles/libmosfet.dir/datastructures/constraint_set.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/datastructures/respawn_registry.cc.o -c /home/vviruay/work/luxs3/mosfet/datastructures/respawn_registry.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/datastructures/respawn_registry.cc",
+  "output": "CMakeFiles/libmosfet.dir/datastructures/respawn_registry.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/main.cc.o -c /home/vviruay/work/luxs3/mosfet/main.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/main.cc",
+  "output": "CMakeFiles/libmosfet.dir/main.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/parser.cc.o -c /home/vviruay/work/luxs3/mosfet/parser.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/parser.cc",
+  "output": "CMakeFiles/libmosfet.dir/parser.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/config.cc.o -c /home/vviruay/work/luxs3/mosfet/config.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/config.cc",
+  "output": "CMakeFiles/libmosfet.dir/config.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/libmosfet.dir/logger.cc.o -c /home/vviruay/work/luxs3/mosfet/logger.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/logger.cc",
+  "output": "CMakeFiles/libmosfet.dir/logger.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/mosfet.dir/main.cc.o -c /home/vviruay/work/luxs3/mosfet/main.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/main.cc",
+  "output": "CMakeFiles/mosfet.dir/main.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-build/googlemock",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googlemock/include -I/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googlemock -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/include -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest -O3 -DNDEBUG -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock.dir/src/gmock-all.cc.o -c /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googlemock/src/gmock-all.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googlemock/src/gmock-all.cc",
+  "output": "_deps/googletest-build/googlemock/CMakeFiles/gmock.dir/src/gmock-all.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-build/googlemock",
+  "command": "/usr/bin/c++  -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googlemock/include -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googlemock -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/include -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest -O3 -DNDEBUG -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gmock_main.dir/src/gmock_main.cc.o -c /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googlemock/src/gmock_main.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googlemock/src/gmock_main.cc",
+  "output": "_deps/googletest-build/googlemock/CMakeFiles/gmock_main.dir/src/gmock_main.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-build/googletest",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/include -I/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest -O3 -DNDEBUG -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest.dir/src/gtest-all.cc.o -c /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/src/gtest-all.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/src/gtest-all.cc",
+  "output": "_deps/googletest-build/googletest/CMakeFiles/gtest.dir/src/gtest-all.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-build/googletest",
+  "command": "/usr/bin/c++  -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/include -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest -O3 -DNDEBUG -std=c++20 -Wall -Wshadow -Wundef -Wno-error=dangling-else -DGTEST_HAS_PTHREAD=1 -fexceptions -Wextra -Wno-unused-parameter -Wno-missing-field-initializers -o CMakeFiles/gtest_main.dir/src/gtest_main.cc.o -c /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/src/gtest_main.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/src/gtest_main.cc",
+  "output": "_deps/googletest-build/googletest/CMakeFiles/gtest_main.dir/src/gtest_main.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build/tests",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet/tests -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -I/home/vviruay/work/luxs3/mosfet/tests/.. -I/home/vviruay/work/luxs3/mosfet -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/include -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/test_parser.dir/test_parser.cc.o -c /home/vviruay/work/luxs3/mosfet/tests/test_parser.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/tests/test_parser.cc",
+  "output": "tests/CMakeFiles/test_parser.dir/test_parser.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build/tests",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet/tests -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -I/home/vviruay/work/luxs3/mosfet/tests/.. -I/home/vviruay/work/luxs3/mosfet -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/include -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/test_pathing.dir/test_pathing.cc.o -c /home/vviruay/work/luxs3/mosfet/tests/test_pathing.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/tests/test_pathing.cc",
+  "output": "tests/CMakeFiles/test_pathing.dir/test_pathing.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build/tests",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet/tests -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -I/home/vviruay/work/luxs3/mosfet/tests/.. -I/home/vviruay/work/luxs3/mosfet -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/include -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/test_constraint_set.dir/test_constraint_set.cc.o -c /home/vviruay/work/luxs3/mosfet/tests/test_constraint_set.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/tests/test_constraint_set.cc",
+  "output": "tests/CMakeFiles/test_constraint_set.dir/test_constraint_set.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build/tests",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet/tests -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -I/home/vviruay/work/luxs3/mosfet/tests/.. -I/home/vviruay/work/luxs3/mosfet -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/include -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/test_energy_estimator.dir/test_energy_estimator.cc.o -c /home/vviruay/work/luxs3/mosfet/tests/test_energy_estimator.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/tests/test_energy_estimator.cc",
+  "output": "tests/CMakeFiles/test_energy_estimator.dir/test_energy_estimator.cc.o"
+},
+{
+  "directory": "/home/vviruay/work/luxs3/mosfet/build/tests",
+  "command": "/usr/bin/c++  -I/home/vviruay/work/luxs3/mosfet/tests -I/home/vviruay/work/luxs3/mosfet/build/_deps/json-src/include -I/home/vviruay/work/luxs3/mosfet/tests/.. -I/home/vviruay/work/luxs3/mosfet -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest/include -isystem /home/vviruay/work/luxs3/mosfet/build/_deps/googletest-src/googletest -O3 -DNDEBUG -std=gnu++20 -o CMakeFiles/test_respawn_registry.dir/test_respawn_registry.cc.o -c /home/vviruay/work/luxs3/mosfet/tests/test_respawn_registry.cc",
+  "file": "/home/vviruay/work/luxs3/mosfet/tests/test_respawn_registry.cc",
+  "output": "tests/CMakeFiles/test_respawn_registry.dir/test_respawn_registry.cc.o"
+}
+]

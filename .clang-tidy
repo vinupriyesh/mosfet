@@ -1,0 +1,3 @@
+Checks: '-*,bugprone-*,-bugprone-narrowing-conversions,-bugprone-easily-swappable-parameters,performance-*,-performance-avoid-endl,clang-analyzer-*'
+WarningsAsErrors: ''
+HeaderFilterRegex: '.*'

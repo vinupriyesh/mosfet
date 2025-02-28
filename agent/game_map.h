@@ -9,7 +9,7 @@
 #include <stack>
 #include <map>
 
-enum Direction {
+enum Direction : std::uint8_t {
     CENTER,
     UP,
     RIGHT,
@@ -35,7 +35,7 @@ inline Direction& operator++(Direction& c) {
     return c; 
 }
 
-enum TileType {
+enum TileType : std::uint8_t {
     UNKNOWN,
     EMPTY,
     NEBULA,
@@ -45,7 +45,7 @@ enum TileType {
 class GameTile {    
 
     private:    
-        static void log(std::string message);
+        static void log(const std::string& message);
         TileType type;
         TileType previousType;
         std::stack<TileType> previousTypes;
@@ -153,7 +153,7 @@ enum RelicDiscoveryStatus {
 struct DerivedGameState {
 
     private:
-        inline void log(std::string message) {
+        inline void log(const std::string& message) {
             Logger::getInstance().log("DerivedGameState -> " + message);
         }
 
@@ -211,7 +211,7 @@ struct DerivedGameState {
 
 class GameMap {
     private:
-        static void log(std::string message);
+        static void log(const std::string& message);
         std::vector<std::vector<GameTile>> map;
         std::vector< std::vector<std::vector<TileType>>* > driftAwareTileType; //<stepId, y, x>
         std::map<int, std::pair<int, int>> opponentBattlePoints; //<tileId, <energyDiff, kills>> +ve energyDiff means we lose less energy than opponent
