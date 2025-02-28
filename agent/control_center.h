@@ -12,6 +12,7 @@
 #include "agent/energy_estimator.h"
 #include "agent/battle_evaluator.h"
 #include "datastructures/respawn_registry.h"
+#include "agent/opponent_tracker.h"
 
 #include <vector>
 #include <string>
@@ -23,6 +24,7 @@ private:
     Planner* planner = nullptr;
     DriftDetector* driftDetector = nullptr;
     EnergyEstimator* energyEstimator = nullptr;
+    OpponentTracker* opponentTracker = nullptr;
     BattleEvaluator* battleEvaluator = nullptr;
 
     RespawnRegistry respawnRegistry;

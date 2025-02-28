@@ -1,3 +1,4 @@
+#include <cstddef>
 #include <iostream>
 #include <cstdlib>
 #include <memory>
@@ -5,6 +6,7 @@
 #include <array>
 
 #include "visualizer_client.h"
+#include "agent/opponent_tracker.h"
 #include "logger.h"
 #include "game_env_config.h"
 #include "config.h"
@@ -18,7 +20,33 @@ struct FileCloser {
     }
 };
 
-void VisualizerClient::log(std::string message) {
+void saveToFile(const std::vector<std::vector<std::vector<double>>>& data, const std::string& filename, size_t index) {    
+    std::ofstream file(filename, std::ios::binary | std::ios::app); // Open in append mode
+    if (!file) {
+        std::cerr << "Error opening file for writing.\n";
+        return;
+    }
+
+    // Write the current index for the 4D array (first dimension)
+    file.write(reinterpret_cast<const char*>(&index), sizeof(index));
+
+    // Write dimensions of the current 3D array
+    size_t dim1 = data.size();
+    file.write(reinterpret_cast<const char*>(&dim1), sizeof(dim1));
+    for (const auto& matrix : data) {
+        size_t dim2 = matrix.size();
+        file.write(reinterpret_cast<const char*>(&dim2), sizeof(dim2));
+        for (const auto& row : matrix) {
+            size_t dim3 = row.size();
+            file.write(reinterpret_cast<const char*>(&dim3), sizeof(dim3));
+            file.write(reinterpret_cast<const char*>(row.data()), dim3 * sizeof(double));
+        }
+    }
+
+    file.close();
+}
+
+void VisualizerClient::log(const std::string& message) {
     Logger::getInstance().log("VisualizerClient -> " + message);
 }
 
@@ -121,8 +149,8 @@ std::string VisualizerClient::getData(std::vector<std::vector<int>> actions) {
     return jsonObject.dump();
 }
 
-VisualizerClient::VisualizerClient(GameMap &gameMap, Shuttle **shuttles, Shuttle **opponentShuttles, std::map<int, Relic *>& relics) 
-                                    : gameMap(gameMap), shuttles(shuttles), opponentShuttles(opponentShuttles), relics(relics) {
+VisualizerClient::VisualizerClient(GameMap &gameMap, Shuttle **shuttles, Shuttle **opponentShuttles, std::map<int, Relic *>& relics, OpponentTracker& opponentTracker) 
+                                    : gameMap(gameMap), shuttles(shuttles), opponentShuttles(opponentShuttles), relics(relics), opponentTracker(opponentTracker), currentInsertIndex(0) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     if (gameEnvConfig.teamId == 0) {
         //We are playing as blue team
@@ -138,7 +166,7 @@ VisualizerClient::VisualizerClient(GameMap &gameMap, Shuttle **shuttles, Shuttle
     }
     
     if (recordingEnabled) {
-        std::string filename = "custom_replay_" + std::to_string(teamId) + ".json";
+        std::string filename = "output/custom_replay_" + std::to_string(teamId) + ".json";
         log_file.open(filename, std::ios::out | std::ios::app);
     }
     if (log_file.is_open()) {
@@ -177,6 +205,8 @@ int VisualizerClient::sendGameData(std::vector<std::vector<int>> actions) {
     if (log_file.is_open()) {
         log_file << data << "," << std::endl;
     }
+
+    saveToFile(opponentTracker.getOpponentPositionProbabilities(), "output/opponent_tracker_"  + std::to_string(teamId) + ".bin", currentInsertIndex++);
 
     if (livePlayEnabled) {
         uploadData(data);

@@ -142,7 +142,7 @@ class GameTile {
         
 };
 
-enum RelicDiscoveryStatus {
+enum RelicDiscoveryStatus : std::uint8_t {
     INIT,
     SEARCHING,
     FOUND,
@@ -221,6 +221,10 @@ class GameMap {
         int width;
         int height;
         DerivedGameState derivedGameState;
+
+        std::vector<ShuttleData*> shuttles;
+        std::vector<ShuttleData*> opponentShuttles;
+
         GameMap(int width, int height);
         void addRelic(Relic* relic, int currentStep, std::vector<int>& haloTileIds);
         bool hasPotentialInvisibleRelicNode(GameTile &gameTile);

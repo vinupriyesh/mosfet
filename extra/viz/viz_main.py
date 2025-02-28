@@ -1,6 +1,7 @@
 import argparse
 from time import sleep
 import pygame
+import struct
 import sys
 import json
 from http.server import BaseHTTPRequestHandler, HTTPServer
@@ -46,33 +47,64 @@ class ReplayHandler:
     def __init__(self, file):
         self.file = file
         self.data = self.load_data()["data"]
+        self.tracker_data = self.load_opponent_tracker_data()
         self.current_frame = 0
 
     def load_data(self):
         with open(self.file, 'r') as f:
             data = json.load(f)
         return data
+    
+    def load_opponent_tracker_data(self):
+        if "custom_replay_0.json" in self.file:
+            filename = self.file.replace("custom_replay_0.json", "opponent_tracker_0.bin")
+        else:
+            filename = self.file.replace("custom_replay_1.json", "opponent_tracker_1.bin")
+
+        data = []
+        with open(filename, "rb") as file:
+            while True:
+                # Read the index (first dimension)
+                index_data = file.read(8)
+                if not index_data:  # End of file
+                    break
+                index = struct.unpack("Q", index_data)[0]
+
+                # Read dimensions of the 3D array
+                dim1 = struct.unpack("Q", file.read(8))[0]
+                matrix = []
+                for _ in range(dim1):
+                    dim2 = struct.unpack("Q", file.read(8))[0]
+                    sub_matrix = []
+                    for _ in range(dim2):
+                        dim3 = struct.unpack("Q", file.read(8))[0]
+                        row = struct.unpack(f"{dim3}d", file.read(dim3 * 8))
+                        sub_matrix.append(row)
+                    matrix.append(sub_matrix)
+                data.append(matrix)
+        return data
 
     def forward(self, increment=1):
         if self.current_frame < len(self.data) - increment - 1:            
             self.current_frame += increment
-            game_state.update_state(self.data[self.current_frame])
-            visualizer.update_display()            
+            self.update_state_and_display()
     
     def backward(self, increment=1):
         if self.current_frame - increment >= 0:
             self.current_frame -= increment
-            game_state.update_state(self.data[self.current_frame])
-            visualizer.update_display()
+            self.update_state_and_display()
     
     def goto_start(self):
         self.current_frame = 0
-        game_state.update_state(self.data[self.current_frame])
-        visualizer.update_display()
+        self.update_state_and_display()
     
     def goto_end(self):
         self.current_frame = len(self.data) - 2
-        game_state.update_state(self.data[self.current_frame])
+        self.update_state_and_display()
+        
+    
+    def update_state_and_display(self):
+        game_state.update_state(self.data[self.current_frame], self.tracker_data[self.current_frame])
         visualizer.update_display()
 
 def run_server(port):

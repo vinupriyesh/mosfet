@@ -1,5 +1,6 @@
 #include "control_center.h"
 #include <iostream>
+#include "agent/opponent_tracker.h"
 #include "logger.h"
 #include "config.h"
 #include "agent/planning/planner.h"
@@ -36,15 +37,18 @@ void ControlCenter::init(GameState& gameState) {
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         shuttles[i] = new Shuttle(i, ShuttleType::player, *gameMap);
         opponentShuttles[i] = new Shuttle(i, ShuttleType::opponent, *gameMap);
+        gameMap->shuttles.push_back(&shuttles[i]->getShuttleData());
+        gameMap->opponentShuttles.push_back(&opponentShuttles[i]->getShuttleData());
     }
 
     haloConstraints = new ConstraintSet();
     planner = new Planner(shuttles, *gameMap);
     driftDetector = new DriftDetector(*gameMap);
     energyEstimator = new EnergyEstimator(*gameMap);
+    opponentTracker = new OpponentTracker(*gameMap, respawnRegistry);
     battleEvaluator = new BattleEvaluator(*gameMap);
 
-    visualizerClientPtr = new VisualizerClient(*gameMap, shuttles, opponentShuttles, relics);
+    visualizerClientPtr = new VisualizerClient(*gameMap, shuttles, opponentShuttles, relics, *opponentTracker);
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
@@ -361,6 +365,7 @@ void ControlCenter::update(GameState& gameState) {
     }
 
     driftDetector->step();
+    opponentTracker->step();
 
     log("Updating the newly identified tile types to drift tile type vector");
 

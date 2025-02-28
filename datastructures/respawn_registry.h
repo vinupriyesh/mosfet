@@ -6,11 +6,13 @@
 class RespawnRegistry {
 
     private:
-        void log(std::string message);
+        void log(const std::string& message);
 
+        // Records = [unitId] -> stepId
         std::unordered_map<int, int> playerUnitRespawnRecord;
         std::unordered_map<int, int> opponentUnitRespawnRecord;
 
+        // Indexes = [stepId] -> unitId
         std::unordered_map<int, int> playerUnitRespawnIndex;
         std::unordered_map<int, int> opponentUnitRespawnIndex;
 
@@ -30,6 +32,8 @@ class RespawnRegistry {
         void reset();
 
         void printUpcomingRespawns(int currentStep);
+
+        bool isOpponentShuttleAlive(int shuttleId, int stepId);
 
         RespawnRegistry(): currentPlayerCooldownStep(0), currentOpponentCooldownStep(0) {};
 };

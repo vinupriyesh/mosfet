@@ -9,7 +9,7 @@ from matplotlib.ticker import ScalarFormatter
 
 def delete_all_files(folder_path):
     # Get a list of all files in the folder
-    files = glob.glob(os.path.join(folder_path, '*'))
+    files = glob.glob(os.path.join(folder_path, '*.png'))
     
     # Iterate through the list and delete each file
     for file in files:

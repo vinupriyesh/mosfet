@@ -28,7 +28,9 @@ class GameState:
         self.unit_sap_range = 0
         self.unit_sensor_range = 0
 
-    def update_state(self, data):
+        self.tracker_data = []
+
+    def update_state(self, data, tracker_data):
         if 'step' not in data:
             self.clear()
             return
@@ -57,3 +59,5 @@ class GameState:
         self.unexplored_frontier = data.get('unexplored_frontier', [])
         self.blue_shuttles_energy = data.get('blue_shuttles_energy', [])
         self.red_shuttles_energy = data.get('red_shuttles_energy', [])
+
+        self.tracker_data = tracker_data

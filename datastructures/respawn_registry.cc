@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 
-void RespawnRegistry::log(std::string message) {
+void RespawnRegistry::log(const std::string& message) {
     Logger::getInstance().log("RespawnRegistry -> " + message);
 }
 
@@ -81,4 +81,11 @@ std::string mapToString(const std::unordered_map<int, int>& map) {
 void RespawnRegistry::printUpcomingRespawns(int currentStep) {
     log("player spawns -> " + mapToString(playerUnitRespawnRecord));
     log("opponent spawns -> " + mapToString(opponentUnitRespawnRecord));
+}
+
+bool RespawnRegistry::isOpponentShuttleAlive(int shuttleId, int stepId) {
+    if (opponentUnitRespawnRecord.find(shuttleId) != opponentUnitRespawnRecord.end()) {
+        return opponentUnitRespawnRecord[shuttleId] <= stepId;
+    }
+    return true;
 }
