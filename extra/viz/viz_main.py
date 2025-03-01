@@ -104,7 +104,7 @@ class ReplayHandler:
         
     
     def update_state_and_display(self):
-        game_state.update_state(self.data[self.current_frame], self.tracker_data[self.current_frame])
+        game_state.update_state(self.data[self.current_frame], self.tracker_data[self.current_frame], visualizer.shuttle_toggle_state)
         visualizer.update_display()
 
 def run_server(port):
@@ -125,6 +125,7 @@ def replay_mode(file: str, visualizer: Visualizer):
 
     replay_handler = ReplayHandler(file)
     visualizer.register_replay_handler(replay_handler)
+    replay_handler.update_state_and_display()
     
 def main():
     parser = argparse.ArgumentParser(description='Vizualization CLI')

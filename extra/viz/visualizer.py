@@ -3,6 +3,8 @@ import sys
 import random
 import time
 
+from game_state import LOWEST_DECIMAL
+
 white = (255, 255, 255)
 black = (0, 0, 0)
 very_light_grey = (220, 220, 200)
@@ -15,7 +17,7 @@ grey_with_transparency = (128, 128, 128, 110)
 energy_green = (0, 136, 41)
 energy_red = (166, 16, 0)
 
-bottom_dialog_offset = 60
+bottom_dialog_offset = 64
 bottom_dialog_padding = 2
 
 
@@ -33,9 +35,9 @@ def draw_dotted_line(surface, color, start_pos, end_pos, width=4, dot_length=6, 
         end_dot = (x1 + dx * (i + dot_length), y1 + dy * (i + dot_length))
         pygame.draw.line(surface, color, start_dot, end_dot, width)
 
-def colorize(base_color, energy_value):
+def colorize(base_color, energy_value, scale=15):
     # Assuming energy_value is between 0 and 1 for positive energy and 0 and -1 for negative energy
-    alpha = int(15 * abs(energy_value))  # Calculate alpha based on energy value
+    alpha = int(scale * abs(energy_value))  # Calculate alpha based on energy value
     return base_color + (alpha,)
 
 class Visualizer:
@@ -45,22 +47,26 @@ class Visualizer:
         self.grid_width, self.grid_height = self.game_state.grid_size
         self.cell_size = 32
         self.screen_width = self.grid_width * self.cell_size
-        self.screen_height = self.grid_height * self.cell_size        
-        self.bottom_dialog_rect = pygame.Rect(bottom_dialog_padding, self.screen_height + bottom_dialog_padding, self.screen_width - 2 * bottom_dialog_padding, bottom_dialog_offset)
+        self.screen_height = self.grid_height * self.cell_size
+        self.right_dialog_rect = pygame.Rect(self.screen_width + bottom_dialog_padding, bottom_dialog_padding, bottom_dialog_offset, self.screen_height + bottom_dialog_offset + bottom_dialog_padding)
+        self.bottom_dialog_rect = pygame.Rect(bottom_dialog_padding, self.screen_height + bottom_dialog_padding, self.screen_width - bottom_dialog_padding, bottom_dialog_offset)
         pygame.init()
-        self.screen = pygame.display.set_mode((self.screen_width, self.screen_height + bottom_dialog_offset + bottom_dialog_padding), pygame.SRCALPHA)
+        self.screen = pygame.display.set_mode((self.screen_width + bottom_dialog_offset + bottom_dialog_padding, self.screen_height + bottom_dialog_offset + bottom_dialog_padding), pygame.SRCALPHA)
         pygame.display.set_caption('LuxS3 Visualizer')
         self.mouse_pos_x = 0
         self.mouse_pos_y = 0
         self.selected_shuttle_id = -1
         self.selected_shuttle_team  = -1 # 0 -> Blue, 1 -> Red, -1 -> None
         self.font = pygame.font.Font(None, 32)
+        self.label_font = pygame.font.Font(None, 16)
         self.asteroid_image = pygame.image.load('img/asteroid.png')
         self.asteroid_image = pygame.transform.scale(self.asteroid_image, (self.cell_size, self.cell_size))
         self.nebula_image = pygame.image.load('img/nebula.png')
         self.nebula_image = pygame.transform.scale(self.nebula_image, (self.cell_size, self.cell_size))
         self.relic_image = pygame.image.load('img/relic.png')
         self.relic_image = pygame.transform.scale(self.relic_image, (self.cell_size, self.cell_size))
+        self.button1_on_image = pygame.image.load('img/button1_on.png')
+        self.button1_off_image = pygame.image.load('img/button1_off.png')
         self.vantage_point_image = pygame.image.load('img/vantage_point.png')
         self.frontier_tile_image = pygame.image.load('img/frontier.png')
         self.frontier_tile_image = pygame.transform.scale(self.frontier_tile_image, (self.cell_size, self.cell_size))
@@ -69,6 +75,9 @@ class Visualizer:
         self.running = True
         self.forward_key_held = False
         self.backward_key_held = False
+
+        self.opponent_tracker_selected = False
+        self.shuttle_toggle_state = [True] * 16
 
         self.asteroid_images = {}
         self.last_update_time = 0
@@ -101,22 +110,47 @@ class Visualizer:
         for x in range(0, self.screen_width, self.cell_size):
             for y in range(0, self.screen_height, self.cell_size):
                 rect = pygame.Rect(x, y, self.cell_size, self.cell_size)
-                if len(self.game_state.energy) > 0:
-                    energy_value = self.game_state.energy[idx]
-                    if energy_value != 0:
-                        color = colorize(energy_green if energy_value > 0 else energy_red, energy_value)
-                        # Create a temporary surface with per-pixel alpha
-                        temp_surface = pygame.Surface((self.cell_size, self.cell_size), pygame.SRCALPHA)
-                        pygame.draw.rect(temp_surface, color, temp_surface.get_rect())
-                        self.screen.blit(temp_surface, rect.topleft)
-                if len(self.game_state.vision) > 0:
-                    vision_value = self.game_state.vision[idx]
-                    if vision_value == 0:
-                        temp_surface = pygame.Surface((self.cell_size, self.cell_size), pygame.SRCALPHA)
-                        pygame.draw.rect(temp_surface, grey_with_transparency, temp_surface.get_rect())
-                        self.screen.blit(temp_surface, rect.topleft)
+                if self.opponent_tracker_selected:
+                    self.draw_opponent_tracker_probabilities(x // self.cell_size, y // self.cell_size, rect)
+                else:
+                    self.draw_energy(idx, rect)
+                self.draw_field_of_view(idx, rect)
                 pygame.draw.rect(self.screen, light_grey, rect, 1)
                 idx += 1
+
+    def draw_opponent_tracker_probabilities(self, x, y, rect):
+        if self.game_state.active_tracker_count > LOWEST_DECIMAL:
+            prob_value = self.game_state.selected_tracker_data[x][y] / self.game_state.active_tracker_count
+
+            if prob_value > 1.0:
+                print(f"Problem more than 1: {prob_value} and {self.game_state.active_tracker_count}")
+                prob_value = 1.0
+
+            if prob_value > LOWEST_DECIMAL:
+                color = colorize(energy_red, prob_value, 200)
+                # Create a temporary surface with per-pixel alpha
+                temp_surface = pygame.Surface((self.cell_size, self.cell_size), pygame.SRCALPHA)
+                pygame.draw.rect(temp_surface, color, temp_surface.get_rect())
+                self.screen.blit(temp_surface, rect.topleft)
+
+
+    def draw_energy(self, idx, rect):
+        if len(self.game_state.energy) > 0:
+            energy_value = self.game_state.energy[idx]
+            if energy_value != 0:
+                color = colorize(energy_green if energy_value > 0 else energy_red, energy_value)
+                # Create a temporary surface with per-pixel alpha
+                temp_surface = pygame.Surface((self.cell_size, self.cell_size), pygame.SRCALPHA)
+                pygame.draw.rect(temp_surface, color, temp_surface.get_rect())
+                self.screen.blit(temp_surface, rect.topleft)
+
+    def draw_field_of_view(self, idx, rect):
+        if len(self.game_state.vision) > 0:
+            vision_value = self.game_state.vision[idx]
+            if vision_value == 0:
+                temp_surface = pygame.Surface((self.cell_size, self.cell_size), pygame.SRCALPHA)
+                pygame.draw.rect(temp_surface, grey_with_transparency, temp_surface.get_rect())
+                self.screen.blit(temp_surface, rect.topleft)
 
     def draw_elements(self):
         self.selected_shuttle_id = -1
@@ -262,7 +296,21 @@ class Visualizer:
         self.screen.blit(halo_surface, (x * self.cell_size, y * self.cell_size))
 
     def draw_tool_bar(self):
-        pygame.draw.rect(self.screen, very_light_grey, self.bottom_dialog_rect)        
+        pygame.draw.rect(self.screen, very_light_grey, self.bottom_dialog_rect)
+        pygame.draw.rect(self.screen, very_light_grey, self.right_dialog_rect)
+
+        # Toggle opponent trackers
+        x = self.grid_width * self.cell_size + bottom_dialog_padding
+        y = bottom_dialog_padding
+        if self.opponent_tracker_selected:
+            self.screen.blit(self.button1_on_image, (x, y))
+        else:
+            self.screen.blit(self.button1_off_image, (x, y))
+        
+        # Draw the label on top of the button
+        label_surface = self.label_font.render("OT", True, (0, 0, 0))
+        label_rect = label_surface.get_rect(center=(x + self.button1_on_image.get_width() // 2, y + self.button1_on_image.get_height() // 2))
+        self.screen.blit(label_surface, label_rect)
 
     def draw_score(self):
         text_surface = self.font.render(f'step: {self.game_state.step}/{self.game_state.match_step}, ' +
@@ -328,6 +376,12 @@ class Visualizer:
         x, y = position
         grid_x, grid_y = x // self.cell_size, y // self.cell_size
         print(f"Shuttle clicked at ({grid_x}, {grid_y})")
+
+        # Opponent tracker toggler
+        if grid_x == 24 and grid_y == 0:
+            self.opponent_tracker_selected = not self.opponent_tracker_selected
+            if self.opponent_tracker_selected:
+                self.game_state.update_opponent_tracker_data(self.shuttle_toggle_state)
     
     def handle_key_down(self, key):
         if key == pygame.K_RIGHT:

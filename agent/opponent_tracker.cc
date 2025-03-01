@@ -2,6 +2,7 @@
 #include "logger.h"
 // #include "metrics.h"
 #include "game_env_config.h"
+#include <iostream>
 #include <string>
 #include <unordered_set>
 
@@ -44,6 +45,14 @@ void OpponentTracker::step() {
     auto& opponentPositionProbabilitiesRef = *opponentPositionProbabilities;
     auto& opponentMaxPossibleEnergiesRef = *opponentMaxPossibleEnergies;
 
+    int possibleMoves[5][2] = {
+        {0, 0},  //CENTER
+        {1, 0}, //RIGHT
+        {-1, 0}, //LEFT
+        {0, 1}, //DOWN
+        {0, -1} //UP
+    };
+
     std::unordered_set<int> visibleOpponents;
     for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
         auto shuttle = gameMap.opponentShuttles[s];
@@ -52,13 +61,13 @@ void OpponentTracker::step() {
             opponentPositionProbabilitiesRef[s][shuttle->getX()][shuttle->getY()] = 1.0;
             opponentMaxPossibleEnergiesRef[s][shuttle->getX()][shuttle->getY()] = shuttle->energy;
             visibleOpponents.insert(s);
-        }
-
-        if (respawnRegistry.getOpponentUnitSpawnStep(s) == state.currentStep) {
+            log("shuttle " + std::to_string(s) + " was found visible with energy" + std::to_string(shuttle->energy));
+        } else if (respawnRegistry.getOpponentUnitSpawnStep(s) == state.currentStep) {
             // Opponent has just spawned
             opponentMaxPossibleEnergiesRef[s][gameEnvConfig.opponentOriginX][gameEnvConfig.opponentOriginY] = 100;
             opponentPositionProbabilitiesRef[s][gameEnvConfig.opponentOriginX][gameEnvConfig.opponentOriginY] = 1.0;
             visibleOpponents.insert(s);
+            log("shuttle " + std::to_string(s) + " was just spawned");
         }
     }
 
@@ -85,44 +94,49 @@ void OpponentTracker::step() {
                 if (std::abs(opponentPositionProbabilitiesCopy[s][x][y] - 0) < LOWEST_DOUBLE && tile.getLastKnownEnergy() <= 0) {
                     // This shuttle has not reached this tile yet even in the previous step.  No point in going further
                     continue;
-                }              
-
-                if (tile.isVisible()) {
-                    //This tile is visible, probability is either 0 or 1
-                    lostProbabilityForShuttle += opponentPositionProbabilitiesCopy[s][x][y];
-                    continue;
-                }                
+                }
                 
-                for (int xNext = x - 1; xNext <= x + 1; ++xNext) {
-                    for (int yNext = y - 1; yNext <= y + 1; ++ yNext) {                        
-                        if (gameMap.isValidTile(xNext, yNext)) {
-                            GameTile& nextTile = gameMap.getTile(x, y);
-                            if (gameMap.getEstimatedType(nextTile, state.currentStep) == TileType::ASTEROID) {
-                                // Opponent couldn't have moved to this tile, it is an asteroid
-                                lostProbabilityForShuttle += opponentPositionProbabilitiesCopy[s][x][y] / 5.0;
-                                continue;
-                            }
+                for (int pmi = 0; pmi < 5; pmi++) {
+                    int xNext = possibleMoves[pmi][0] + x;
+                    int yNext = possibleMoves[pmi][1] + y;
+                    
+                    if (!gameMap.isValidTile(xNext, yNext)) {
+                        // This tile is unreachable
+                        lostProbabilityForShuttle += opponentPositionProbabilitiesCopy[s][x][y] / 5.0;
+                        continue;
+                    }
 
-                            if (nextTile.isVisible()) {
-                                //Opponent couldn't have moved to this tile as it is visible
-                                lostProbabilityForShuttle += opponentPositionProbabilitiesCopy[s][x][y] / 5.0;
-                                continue;
-                            }
+                    GameTile& nextTile = gameMap.getTile(xNext, yNext);
+                    if (gameMap.getEstimatedType(nextTile, state.currentStep) == TileType::ASTEROID && (xNext != x || yNext != y)) {
+                        // Opponent couldn't have moved to this tile, it is an asteroid
+                        lostProbabilityForShuttle += opponentPositionProbabilitiesCopy[s][x][y] / 5.0;
+                        continue;
+                    }
 
-                            int newEnergy = opponentMaxPossibleEnergiesCopy[s][x][y] + nextTile.getLastKnownEnergy();
+                    if (nextTile.isVisible()) {
+                        //Opponent couldn't have moved to this tile as it is visible
+                        lostProbabilityForShuttle += opponentPositionProbabilitiesCopy[s][x][y] / 5.0;
+                        continue;
+                    }
 
-                            if (x != xNext || y != yNext) {
-                                newEnergy = opponentMaxPossibleEnergiesCopy[s][x][y] - gameEnvConfig.unitMoveCost;
-                            }
-                                                        
-                            opponentMaxPossibleEnergiesRef[s][xNext][yNext] = std::max(opponentMaxPossibleEnergiesRef[s][xNext][yNext], newEnergy);
-                            opponentPositionProbabilitiesRef[s][xNext][yNext] += opponentPositionProbabilitiesCopy[s][x][y] / 5.0; // There are 5 possible moves from this tile
+                    int newEnergy = opponentMaxPossibleEnergiesCopy[s][x][y] + nextTile.getLastKnownEnergy();
 
-                            if (opponentPositionProbabilitiesRef[s][xNext][yNext] > LOWEST_DOUBLE && !visitedArray[xNext][yNext]) {
-                                visitedArray[xNext][yNext] = true;
-                                lostProbabilityDistributionCount++;
-                            }
+                    if (x != xNext || y != yNext) {
+                        newEnergy = opponentMaxPossibleEnergiesCopy[s][x][y] - gameEnvConfig.unitMoveCost;
+                        
+                        if (newEnergy < 0) {
+                            // This shuttle cannot move anymore
+                            lostProbabilityForShuttle += opponentPositionProbabilitiesCopy[s][x][y] / 5.0;
+                            continue;
                         }
+                    }
+                                                
+                    opponentMaxPossibleEnergiesRef[s][xNext][yNext] = std::max(opponentMaxPossibleEnergiesRef[s][xNext][yNext], newEnergy);
+                    opponentPositionProbabilitiesRef[s][xNext][yNext] += opponentPositionProbabilitiesCopy[s][x][y] / 5.0; // There are 5 possible moves from this tile
+
+                    if (opponentPositionProbabilitiesRef[s][xNext][yNext] > LOWEST_DOUBLE && !visitedArray[xNext][yNext]) {
+                        visitedArray[xNext][yNext] = true;
+                        lostProbabilityDistributionCount++;
                     }
                 }
 
@@ -135,15 +149,23 @@ void OpponentTracker::step() {
 
         // Now fill the offset to make sum(probability) = 1        
         double offsetValue = lostProbabilityForShuttle / lostProbabilityDistributionCount;
+        double totalProbability = 0.0;
         for (int x = 0; x < gameEnvConfig.mapHeight; ++x) {
             for (int y = 0; y < gameEnvConfig.mapWidth; ++y) {
                 if (opponentPositionProbabilitiesRef[s][x][y] > LOWEST_DOUBLE) {
                     opponentPositionProbabilitiesRef[s][x][y] += offsetValue;
                 }
+                totalProbability += opponentPositionProbabilitiesRef[s][x][y];
             }
         }
 
-        log("shuttle " + std::to_string(s) + " has " + std::to_string(lostProbabilityDistributionCount) + " possibilities");
+        log("shuttle " + std::to_string(s) + " has " + std::to_string(lostProbabilityDistributionCount) + " possibilities, total=" + std::to_string(totalProbability));
+
+        //TODO:  Ideally zero lostProbabilityDistributionCount should have been dead.  After improving the death detector, revisit this to raise some noise if the probability doesn't match
+        if ((totalProbability < 1.0 - LOWEST_DOUBLE || totalProbability > 1.0 + LOWEST_DOUBLE) && lostProbabilityDistributionCount > 0) {
+            log("Problem, the probabilty doesn't sum to 1.0");
+            std::cerr<<"Problem, the probabilty doesn't sum to 1.0"<<std::endl;
+        }
     }
 
     delete oldOpponentPositionProbabilities;
