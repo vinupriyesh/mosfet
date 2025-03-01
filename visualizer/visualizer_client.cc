@@ -138,9 +138,9 @@ std::string VisualizerClient::getData(std::vector<std::vector<int>> actions) {
     // Red is always the enemy player
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
         log("Checking opponent shuttle " + std::to_string(i));
-        if (opponentShuttles[i]->getShuttleData().getX() == -1 || opponentShuttles[i]->getShuttleData().getY() == -1) {
-            continue;
-        }
+        // if (opponentShuttles[i]->getShuttleData().getX() == -1 || opponentShuttles[i]->getShuttleData().getY() == -1) {
+        //     continue;
+        // }
         jsonObject["red_shuttles"].push_back(opponentShuttles[i]->getShuttleData().position);
         jsonObject["red_shuttles_energy"].push_back(opponentShuttles[i]->getShuttleData().lastKnownEnergy);        
     }

@@ -2,6 +2,7 @@ import pygame
 import sys
 import random
 import time
+import matplotlib.colors as mcolors
 
 from game_state import LOWEST_DECIMAL
 
@@ -20,6 +21,20 @@ energy_red = (166, 16, 0)
 bottom_dialog_offset = 64
 bottom_dialog_padding = 2
 
+# Define the color gradient (green/cyan to red/orange)
+color_map = [
+    (0.0, "white"),
+    (0.0001, "yellow"),
+    (0.001, "gold"),
+    (0.01, "darkorange"),
+    (0.05, "sandybrown"),
+    (0.1, "darkred"),
+    (0.5, "rosybrown"),
+    (1.0, "red")
+]
+
+# Create a colormap object
+cmap = mcolors.LinearSegmentedColormap.from_list("heatmap", color_map, N=10000)
 
 def draw_dotted_line(surface, color, start_pos, end_pos, width=4, dot_length=6, space_length=4):
     x1, y1 = start_pos
@@ -39,6 +54,25 @@ def colorize(base_color, energy_value, scale=15):
     # Assuming energy_value is between 0 and 1 for positive energy and 0 and -1 for negative energy
     alpha = int(scale * abs(energy_value))  # Calculate alpha based on energy value
     return base_color + (alpha,)
+
+def get_heatmap_color(value: float) -> tuple:
+    if not (0 <= value <= 1):
+        raise ValueError("Input value should be a float between 0 and 1.")
+
+    # Get the RGBA color for this value
+    rgba_color = cmap(value)
+
+    # Force transparency to 60% opacity (60% opaque means alpha = 0.6, which is 0.6 * 255 ≈ 153)
+    rgba_tuple = (
+        int(rgba_color[0] * 255),
+        int(rgba_color[1] * 255),
+        int(rgba_color[2] * 255),
+        int(0.6 * 255)
+    )
+    return rgba_tuple
+
+print (f'Color of 0.002775 {get_heatmap_color(0.002775)}')
+print (f'Color of 0.02 {get_heatmap_color(0.02)}')
 
 class Visualizer:
     def __init__(self, game_state, response_queue):
@@ -119,19 +153,12 @@ class Visualizer:
                 idx += 1
 
     def draw_opponent_tracker_probabilities(self, x, y, rect):
-        if self.game_state.active_tracker_count > LOWEST_DECIMAL:
-            prob_value = self.game_state.selected_tracker_data[x][y] / self.game_state.active_tracker_count
-
-            if prob_value > 1.0:
-                print(f"Problem more than 1: {prob_value} and {self.game_state.active_tracker_count}")
-                prob_value = 1.0
-
-            if prob_value > LOWEST_DECIMAL:
-                color = colorize(energy_red, prob_value, 200)
-                # Create a temporary surface with per-pixel alpha
-                temp_surface = pygame.Surface((self.cell_size, self.cell_size), pygame.SRCALPHA)
-                pygame.draw.rect(temp_surface, color, temp_surface.get_rect())
-                self.screen.blit(temp_surface, rect.topleft)
+        prob_value = self.game_state.selected_tracker_data[x][y]
+        color = get_heatmap_color(prob_value)
+        # Create a temporary surface with per-pixel alpha
+        temp_surface = pygame.Surface((self.cell_size, self.cell_size), pygame.SRCALPHA)
+        pygame.draw.rect(temp_surface, color, temp_surface.get_rect())
+        self.screen.blit(temp_surface, rect.topleft)
 
 
     def draw_energy(self, idx, rect):
@@ -207,7 +234,10 @@ class Visualizer:
             team_blue = False            
             energy_value = self.game_state.red_shuttles_energy[sid]            
         
-        x, y = position        
+        x, y = position
+
+        if x == -1 or y == -1:
+            return
 
         cell_size = 16 + int (energy_value * 16.0 / 400.0)
         offset = (self.cell_size - cell_size) / 2
@@ -304,13 +334,38 @@ class Visualizer:
         y = bottom_dialog_padding
         if self.opponent_tracker_selected:
             self.screen.blit(self.button1_on_image, (x, y))
+            self.draw_opponent_tracker_drilldown_tool_bar()
         else:
             self.screen.blit(self.button1_off_image, (x, y))
         
-        # Draw the label on top of the button
-        label_surface = self.label_font.render("OT", True, (0, 0, 0))
+        self.paint_label_on_toggle_button(x, y, "OT")
+
+    def draw_opponent_tracker_drilldown_tool_bar(self):
+        x = (self.grid_width + 1) * self.cell_size + bottom_dialog_padding
+        y = bottom_dialog_padding
+
+        if all(self.shuttle_toggle_state):
+            self.screen.blit(self.button1_on_image, (x, y))
+        else:
+            self.screen.blit(self.button1_off_image, (x, y))
+        
+        self.paint_label_on_toggle_button(x, y, "Cl")
+
+        for i in range(0, 16):
+            column =  i%2
+            row = i // 2
+            x = (self.grid_width + column) * self.cell_size + bottom_dialog_padding
+            y = (row + 1) * self.cell_size + bottom_dialog_padding
+
+            btn_img = self.button1_on_image if self.shuttle_toggle_state[i] else self.button1_off_image
+            self.screen.blit(btn_img, (x, y))
+            self.paint_label_on_toggle_button(x, y, f"s{i}")
+
+    def paint_label_on_toggle_button(self, x, y, text):
+        label_surface = self.label_font.render(text, True, (0, 0, 0))
         label_rect = label_surface.get_rect(center=(x + self.button1_on_image.get_width() // 2, y + self.button1_on_image.get_height() // 2))
         self.screen.blit(label_surface, label_rect)
+
 
     def draw_score(self):
         text_surface = self.font.render(f'step: {self.game_state.step}/{self.game_state.match_step}, ' +
@@ -319,7 +374,7 @@ class Visualizer:
                                           True, black)
         self.screen.blit(text_surface, (self.bottom_dialog_rect.x + 5, self.bottom_dialog_rect.y + 5))
 
-        line_2_text = f'({self.mouse_pos_x}, {self.mouse_pos_y}), energy: {self.get_energy(self.mouse_pos_x, self.mouse_pos_y)}'
+        line_2_text = f'({self.mouse_pos_x}, {self.mouse_pos_y}), energy: {self.get_energy(self.mouse_pos_x, self.mouse_pos_y)} | prob: {self.game_state.selected_tracker_data[self.mouse_pos_x][self.mouse_pos_y]}'
         if self.selected_shuttle_id != -1:
             if self.selected_shuttle_team == 0:
                 energy_value = self.game_state.blue_shuttles_energy[self.selected_shuttle_id]
@@ -375,13 +430,34 @@ class Visualizer:
     def handle_click(self, position):
         x, y = position
         grid_x, grid_y = x // self.cell_size, y // self.cell_size
-        print(f"Shuttle clicked at ({grid_x}, {grid_y})")
+        print(f"Cell clicked at ({grid_x}, {grid_y})")
 
         # Opponent tracker toggler
         if grid_x == 24 and grid_y == 0:
             self.opponent_tracker_selected = not self.opponent_tracker_selected
             if self.opponent_tracker_selected:
                 self.game_state.update_opponent_tracker_data(self.shuttle_toggle_state)
+
+        elif self.opponent_tracker_selected and grid_x > 23:
+            self.handle_tracker_toggle_switches(grid_x, grid_y)
+    
+    def handle_tracker_toggle_switches(self, x, y):
+
+        if x == 25 and y == 0: # The cl button
+            if all(self.shuttle_toggle_state):
+                self.shuttle_toggle_state = [False for _ in self.shuttle_toggle_state]
+            else:
+                self.shuttle_toggle_state = [True for _ in self.shuttle_toggle_state]
+        else:
+            col = 0 if x == 24 else 1
+            row = y - 1
+            idx = row * 2 + col
+
+            if row < 8:
+                print(f"Shuttle {idx} toggled")
+                self.shuttle_toggle_state[idx] = not self.shuttle_toggle_state[idx]
+        
+        self.game_state.update_opponent_tracker_data(self.shuttle_toggle_state)
     
     def handle_key_down(self, key):
         if key == pygame.K_RIGHT:

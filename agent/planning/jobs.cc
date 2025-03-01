@@ -233,7 +233,7 @@ std::vector<JobApplication>& JobBoard::getJobApplications() {
     return jobApplications;
 }
 
-void JobBoard::log(std::string message) {
+void JobBoard::log(const std::string& message) {
     Logger::getInstance().log("JobBoard -> " + message);
 }
 

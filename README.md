@@ -74,3 +74,8 @@ STD: 4249.818 steps/s, 66.403 parallel steps/s, 0.0 steps in 0.035s
 - 1784727651 - Short vision, long sap, king of the hill relic spawn
 - 360140489 - Sensor range same as SAP range - 4
 - 704541875 - Nearby relic, empty map
+
+
+## Problem seeds
+
+- 841356742 - Energy node is not narrowed down very late!

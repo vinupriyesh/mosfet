@@ -132,7 +132,7 @@ private:
     std::map<JobType, std::unordered_set<int>> jobTypeToJobIdMap;
 
     std::unordered_set<int> jobDeletionExclusions;
-    void log(std::string message);
+    void log(const std::string& message);
 
     void sortJobApplicationsStrategy0(GameMap& gameMap);
     void sortJobApplicationsStrategy1(GameMap& gameMap);

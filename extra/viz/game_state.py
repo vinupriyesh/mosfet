@@ -32,7 +32,6 @@ class GameState:
 
         self.tracker_data = []
         self.selected_tracker_data = [[0 for _ in range(self.grid_size[0])] for _ in range(self.grid_size[1])]
-        self.active_tracker_count = 0.0
 
     def update_state(self, data, tracker_data, shuttle_toggle_state):
         if 'step' not in data:
@@ -69,18 +68,19 @@ class GameState:
 
     def update_opponent_tracker_data(self, shuttle_toggle_state):
 
-        shuttle_has_data = [False] * 16
-        self.active_tracker_count = 0.0
-
+        highest_value = 0.0
         for x in range(0, self.grid_size[0]):
             for y in range(0, self.grid_size[1]):
                 self.selected_tracker_data[x][y] = 0.0
                 for s in range(0, 16):
                     if shuttle_toggle_state[s]:
-                        self.selected_tracker_data[x][y] += self.tracker_data[s][x][y]
-                        if not shuttle_has_data[s] and self.tracker_data[s][x][y] > LOWEST_DECIMAL :
-                            self.active_tracker_count += 1.0
-                            shuttle_has_data[s] = True
+                        self.selected_tracker_data[x][y] = max(self.tracker_data[s][x][y], self.selected_tracker_data[x][y])
+                if self.selected_tracker_data[x][y] > highest_value:
+                    highest_value = self.selected_tracker_data[x][y]
+        
+        # for x in range(0, self.grid_size[0]):
+        #     for y in range(0, self.grid_size[1]):
+        #         self.selected_tracker_data[x][y] /= highest_value
         
 
             
