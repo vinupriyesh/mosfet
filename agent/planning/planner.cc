@@ -3,13 +3,14 @@
 #include <unordered_set>
 #include "game_env_config.h"
 
-void Planner::log(std::string message) {
+void Planner::log(const std::string& message) {
     Logger::getInstance().log("Planner -> " + message);
 }
 
 void Planner::populateJobs(JobBoard& jobBoard) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
+    auto& opponentPositionProbabilities = opponentTracker.getOpponentPositionProbabilities();
 
     int jobIdCounter = 0;
     for (int x = 0; x < gameEnvConfig.mapWidth; ++x) {
@@ -47,11 +48,8 @@ void Planner::populateJobs(JobBoard& jobBoard) {
                     
                     for (int x = job->targetX - 1; x <= job->targetX + 1; ++x) {
                         for (int y = job->targetY - 1; y <= job->targetY + 1; ++y) {
-                            if (gameMap.isValidTile(x, y)) {
-                                GameTile& tile = gameMap.getTile(x, y);
-                                if (tile.isOpponentOccupied()) {
-                                    job->allOpponentPositions.push_back(std::make_pair(x, y));
-                                }
+                            if (gameMap.isValidTile(x, y) && opponentTracker.isOpponentOccupied(x, y)) {
+                                job->allOpponentPositions.push_back(std::make_pair(x, y));
                             }
                         }
                     }

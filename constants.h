@@ -3,6 +3,8 @@
 
 const double LOWEST_DOUBLE = 1e-9;
 
+const int UNIT_SPAWN_ENERGY = 100;
+
 const int POSSIBLE_MOVE_SIZE = 5;
 const int POSSIBLE_MOVES[5][2] = {
     {0, 0},  //CENTER

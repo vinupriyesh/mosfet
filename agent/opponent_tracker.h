@@ -25,6 +25,8 @@ class OpponentTracker {
         std::vector<std::vector<std::vector<double>>>& getOpponentPositionProbabilities();
         std::vector<std::vector<std::vector<int>>>& getOpponentMaxPossibleEnergies();
 
+        bool isOpponentOccupied(int x, int y);
+
         ~OpponentTracker();
 };
 

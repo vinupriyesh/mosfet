@@ -121,9 +121,9 @@ JobApplication& JobApplication::operator=(JobApplication&& other) noexcept {
         stepsNeededToExecute = other.stepsNeededToExecute;
         energyNeededToExecute = other.energyNeededToExecute;
         priority = other.priority;
-        shuttleData = std::move(other.shuttleData);
+        shuttleData = other.shuttleData;
         bestPlan = std::move(other.bestPlan);
-        job = std::move(other.job);
+        job = other.job;
     }
     return *this;
 }

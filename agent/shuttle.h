@@ -34,7 +34,7 @@ public:
     bool isVisible();
     std::vector<int> act();
     
-    void log(std::string message);
+    void log(const std::string& message);
     void updateUnitsData(std::vector<int> position, int energy, int currentStep);
     void updateVisibility(bool isVisible);
 

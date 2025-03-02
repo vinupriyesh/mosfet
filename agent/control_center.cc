@@ -1,6 +1,7 @@
 #include "control_center.h"
 #include <iostream>
 #include "agent/opponent_tracker.h"
+#include "agent/shuttle_energy_tracker.h"
 #include "logger.h"
 #include "config.h"
 #include "agent/planning/planner.h"
@@ -41,12 +42,13 @@ void ControlCenter::init(GameState& gameState) {
         gameMap->opponentShuttles.push_back(&opponentShuttles[i]->getShuttleData());
     }
 
-    haloConstraints = new ConstraintSet();
-    planner = new Planner(shuttles, *gameMap);
+    haloConstraints = new ConstraintSet();    
     driftDetector = new DriftDetector(*gameMap);
     energyEstimator = new EnergyEstimator(*gameMap);
     opponentTracker = new OpponentTracker(*gameMap, respawnRegistry);
     battleEvaluator = new BattleEvaluator(*gameMap, *opponentTracker);
+    planner = new Planner(shuttles, *gameMap, *opponentTracker);
+    shuttleEnergyTracker = new ShuttleEnergyTracker(*gameMap, *opponentTracker, respawnRegistry);
 
     visualizerClientPtr = new VisualizerClient(*gameMap, shuttles, opponentShuttles, relics, *opponentTracker);
 
@@ -450,6 +452,10 @@ void ControlCenter::update(GameState& gameState) {
         std::cerr<<"Problem: Team points delta < vantage points occupied"<<std::endl;
     }
 
+    log("Calculating previous step losses");
+    shuttleEnergyTracker->step();
+
+    log("Tracking opponent units");
     opponentTracker->step();
 
     log ("Computing battle points");
@@ -497,6 +503,7 @@ ControlCenter::~ControlCenter() {
     delete driftDetector;
     delete energyEstimator;
     delete battleEvaluator;
+    delete shuttleEnergyTracker;
 }
 
 

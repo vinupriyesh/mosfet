@@ -252,3 +252,16 @@ std::vector<std::vector<std::vector<double>>>& OpponentTracker::getOpponentPosit
 std::vector<std::vector<std::vector<int>>>& OpponentTracker::getOpponentMaxPossibleEnergies() {
     return *opponentMaxPossibleEnergies;
 }
+
+
+bool OpponentTracker::isOpponentOccupied(int x, int y){
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    auto probabilities = getOpponentPositionProbabilities();
+    for (int s = 0; s<gameEnvConfig.maxUnits;s++) {
+        if (probabilities[s][x][y] > 1.0 - LOWEST_DOUBLE && probabilities[s][x][y] < 1.0 + LOWEST_DOUBLE) {
+            return true;
+        }
+    }
+
+    return false;
+}
