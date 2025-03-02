@@ -1,10 +1,11 @@
 #ifndef SHUTTLE_DATA_H
 #define SHUTTLE_DATA_H
 
+#include <cstdint>
 #include <vector>
 #include <sstream>
 
-enum ShuttleType {
+enum ShuttleType : std::uint8_t {
     player,
     opponent
 };

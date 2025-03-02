@@ -67,20 +67,15 @@ class GameState:
         self.update_opponent_tracker_data(shuttle_toggle_state)
 
     def update_opponent_tracker_data(self, shuttle_toggle_state):
-
-        highest_value = 0.0
         for x in range(0, self.grid_size[0]):
             for y in range(0, self.grid_size[1]):
-                self.selected_tracker_data[x][y] = 0.0
+                p_not_shuttle = 1.0
                 for s in range(0, 16):
                     if shuttle_toggle_state[s]:
-                        self.selected_tracker_data[x][y] = max(self.tracker_data[s][x][y], self.selected_tracker_data[x][y])
-                if self.selected_tracker_data[x][y] > highest_value:
-                    highest_value = self.selected_tracker_data[x][y]
+                        p_not_shuttle *= (1.0 -self.tracker_data[s][x][y])
+                self.selected_tracker_data[x][y] = 1.0 - p_not_shuttle
         
-        # for x in range(0, self.grid_size[0]):
-        #     for y in range(0, self.grid_size[1]):
-        #         self.selected_tracker_data[x][y] /= highest_value
+        
         
 
             

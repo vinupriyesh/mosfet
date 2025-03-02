@@ -36,17 +36,14 @@ void Planner::populateJobs(JobBoard& jobBoard) {
                 jobBoard.addJob(navigatorJob);
             }
 
-            // if (currentTile.isOpponentOccupied()) {
-            //     DefenderJob* job = new DefenderJob(jobIdCounter++, x, y);
-            //     log("Created Defender job at " + std::to_string(x) + ", " + std::to_string(y));
-            //     jobBoard.addJob(job);
-            // }
             if (gameMap.getOpponentBattlePoints().find(currentTileId) != gameMap.getOpponentBattlePoints().end()) {
                 auto& battlePoint = gameMap.getOpponentBattlePoints()[currentTileId];
                 if (battlePoint.second > 0 || battlePoint.first > gameEnvConfig.unitSapCost/4) {
                     DefenderJob* job = new DefenderJob(jobIdCounter++, x, y);
                     log("Created Defender job at " + std::to_string(x) + ", " + std::to_string(y));
                     jobBoard.addJob(job);
+                    job->kills = battlePoint.second;
+                    job->opponentEneryLoss = battlePoint.first;
                     
                     for (int x = job->targetX - 1; x <= job->targetX + 1; ++x) {
                         for (int y = job->targetY - 1; y <= job->targetY + 1; ++y) {

@@ -46,7 +46,7 @@ void ControlCenter::init(GameState& gameState) {
     driftDetector = new DriftDetector(*gameMap);
     energyEstimator = new EnergyEstimator(*gameMap);
     opponentTracker = new OpponentTracker(*gameMap, respawnRegistry);
-    battleEvaluator = new BattleEvaluator(*gameMap);
+    battleEvaluator = new BattleEvaluator(*gameMap, *opponentTracker);
 
     visualizerClientPtr = new VisualizerClient(*gameMap, shuttles, opponentShuttles, relics, *opponentTracker);
 
@@ -327,15 +327,6 @@ void ControlCenter::update(GameState& gameState) {
                 break;
             }
         }
-    }    
-
-    log ("Computing battle points");
-    battleEvaluator->clear();
-    for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
-        for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
-            battleEvaluator->computeTeamBattlePoints(i, j);
-            battleEvaluator->computeOpponentBattlePoints(i, j);
-        }
     }
 
     log("Detecting drift");
@@ -364,8 +355,7 @@ void ControlCenter::update(GameState& gameState) {
         energyEstimator->updateEnergyNodes();
     }
 
-    driftDetector->step();
-    opponentTracker->step();
+    driftDetector->step();    
 
     log("Updating the newly identified tile types to drift tile type vector");
 
@@ -442,7 +432,7 @@ void ControlCenter::update(GameState& gameState) {
     for (auto& vantagePoint : haloConstraints->identifiedVantagePoints) {
         int x = vantagePoint % gameEnvConfig.mapWidth;
         int y = vantagePoint / gameEnvConfig.mapWidth;
-        log("Marking vantage point at " + std::to_string(x) + ", " + std::to_string(y));
+        // log("Marking vantage point at " + std::to_string(x) + ", " + std::to_string(y));
         GameTile& currentTile = gameMap->getTile(x, y);
 
         currentTile.setVantagePoint(true);
@@ -460,6 +450,16 @@ void ControlCenter::update(GameState& gameState) {
         std::cerr<<"Problem: Team points delta < vantage points occupied"<<std::endl;
     }
 
+    opponentTracker->step();
+
+    log ("Computing battle points");
+    battleEvaluator->clear();
+    for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
+        for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
+            battleEvaluator->computeTeamBattlePoints(i, j);
+            battleEvaluator->computeOpponentBattlePoints(i, j);
+        }
+    }
 
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);

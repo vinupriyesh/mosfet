@@ -26,12 +26,12 @@ class VisualizerClient {
 
         static void log(const std::string& message);
         std::string exec(const char* cmd);
-        std::string getData(std::vector<std::vector<int>> actions);
-        std::string uploadData(std::string data);
+        std::string getData(const std::vector<std::vector<int>>& actions);
+        std::string uploadData(const std::string& data);
 
     public:
         VisualizerClient(GameMap& gameMap, Shuttle** shuttles, Shuttle** oppponentShuttles, std::map<int, Relic*>& relics, OpponentTracker& opponentTracker);
-        int sendGameData(std::vector<std::vector<int>> results);
+        int sendGameData(const std::vector<std::vector<int>>& results);
         ~VisualizerClient();
 };
 

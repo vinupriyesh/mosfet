@@ -67,7 +67,7 @@ std::string VisualizerClient::exec(const char* cmd) {
     return result;
 }
 
-std::string VisualizerClient::getData(std::vector<std::vector<int>> actions) {
+std::string VisualizerClient::getData(const std::vector<std::vector<int>>& actions) {
     // Implement the function to return the required data as a JSON string
     // return "{\"grid_size\": [24, 24], \"asteroids\": [[0,0], [0,5],[20,5]], \"blue_shuttles\": [[3,0], [7,5]], \"red_shuttles\": [[4,3], [9,5]]}";
     log("Collecting data");
@@ -174,7 +174,7 @@ VisualizerClient::VisualizerClient(GameMap &gameMap, Shuttle **shuttles, Shuttle
     }
 }
 
-std::string VisualizerClient::uploadData(std::string data) {
+std::string VisualizerClient::uploadData(const std::string& data) {
     if (!livePlayEnabled) {
         return "";
     }
@@ -192,7 +192,7 @@ std::string VisualizerClient::uploadData(std::string data) {
     return "";
 }
 
-int VisualizerClient::sendGameData(std::vector<std::vector<int>> actions) {
+int VisualizerClient::sendGameData(const std::vector<std::vector<int>>& actions) {
     if (!livePlayEnabled && !recordingEnabled) {
         return 0;
     }

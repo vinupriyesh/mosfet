@@ -2,11 +2,11 @@
 #include "logger.h"
 // #include "metrics.h"
 #include "game_env_config.h"
+#include "symmetry_util.h"
 #include <iostream>
 #include <string>
 #include <unordered_set>
-
-const double LOWEST_DOUBLE = 1e-9;
+#include "constants.h"
 
 void OpponentTracker::log(const std::string& message) {
     Logger::getInstance().log("OpponentTracker -> " + message);
@@ -24,6 +24,10 @@ void OpponentTracker::initArrays() {
 
     opponentMaxPossibleEnergies = new std::vector<std::vector<std::vector<int>>>(
         gameEnvConfig.maxUnits, std::vector<std::vector<int>>(gameMap.width, std::vector<int>(gameMap.height, 0))
+    );
+
+    atleastOneShuttleProbabilities = new std::vector<std::vector<double>>(
+        gameMap.width, std::vector<double>(gameMap.height, 0.0)
     );
 }
 
@@ -45,18 +49,11 @@ void OpponentTracker::step() {
     auto& opponentPositionProbabilitiesRef = *opponentPositionProbabilities;
     auto& opponentMaxPossibleEnergiesRef = *opponentMaxPossibleEnergies;
 
-    int possibleMoves[5][2] = {
-        {0, 0},  //CENTER
-        {1, 0}, //RIGHT
-        {-1, 0}, //LEFT
-        {0, 1}, //DOWN
-        {0, -1} //UP
-    };
 
     std::unordered_set<int> visibleOpponents;
     for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
         auto shuttle = gameMap.opponentShuttles[s];
-        if (shuttle->visible) {
+        if (shuttle->visible && !shuttle->ghost) {
             // Opponent shuttle is visible
             opponentPositionProbabilitiesRef[s][shuttle->getX()][shuttle->getY()] = 1.0;
             opponentMaxPossibleEnergiesRef[s][shuttle->getX()][shuttle->getY()] = shuttle->energy;
@@ -96,9 +93,9 @@ void OpponentTracker::step() {
                     continue;
                 }
                 
-                for (int pmi = 0; pmi < 5; pmi++) {
-                    int xNext = possibleMoves[pmi][0] + x;
-                    int yNext = possibleMoves[pmi][1] + y;
+                for (int pmi = 0; pmi < POSSIBLE_MOVE_SIZE; pmi++) {
+                    int xNext = POSSIBLE_MOVES[pmi][0] + x;
+                    int yNext = POSSIBLE_MOVES[pmi][1] + y;
                     
                     if (!gameMap.isValidTile(xNext, yNext)) {
                         // This tile is unreachable
@@ -155,7 +152,7 @@ void OpponentTracker::step() {
                 if (opponentPositionProbabilitiesRef[s][x][y] > LOWEST_DOUBLE) {
                     opponentPositionProbabilitiesRef[s][x][y] += offsetValue;
                 }
-                totalProbability += opponentPositionProbabilitiesRef[s][x][y];
+                totalProbability += opponentPositionProbabilitiesRef[s][x][y];                
             }
         }
 
@@ -171,14 +168,87 @@ void OpponentTracker::step() {
     delete oldOpponentPositionProbabilities;
     delete oldOpponentMaxPossibleEnergies;
 
+    computeAtleastOneShuttleProbabilities();    
+
     auto end = std::chrono::high_resolution_clock::now();
     auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
     // Metrics::getInstance().add("opponent_tracker_step", duration.count());
     log("Time taken for opponent_tracker_step " + std::to_string(duration.count()));
 }
 
+void OpponentTracker::computeAtleastOneShuttleProbabilities() {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    auto& positionProbabilities = *opponentPositionProbabilities;
+    auto& atleastOneShuttleProbabilitiesRef = * atleastOneShuttleProbabilities;
+
+    int opponentOpportunities = 0;
+    int opponentExploiting = 0;
+    int opponentConfirmedPoints = 0;
+
+    std::unordered_set<int> opponentOpportunitiesTiles;
+
+    for (int x = 0; x < gameEnvConfig.mapHeight; ++x) {
+        for (int y = 0; y < gameEnvConfig.mapWidth; ++y) {
+            double pNotShuttle = 1.0;
+            for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
+                pNotShuttle *= positionProbabilities[s][x][y];
+            }
+            atleastOneShuttleProbabilitiesRef[x][y] = 1.0 - pNotShuttle;
+
+            // Count vantage points and halo tiles
+            GameTile& tile = gameMap.getTile(x, y);
+            if (tile.isHaloTile() || tile.isVantagePoint()) {
+                if (!tile.isVisible()) {
+                    opponentOpportunities++;
+                    opponentOpportunitiesTiles.insert(tile.getId(gameMap.width));
+                } else if (tile.isOpponentOccupied()) {
+                    opponentExploiting++;
+
+                    if (tile.isVantagePoint()) {
+                        opponentConfirmedPoints++;
+                    }
+                }
+            }
+        }
+    }
+
+    int opponentTeamPointsDelta = gameMap.derivedGameState.opponentTeamPointsDelta;
+
+    int outstandingPoints = opponentTeamPointsDelta - opponentConfirmedPoints;
+
+    if (outstandingPoints < 0) {
+        log("Problem: opponent outstanding points negative " + std::to_string(opponentTeamPointsDelta) + ", " + std::to_string(opponentConfirmedPoints));
+        std::cerr<<"Problem: opponent outstanding points negative "<<std::endl;
+    }
+
+    double probabilityDistribution = static_cast<double>(outstandingPoints) / static_cast<double>(opponentOpportunities);
+
+    if (probabilityDistribution < 1.0 + LOWEST_DOUBLE && probabilityDistribution > 1.0 - LOWEST_DOUBLE) {
+        log("Voila! can snipe the opponent now");
+    }    
+
+    if (gameMap.derivedGameState.isThereAHuntForRelic()) {
+        for (int tileId : opponentOpportunitiesTiles) {
+            int x, y;
+            symmetry_utils::toXY(tileId, x, y);
+
+            //TODO: Back-propagate this probability to the positionProbabilities
+            atleastOneShuttleProbabilitiesRef[x][y] = probabilityDistribution;
+        }
+    }
+}
+
+OpponentTracker::~OpponentTracker() {
+    delete opponentPositionProbabilities;
+    delete opponentMaxPossibleEnergies;
+    delete atleastOneShuttleProbabilities;
+}
 
 
 std::vector<std::vector<std::vector<double>>>& OpponentTracker::getOpponentPositionProbabilities() {
     return *opponentPositionProbabilities;
+}
+
+std::vector<std::vector<std::vector<int>>>& OpponentTracker::getOpponentMaxPossibleEnergies() {
+    return *opponentMaxPossibleEnergies;
 }

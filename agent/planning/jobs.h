@@ -19,9 +19,9 @@ const int PRIORITY_HALO_NODE_NAVIGATOR = 2;
 const int PRIORITY_TRAILBLAZER_NAVIGATOR = 1;
 const int PRIORITY_RANDOM = 0;
 
-const int JOB_PRIORITY_MULTIPLIER = 100;
+const int JOB_PRIORITY_MULTIPLIER = 1000;
 
-enum JobType {
+enum JobType : std::uint8_t {
     RELIC_MINER,
     HALO_NODE_EXPLORER,
     DEFENDER,
@@ -79,18 +79,20 @@ struct HaloNodeExplorerJob : Job {
 struct DefenderJob : Job {
     DefenderJob(int id, int opponentPositionX, int opponentPositionY);
     std::vector<std::pair<int, int>> allOpponentPositions;
+    int kills;
+    int opponentEneryLoss;
 };
 
 //----------------------------------------------
 
-enum JobApplicationStatus {
+enum JobApplicationStatus : std::uint8_t {
     APPLIED,
     ACCEPTED,
     SHUTTLE_BUSY,
     TARGET_BUSY
 };
 
-enum JobApplicationAdditionalDetailsKey {
+enum JobApplicationAdditionalDetailsKey : std::uint8_t {
     ADDITIONAL_TARGETS
 };
 
@@ -103,6 +105,7 @@ private:
 public:
     int id;
     int priority;
+    
     ShuttleData* shuttleData;
     std::vector<int> bestPlan;
     Job* job;
