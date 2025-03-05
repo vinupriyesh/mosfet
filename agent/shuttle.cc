@@ -15,6 +15,7 @@ void Shuttle::log(const std::string& message) {
 void Shuttle::updateUnitsData(std::vector<int> position, int energy, int timestep) {
     this->shuttleData.previousPosition = this->shuttleData.position;
     this->shuttleData.position = std::move(position);
+    this->shuttleData.previousEnergy = this->shuttleData.energy;
     this->shuttleData.energy = energy;
     if (energy < 0) {
         this->shuttleData.ghost = true;
@@ -37,6 +38,7 @@ bool Shuttle::isVisible(){
 }
 
 void Shuttle::updateVisibility(bool isVisible) {
+    this->shuttleData.previouslyVisible = this->shuttleData.visible;
     this->shuttleData.visible = isVisible;
 }
 

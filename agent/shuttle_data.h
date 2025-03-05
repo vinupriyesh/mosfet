@@ -6,8 +6,8 @@
 #include <sstream>
 
 enum ShuttleType : std::uint8_t {
-    player,
-    opponent
+    PLAYER,
+    OPPONENT
 };
 
 struct ShuttleData {
@@ -15,7 +15,9 @@ struct ShuttleData {
     int energy;
     int lastKnownEnergy;
     int lastEnergyUpdateTime;
+    int previousEnergy;    
     bool visible;
+    bool previouslyVisible;
     bool ghost;
     ShuttleType type;
 
@@ -23,17 +25,29 @@ struct ShuttleData {
     std::vector<int> position = {-1, -1};
 
     ShuttleData(int id, ShuttleType type): id(id), type(type),
-        visible(false), ghost(false) {};
+        visible(false), ghost(true), previouslyVisible(false), energy(0), previousEnergy(0), lastKnownEnergy(0), lastEnergyUpdateTime(0) {};
 
-    int getX() {
+    int getX() const{
         return position[0];
     }
 
-    int getY() {
+    int getY() const {
         return position[1];
     }
 
-    std::string to_string() {
+    int getPreviousX() const{
+        return previousPosition[0];
+    }
+
+    int getPreviousY() const {
+        return previousPosition[1];
+    }
+
+    bool hasMoved() const {
+        return position[0] != previousPosition[0] || position[1] != previousPosition[1];
+    }
+
+    std::string to_string() const {
         std::ostringstream ss;
         ss << "ShuttleData: id=" << id << ", energy=" << energy << ", visible=" << visible << ", ghost=" << ghost << ", type=" << type
               << ", position=(" << position[0] << ", " << position[1] << ")";

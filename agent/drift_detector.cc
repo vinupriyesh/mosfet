@@ -188,6 +188,14 @@ void DriftDetector::estimateTileTypesforFinalizedDrift() {
     }
 
     std::vector<std::vector<TileType>>* currentTileTypes = prepareCurrentTileTypes();
+
+    //Backfill the current step with the known values
+    for (int i = 0; i < state.currentStep;i++) {
+        //Note: We are not estimating the previous drifts.  Expecting the drift detector to detect the drift in first attempt, else this is flawed!
+        driftAwareTileType[i] = currentTileTypes;
+    }
+    
+    //Forecast the future
     for (int i = state.currentStep; i <  config.matchCountPerEpisode * (config.maxStepsInMatch + 1); i++) {
         auto& possibleSpeedsThisStep = stepToDriftSpeedMap[i];
 

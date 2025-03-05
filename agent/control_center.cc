@@ -36,8 +36,8 @@ void ControlCenter::init(GameState& gameState) {
     gameMap->derivedGameState.relicDiscoveryStatus.resize(gameEnvConfig.matchCountPerEpisode, RelicDiscoveryStatus::INIT);
 
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
-        shuttles[i] = new Shuttle(i, ShuttleType::player, *gameMap);
-        opponentShuttles[i] = new Shuttle(i, ShuttleType::opponent, *gameMap);
+        shuttles[i] = new Shuttle(i, ShuttleType::PLAYER, *gameMap);
+        opponentShuttles[i] = new Shuttle(i, ShuttleType::OPPONENT, *gameMap);
         gameMap->shuttles.push_back(&shuttles[i]->getShuttleData());
         gameMap->opponentShuttles.push_back(&opponentShuttles[i]->getShuttleData());
     }
@@ -99,14 +99,14 @@ void ControlCenter::update(GameState& gameState) {
             state.relicDiscoveryStatus[state.currentMatch] = RelicDiscoveryStatus::SEARCHING;
         }
         respawnRegistry.reset();
-    }
 
-    if (state.currentMatchStep == 1) {
         for (int i = 0; i < gameEnvConfig.maxUnits; i ++) {
-            respawnRegistry.pushPlayerUnit(i, state.currentStep);
-            respawnRegistry.pushOpponentUnit(i, state.currentStep);
+            respawnRegistry.pushPlayerUnit(i, state.currentMatchStep);
+            respawnRegistry.pushOpponentUnit(i, state.currentMatchStep);
         }
     }
+
+    respawnRegistry.step(state.currentMatchStep);
 
     Metrics::getInstance().add("points", state.teamPoints);
     Metrics::getInstance().add("opponentPoints", state.opponentTeamPoints);
@@ -141,12 +141,8 @@ void ControlCenter::update(GameState& gameState) {
             shuttleTile.setVisited(true, state.currentStep);
         }
 
-        if (shuttles[i]->isVisible() &&  shuttles[i]->isGhost()) {
-            respawnRegistry.pushPlayerUnit(i, state.currentStep - 1); // TODO: Only sap deaths will need -1, others will be without -1
-        }
-
         if (opponentShuttles[i]->isVisible() && opponentShuttles[i]->isGhost()) {
-            respawnRegistry.pushOpponentUnit(i, state.currentStep - 1); // TODO: Only sap deaths will need -1, others will be without -1
+            respawnRegistry.pushOpponentUnit(i, state.currentMatchStep);
         }
     }
 
@@ -290,6 +286,26 @@ void ControlCenter::update(GameState& gameState) {
 
     if (state.allTilesExplored) {
         log("All tiles explored :)");
+    }
+
+    log("Identify nebula tiles using the invisibility data");
+
+    if (state.currentMatchStep > 1) { // There is a bug in the environment, it doesn't show the nebula visibility mask properly in step 1! See seed 245923829
+        for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
+            if (shuttles[s]->isVisible()) {
+                auto& shuttle = shuttles[s]->getShuttleData();
+                for (int x = shuttle.getX() - gameEnvConfig.unitSensorRange; x <= shuttle.getX() + gameEnvConfig.unitSensorRange; x++) {
+                    for (int y = shuttle.getY() - gameEnvConfig.unitSensorRange; y <= shuttle.getY() + gameEnvConfig.unitSensorRange; y++) {
+                        if (gameMap->isValidTile(x, y)) {
+                            GameTile& currentTile = gameMap->getTile(x, y);
+                            if (currentTile.getType() == TileType::UNKNOWN) {
+                                currentTile.setType(TileType::NEBULA, state.currentStep, driftDetector->driftFinalized);
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
 
     log("Check if all tiles are explored for relic discovery");    

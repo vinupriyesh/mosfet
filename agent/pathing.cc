@@ -1,10 +1,11 @@
 
 #include <limits>
 #include "agent/pathing.h"
+#include "agent/game_map.h"
 #include "game_env_config.h"
 
 
-void Pathing::log(std::string message) {
+void Pathing::log(const std::string& message) {
     Logger::getInstance().log("Pathing -> " + message);
 }
 
@@ -25,7 +26,7 @@ float Pathing::getCost(GameTile &neighbor) {
         }
 
         if (neighbor.getType() == TileType::NEBULA) {
-            energyGain -= GameEnvConfig::getInstance().nebulaTileEnergyReduction;
+            energyGain -= gameMap.derivedGameState.nebulaTileEnergyReduction;
         }
 
         return 10 + GameEnvConfig::getInstance().unitMoveCost - energyGain; // EnergyGainOffset + UnitMoveCost - EnergyGainInNewTile

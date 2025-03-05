@@ -96,6 +96,7 @@ class GameTile {
         bool isForcedRegularTile() { return forcedRegularTile; };
         bool isOccupied();
         bool isOpponentOccupied();
+        int getCumulativeOpponentEnergy();        
         int getLastVisitedTime() { return lastVisitedTime; };
         int getLastExploredTime() { return lastExploredTime; };
         TileType getType() const;
@@ -180,6 +181,12 @@ struct DerivedGameState {
         float unitSapDropOffFactor = 0.25f;
         bool unitSapDropOffFactorSet = false;
 
+        float unitEnergyVoidFactor = 0.0625f;
+        bool unitEnergyVoidFactorSet = false;
+
+        int nebulaTileEnergyReduction = 0; //Not using 25 to promote exploration
+        bool nebulaTileEnergyReductionSet = false;
+
         std::vector<RelicDiscoveryStatus> relicDiscoveryStatus;
 
         inline bool isThereAHuntForRelic() {
@@ -238,6 +245,8 @@ class GameMap {
         GameTile& getTile(GameTile &fromTile, Direction direction);
 
         TileType getEstimatedType(GameTile& tile, int step) const;
+
+        int getCumulativeOpponentMeleeSappingPowerAt(int x, int y, float unitEnergyVoidFactor);
 
         std::tuple<bool, GameTile&> isMovable(GameTile& fromTile, Direction direction);
 

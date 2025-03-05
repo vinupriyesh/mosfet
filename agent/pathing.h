@@ -8,7 +8,7 @@
 #include "datastructures/iterable_priority_queue.h"
 
 
-enum PathingHeuristics {
+enum PathingHeuristics : std::uint8_t {
     SHORTEST_DISTANCE, //Doesn't worry about enery
     LEAST_ENERGY //Cannot stay in the same tile to recharge energy
 };
@@ -83,7 +83,7 @@ class Pathing : public PathingBase {
 
         Pathing(GameMap& gameMap, PathingConfig config): PathingBase(gameMap), config(config) {};
 
-        static void log(std::string message);
+        static void log(const std::string& message);
 
         float getCost(GameTile &neighbor);
 

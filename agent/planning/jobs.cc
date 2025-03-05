@@ -166,7 +166,7 @@ JobApplication& JobBoard::applyForJob(Job* job, ShuttleData* shuttleData, std::v
     jobApplicationsByShuttleId[shuttleData->id].push_back(jobApplication);
     jobApplicationsByJobId[job->id].push_back(jobApplication);
     jobTypeToJobIdMap[job->jobType].insert(job->id);
-    log("Application received for job " + job->to_string() + " from shuttle " + shuttleData->to_string());
+    // log("Application received for job " + job->to_string() + " from shuttle " + shuttleData->to_string());
     return jobApplications.back();
 }
 

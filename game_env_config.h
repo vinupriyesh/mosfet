@@ -1,8 +1,6 @@
 #ifndef GAME_ENV_CONFIG_H
 #define GAME_ENV_CONFIG_H
 
-#include <iostream>
-
 #include "parser.h"
 #include "logger.h"
 #include "metrics.h"
@@ -21,7 +19,6 @@ struct GameEnvConfig {
     int mapHeight;
     int mapWidth;
     bool initialized = false;
-    int nebulaTileEnergyReduction;
     int originX, originY;
     int opponentOriginX, opponentOriginY;
     
@@ -56,9 +53,7 @@ struct GameEnvConfig {
             originY = mapHeight - 1;
             opponentOriginX = 0;
             opponentOriginY = 0;
-        }
-
-        nebulaTileEnergyReduction = 10; //TODO:  This has to be identified dynamically, lets start with 10!
+        }        
 
         initialized = true;
     }

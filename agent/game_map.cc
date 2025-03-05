@@ -1,10 +1,11 @@
 #include "game_map.h"
 
+#include <cmath>
 #include <stdexcept>
 #include <tuple>
 #include <cmath>
 #include "game_env_config.h"
-
+#include "constants.h"
 
 void GameMap::log(const std::string& message) {
     Logger::getInstance().log("GameMap -> " + message);
@@ -158,8 +159,25 @@ void GameMap::exploreTile(GameTile &tile, int currenStep) {
     tile.setExplored(true, currenStep);
 }
 
-bool GameMap::isValidTile(int x, int y) {
+bool GameMap::isValidTile(int x, int y){
     return x >= 0 && x < width && y >= 0 && y < height;
+}
+
+int GameMap::getCumulativeOpponentMeleeSappingPowerAt(int x, int y, float unitEnergyVoidFactor) {
+    double cumulativeSappingPower = 0.0;
+    for (int pmi = 0; pmi < POSSIBLE_NEIGHBORS_SIZE; pmi++) {
+        int xNext = POSSIBLE_NEIGHBORS[pmi][0] + x;
+        int yNext = POSSIBLE_NEIGHBORS[pmi][1] + y;
+
+        if (isValidTile(xNext, yNext)) {
+            GameTile& nextTile = getTile(xNext, yNext);
+
+            double sappingPower = nextTile.getCumulativeOpponentEnergy() * unitEnergyVoidFactor;
+            cumulativeSappingPower += sappingPower;
+        }
+    }
+
+    return std::floor(cumulativeSappingPower);
 }
 
 GameTile& GameMap::getTile(int x, int y){
@@ -216,6 +234,10 @@ GameTile &GameMap::getTile(GameTile &fromTile, Direction direction) {
 TileType GameMap::getEstimatedType(GameTile &tile, int step) const {
     if (step >= driftAwareTileType.size() || driftAwareTileType[step] == nullptr) {
         // Fallback to the known value.  Likely the drift is not finalized!
+        // The fallback doesn't consider previous steps more than 1.  the -1 previous lookup is needed for shuttle_energy_tracker.        
+        if (step == derivedGameState.currentStep -1) {
+            return tile.getPreviousType();
+        }
         return tile.getType();
     }
 
@@ -268,6 +290,17 @@ bool GameTile::isOccupied() {
 
 bool GameTile::isOpponentOccupied() {
     return opponentShuttles.size() > 0;
+}
+
+int GameTile::getCumulativeOpponentEnergy() {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    int shuttleEnergy = 0;
+    for (auto& shuttle : opponentShuttles) {
+        //TODO: using naive shuttle-> energy is not going to work.  We need to use the energy of previous step!
+        // shuttleEnergy += shuttle->energy + gameEnvConfig.unitMoveCost - getLastKnownEnergy();
+        shuttleEnergy += shuttle->energy;
+    }
+    return shuttleEnergy;
 }
 
 void GameTile::clearShuttle(ShuttleData* shuttle) {
