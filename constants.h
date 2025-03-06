@@ -1,6 +1,7 @@
 #ifndef CONSTANTS_H
 #define CONSTANTS_H
 
+#include <cstdint>
 const double LOWEST_DOUBLE = 1e-9;
 
 const int UNIT_SPAWN_ENERGY = 100;
@@ -32,5 +33,11 @@ const int POSSIBLE_UNIT_ENERGY_VOID_FACTOR_VALUES_SIZE = 4;
 
 const float POSSIBLE_UNIT_SAP_DROP_OFF_FACTOR_VALUES[] = {0.25, 0.5, 1.0};
 const float POSSIBLE_UNIT_SAP_DROP_OFF_FACTOR_VALUES_SIZE = 3;
+
+enum TruthValue : std::uint8_t {
+    FALSE,
+    TRUE,
+    UNKNOWN_TRUTH
+};
 
 #endif //CONSTANTS_H

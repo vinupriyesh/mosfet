@@ -58,7 +58,7 @@ def agent(observation, configuration):
             
             if debug:
                 # --tool=callgrind
-                command = ["valgrind", "--leak-check=full", "--errors-for-leak-kinds=definite", f"--log-file=valgrind_report_{observation.player}.txt"] + command
+                command = ["valgrind", "--track-origins=yes", "--leak-check=full", "--errors-for-leak-kinds=definite", f"--log-file=valgrind_report_{observation.player}.txt"] + command
                 print("Running in debug mode", file=sys.stderr)
 
             agent_process = Popen(command, stdin=PIPE, stdout=PIPE, stderr=PIPE, cwd=cwd)

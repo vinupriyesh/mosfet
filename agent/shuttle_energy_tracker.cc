@@ -16,7 +16,7 @@ void ShuttleEnergyTracker::log(const std::string& message) {
 * shuttle: The shuttle
 * energyAfterMovement: The energy change due to movement excluding the nebula tile energy reduction
 */
-void ShuttleEnergyTracker::tryResolvingNebulaTileEnergyReduction(GameTile& currentTile, ShuttleData& shuttle, int& energyAfterMovement){    
+void ShuttleEnergyTracker::tryResolvingNebulaTileEnergyReduction(GameTile& currentTile, ShuttleData& shuttle, int energyAfterMovement){    
     if (shuttle.energy <= 0 || energyAfterMovement <=0) {
         // This shuttle is so dead, cant resolve the nebula tile energy reduction with it
         return;
@@ -32,27 +32,31 @@ void ShuttleEnergyTracker::tryResolvingNebulaTileEnergyReduction(GameTile& curre
     }
 }
 
-int ShuttleEnergyTracker::resolveMovementEnergyLoss(ShuttleData& shuttle) {
+bool ShuttleEnergyTracker::resolveMovementEnergyLoss(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
 
-    //Move Cost
-    int energyAfterMovement = shuttle.previousEnergy;
+    //Move Cost    
     GameTile& currentTile = gameMap.getTile(shuttle.getX(), shuttle.getY());
     if (shuttle.hasMoved()) {
-        energyAfterMovement -=  gameEnvConfig.unitMoveCost;
+        distribution.moveCost = gameEnvConfig.unitMoveCost;
     }
 
-    energyAfterMovement += currentTile.getLastKnownEnergy();
+    distribution.tileEnergy = currentTile.getLastKnownEnergy();
 
     if (gameMap.getEstimatedType(currentTile, state.currentStep - 1) == TileType::NEBULA) {
         if (!state.nebulaTileEnergyReductionSet) {
-            tryResolvingNebulaTileEnergyReduction(currentTile, shuttle, energyAfterMovement);
+            tryResolvingNebulaTileEnergyReduction(currentTile, shuttle, distribution.computeEnergyForNebulaResolution(shuttle.previousEnergy));
         }
         if (state.nebulaTileEnergyReductionSet) {
-            energyAfterMovement -= state.nebulaTileEnergyReduction;
+            distribution.nebulaEnergyReduction = state.nebulaTileEnergyReduction;
+        } else {
+            distribution.nebulaEnergyReduction = 0;
+            distribution.nebulaEnergyReductionFinalized = false;
         }
     }
+
+    int energyAfterMovement = distribution.computeEnergy(shuttle.previousEnergy);
 
     if (shuttle.energy > energyAfterMovement && shuttle.energy > 0) {
         log("Problem: Shuttle gained mysterious energy " + std::to_string(shuttle.id) + " - " + std::to_string(shuttle.energy) + " vs " + std::to_string(energyAfterMovement));
@@ -61,18 +65,19 @@ int ShuttleEnergyTracker::resolveMovementEnergyLoss(ShuttleData& shuttle) {
         std::cerr<<"Problem: Shuttle gained mysterious energy"<<std::endl;
     }
 
-    return energyAfterMovement;    
+    return shuttle.energy == energyAfterMovement;
 }
 
 
-int ShuttleEnergyTracker::resolveMeleeSap(ShuttleData& shuttle, int movementCost) {
+bool ShuttleEnergyTracker::resolveMeleeSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
 
     if (!state.unitEnergyVoidFactorSet) {
         for (int i = 0; i <POSSIBLE_UNIT_ENERGY_VOID_FACTOR_VALUES_SIZE;i++) {
             int sappingPower = gameMap.getCumulativeOpponentMeleeSappingPowerAt(shuttle.getX(), shuttle.getY(), POSSIBLE_UNIT_ENERGY_VOID_FACTOR_VALUES[i]);
-            if (shuttle.previousEnergy - sappingPower + movementCost == shuttle.energy) {
+            distribution.meleeSap = sappingPower;
+            if (distribution.computeEnergy(shuttle.previousEnergy) == shuttle.energy) {
                 state.unitEnergyVoidFactor = POSSIBLE_UNIT_ENERGY_VOID_FACTOR_VALUES[i];
                 state.unitEnergyVoidFactorSet = true;
                 log("Resolved unit energy void factor as " + std::to_string(state.unitEnergyVoidFactor));
@@ -81,25 +86,27 @@ int ShuttleEnergyTracker::resolveMeleeSap(ShuttleData& shuttle, int movementCost
         }
     }
 
-    int energyAfterMeleeSap = shuttle.previousEnergy + movementCost;
-
     if (state.unitEnergyVoidFactorSet) {
         int sappingPower = gameMap.getCumulativeOpponentMeleeSappingPowerAt(shuttle.getX(), shuttle.getY(), state.unitEnergyVoidFactor);        
-        energyAfterMeleeSap -= sappingPower;
+        distribution.meleeSap = sappingPower;
+    } else {
+        distribution.meleeSap = 0;
+        distribution.meleeEnergyVoidFactorFinalized = false;
     }
     
-    return energyAfterMeleeSap;
+    return distribution.computeEnergy(shuttle.previousEnergy) == shuttle.energy;
 }
 
-int ShuttleEnergyTracker::resolveRangedDirectSap(ShuttleData& shuttle, int energyLossSoFar) {
+bool ShuttleEnergyTracker::resolveRangedDirectSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
 
     //TODO:  Account for multiple Saps!  We need to know how many shuttles can possibly attack to get the exact count
+    distribution.rangedDirectSap = gameEnvConfig.unitSapCost;    
 
-    return shuttle.previousEnergy + energyLossSoFar - gameEnvConfig.unitSapCost;
+    return distribution.computeEnergy(shuttle.previousEnergy) == shuttle.energy;
 }
 
-int ShuttleEnergyTracker::resolveRangedIndirectSap(ShuttleData& shuttle, int energyLossSoFar) {
+bool ShuttleEnergyTracker::resolveRangedIndirectSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
 
@@ -108,7 +115,9 @@ int ShuttleEnergyTracker::resolveRangedIndirectSap(ShuttleData& shuttle, int ene
     if (!state.unitSapDropOffFactorSet) {
         for (int i = 0; i <POSSIBLE_UNIT_SAP_DROP_OFF_FACTOR_VALUES_SIZE;i++) {
             int sappingPower = gameEnvConfig.unitSapCost * POSSIBLE_UNIT_SAP_DROP_OFF_FACTOR_VALUES[i];
-            if (shuttle.previousEnergy - sappingPower + energyLossSoFar == shuttle.energy) {
+            distribution.rangedDirectSap = 0;
+            distribution.rangedIndirectSap = sappingPower;
+            if (distribution.computeEnergy(shuttle.previousEnergy) == shuttle.energy) {
                 state.unitSapDropOffFactor = POSSIBLE_UNIT_SAP_DROP_OFF_FACTOR_VALUES[i];
                 state.unitSapDropOffFactorSet = true;
                 log("Resolved unit sap drop off factor as " + std::to_string(state.unitSapDropOffFactor));
@@ -117,26 +126,48 @@ int ShuttleEnergyTracker::resolveRangedIndirectSap(ShuttleData& shuttle, int ene
         }
     }
 
-    int energyAfterIndirectRangedSap = shuttle.previousEnergy + energyLossSoFar - gameEnvConfig.unitSapCost * state.unitSapDropOffFactor;
-    return energyAfterIndirectRangedSap;
+    return distribution.computeEnergy(shuttle.previousEnergy);
 }
 
 void ShuttleEnergyTracker::step() {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
 
-    for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
+    for (int s = 0; s< gameEnvConfig.maxUnits;++s) {
+
         auto& shuttle = gameMap.shuttles[s];
 
+        if (!shuttle->visible) {
+            //TODO: invisible tiles ideally wont affect anything.  Verify if we need to add anything here
+            continue;
+        }
 
         if (shuttle->visible && shuttle->ghost || !shuttle->visible && shuttle->previouslyVisible) {
             respawnRegistry.pushPlayerUnit(s, state.currentMatchStep);
         }
 
+        if (shuttle->energy == UNIT_SPAWN_ENERGY && shuttle->visible && shuttle->previouslyVisible && shuttle->getX() == gameEnvConfig.originX && shuttle->getY() == gameEnvConfig.originY
+            && shuttle->getPreviousX() !=  gameEnvConfig.originX && shuttle->getPreviousY() !=  gameEnvConfig.originY && respawnRegistry.playerUnitRespawned != s) {
+            log("Identified collision that happened at spawn for shuttle " + std::to_string(s));
+            int actualUnitExpectedToSpawn = respawnRegistry.playerUnitRespawned;
+            if (actualUnitExpectedToSpawn != -1) {
+                respawnRegistry.pushPlayerUnit(actualUnitExpectedToSpawn, state.currentMatchStep);
+            }
+
+            respawnRegistry.playerUnitRespawned = s;
+        }
+        
+    }
+
+    for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
+        auto& shuttle = gameMap.shuttles[s];        
+
         if (!shuttle->visible) {
             //TODO: invisible tiles ideally wont affect anything.  Verify if we need to add anything here
             continue;
-        } else if (respawnRegistry.playerUnitRespawned == s) {
+        }
+        
+        if (respawnRegistry.playerUnitRespawned == s) {
             if (shuttle->energy != UNIT_SPAWN_ENERGY) {
                 log("Problem:  Unit " + std::to_string(s) +" just spawned but energy mismatch - " + std::to_string(shuttle->energy));
                 std::cerr<<"Problem:  Unit just spawned but energy mismatch"<<std::endl;
@@ -156,28 +187,26 @@ void ShuttleEnergyTracker::step() {
         } else {
 
             GameTile& currentTile = gameMap.getTile(shuttle->getX(), shuttle->getY());
+            ShuttleEnergyChangeDistribution distribution;
 
             // Check for movement
-            int energyAfterMovement = resolveMovementEnergyLoss(*shuttle);
-            int lastStepEnergy = currentTile.getLastKnownEnergy();            
+            bool resolved = resolveMovementEnergyLoss(*shuttle, distribution);            
 
-            if (shuttle->energy != energyAfterMovement && energyAfterMovement >= 0) {
-                log("Movement not sufficent to tally " + std::to_string(s) + " - " + std::to_string(shuttle->energy) + " vs " + std::to_string(energyAfterMovement));
-                
-                int energyAfterMeleeSap = resolveMeleeSap(*shuttle, energyAfterMovement -shuttle->previousEnergy);                
+            if (!resolved) {
+                log("Movement not sufficent to tally " + distribution.toString());                
+                resolved = resolveMeleeSap(*shuttle, distribution);                
 
-                if ((shuttle->energy != energyAfterMeleeSap && energyAfterMeleeSap >= 0) || (energyAfterMeleeSap < 0 && shuttle->energy != energyAfterMeleeSap - lastStepEnergy)) {
-                    log("Melee sap not sufficient to tally " + std::to_string(s) + " - " + std::to_string(shuttle->energy) + " vs +ve " + std::to_string(energyAfterMeleeSap) + " vs -ve " + std::to_string(energyAfterMeleeSap - lastStepEnergy));
-
+                if (!resolved) {
+                    log("Melee sap not sufficient to tally " + distribution.toString());
                     
-                    int energyAfterDirectRangedSap = resolveRangedDirectSap(*shuttle, energyAfterMeleeSap -shuttle->previousEnergy);
-                    if ((shuttle->energy != energyAfterDirectRangedSap && energyAfterDirectRangedSap >= 0) || (energyAfterDirectRangedSap <0 && shuttle->energy != energyAfterDirectRangedSap - lastStepEnergy) ) {
-                        log("Direct Sap not sufficient to tally " + std::to_string(s) + " - " + std::to_string(shuttle->energy) + " vs +ve " + std::to_string(energyAfterDirectRangedSap) + " vs -ve " + std::to_string(energyAfterDirectRangedSap - lastStepEnergy));
+                    resolved = resolveRangedDirectSap(*shuttle, distribution);
+                    if (!resolved) {
+                        log("Direct Sap not sufficient to tally " + distribution.toString());
 
-                        int energyAfterIndirectRangedSap = resolveRangedIndirectSap(*shuttle, energyAfterDirectRangedSap -shuttle->previousEnergy);
+                        resolved = resolveRangedIndirectSap(*shuttle, distribution);
 
-                        if ((shuttle->energy != energyAfterIndirectRangedSap && energyAfterIndirectRangedSap >= 0) || (energyAfterIndirectRangedSap <0 && shuttle->energy != energyAfterIndirectRangedSap - lastStepEnergy)) {
-                            log("Problem: Indirect sap not sufficient to tally " + std::to_string(s) + " - " + std::to_string(shuttle->energy) + " vs +ve " + std::to_string(energyAfterIndirectRangedSap) + " vs -ve" + std::to_string(energyAfterIndirectRangedSap - lastStepEnergy));
+                        if (!resolved) {
+                            log("Problem: Indirect sap not sufficient to tally " + distribution.toString());
                             std::cerr<<"Problem: Unable to account for all the energy changes"<<std::endl;
                         }
                     }

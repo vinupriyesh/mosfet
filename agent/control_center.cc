@@ -2,6 +2,7 @@
 #include <iostream>
 #include "agent/opponent_tracker.h"
 #include "agent/shuttle_energy_tracker.h"
+#include "constants.h"
 #include "logger.h"
 #include "config.h"
 #include "agent/planning/planner.h"
@@ -290,7 +291,7 @@ void ControlCenter::update(GameState& gameState) {
 
     log("Identify nebula tiles using the invisibility data");
 
-    if (state.currentMatchStep > 1) { // There is a bug in the environment, it doesn't show the nebula visibility mask properly in step 1! See seed 245923829
+    if (state.currentStep > 1 && driftDetector->isDriftPossible(state.currentStep - 1) == TruthValue::FALSE) { // There is a bug in the environment, it doesn't show the nebula visibility mask properly if there was a drift the previous step! See seed 245923829
         for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
             if (shuttles[s]->isVisible()) {
                 auto& shuttle = shuttles[s]->getShuttleData();
@@ -298,7 +299,7 @@ void ControlCenter::update(GameState& gameState) {
                     for (int y = shuttle.getY() - gameEnvConfig.unitSensorRange; y <= shuttle.getY() + gameEnvConfig.unitSensorRange; y++) {
                         if (gameMap->isValidTile(x, y)) {
                             GameTile& currentTile = gameMap->getTile(x, y);
-                            if (currentTile.getType() == TileType::UNKNOWN) {
+                            if (currentTile.getType() == TileType::UNKNOWN_TILE) {
                                 currentTile.setType(TileType::NEBULA, state.currentStep, driftDetector->driftFinalized);
                             }
                         }
@@ -355,7 +356,7 @@ void ControlCenter::update(GameState& gameState) {
             GameTile& currentTile = gameMap->getTile(i, j);
             if (currentTile.isVisible()) {
                 if (currentTile.getTypeUpdateStep() == state.currentStep
-                        && currentTile.getType() != currentTile.getPreviousType() && currentTile.getPreviousType() != TileType::UNKNOWN) {
+                        && currentTile.getType() != currentTile.getPreviousType() && currentTile.getPreviousType() != TileType::UNKNOWN_TILE) {
                     // This tile is visible and drifted since last seen
                     driftDetector->reportNebulaDrift(currentTile);
                 }

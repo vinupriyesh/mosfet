@@ -83,13 +83,7 @@ int RespawnRegistry::pushPlayerUnit(int unitId, int step){
         return playerRespawnRecord[unitId];
     }
 
-    // int spawnStep = getNextSpawnStep(step, playerRespawnQueueSize);
     int spawnStep = slotTheCurrentUnit(step, playerRespawnQueueSize, playerRespawnRecord, playerRespawnStepIndex, playerDeathRecord, unitId);
-
-    // playerDeathRecord[unitId] = step;
-    // playerRespawnRecord[unitId] = spawnStep;
-    // playerRespawnStepIndex[spawnStep] = unitId;
-    // playerRespawnQueueSize++;
 
     log("Player unit " + std::to_string(unitId) + " will respawn at " + std::to_string(spawnStep) + " as the queue size is " + std::to_string(playerRespawnQueueSize));
     return spawnStep;
@@ -102,13 +96,7 @@ int RespawnRegistry::pushOpponentUnit(int unitId, int step){
         return opponentRespawnRecord[unitId];
     }
     
-    // int spawnStep = getNextSpawnStep(step, opponentRespawnQueueSize);
     int spawnStep = slotTheCurrentUnit(step, opponentRespawnQueueSize, opponentRespawnRecord, opponentRespawnStepIndex, opponentDeathRecord, unitId);
-
-    // opponentDeathRecord[unitId] = step;
-    // opponentRespawnRecord[unitId] = spawnStep;
-    // opponentRespawnStepIndex[spawnStep] = unitId;
-    // opponentRespawnQueueSize++;
 
     log("Opponent unit " + std::to_string(unitId) + " will respawn at " + std::to_string(spawnStep) + " as the queue size is " + std::to_string(opponentRespawnQueueSize));
     return spawnStep;

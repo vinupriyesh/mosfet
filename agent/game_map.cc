@@ -350,12 +350,12 @@ TileType GameTile::translateTileType(int tileTypeCode) {
     } else if (tileTypeCode == 2) {
         return TileType::ASTEROID;
     } else {
-        return TileType::UNKNOWN;
+        return TileType::UNKNOWN_TILE;
     }
 }
 
 void GameTile::setType(TileType tileType, int step, bool driftIdentified) {
-    if (!driftIdentified && tileType != TileType::UNKNOWN && (previousTypes.empty() || previousTypes.top() != tileType)) {
+    if (!driftIdentified && tileType != TileType::UNKNOWN_TILE && (previousTypes.empty() || previousTypes.top() != tileType)) {
         previousTypes.push(tileType);
         previousTypeUpdateSteps.push(step);
     }

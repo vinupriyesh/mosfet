@@ -6,8 +6,9 @@
 #include <vector>
 
 #include "game_map.h"
+#include "constants.h"
 
-enum NebulaDriftStatus {
+enum NebulaDriftStatus : std::uint8_t {
     UNKNOWN_DRIFT,
     NO_DRIFT,
     FOUND_DRIFT,
@@ -38,7 +39,8 @@ class DriftDetector {
         bool driftFinalized;
         int finalSpeed = 0;
         void reportNebulaDrift(GameTile& gameTile);
-        void exploreTile(GameTile& gameTile);        
+        void exploreTile(GameTile& gameTile);
+        TruthValue isDriftPossible(int stepId);
         void step();
 
         DriftDetector(GameMap& gameMap);

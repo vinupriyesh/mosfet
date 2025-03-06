@@ -36,7 +36,7 @@ inline Direction& operator++(Direction& c) {
 }
 
 enum TileType : std::uint8_t {
-    UNKNOWN,
+    UNKNOWN_TILE,
     EMPTY,
     NEBULA,
     ASTEROID
@@ -83,9 +83,9 @@ class GameTile {
         
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
                  unexploredFrontier(false), relicExplorationFrontier1(false), relicExplorationFrontier2(false), relicExplorationFrontier3(false),
-                forcedRegularTile(false), relic(nullptr), shuttles({}), type(TileType::UNKNOWN), previousType(TileType::UNKNOWN),
+                forcedRegularTile(false), relic(nullptr), shuttles({}), opponentShuttles({{}}), type(TileType::UNKNOWN_TILE), previousType(TileType::UNKNOWN_TILE),
                 energy(-1), estimatedEnergy(-21), previousEnergy(-1), lastVisitedTime(-1), lastExploredTime(-1), lastEnergyUpdateTime(-1), previousEnergyUpdateTime(-1), visible(false),
-                previousTypes(), typeUpdateStep(-1), previousTypeUpdateStep(-1), previousTypeUpdateSteps() {};
+                previousTypes(), typeUpdateStep(-1), previousTypeUpdateStep(-1), previousTypeUpdateSteps(), manhattanFromOrigin(-1), manhattanToOpponentOrigin(-1) {};
         int getId(int width);        
         bool isVisible() {return visible;};
         bool isVisited() { return visited; };

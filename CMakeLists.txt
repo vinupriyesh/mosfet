@@ -64,4 +64,4 @@ add_executable(mosfet main.cc)
 target_include_directories(mosfet PUBLIC ${PROJECT_SOURCE_DIR})
 
 # Link nlohmann/json statically to your executable
-target_link_libraries(mosfet PRIVATE libmosfet nlohmann_json::nlohmann_json -static)
+target_link_libraries(mosfet PRIVATE libmosfet nlohmann_json::nlohmann_json)
