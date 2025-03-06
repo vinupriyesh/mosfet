@@ -4,7 +4,7 @@
 
 const int POSSIBLE_NEBULA_DRIFT_SPEEDS[] = {-150, -100, -50, -25, 150, 100, 50, 25};  //Representing as x1000 to avoid floating point precision inside map
 
-void DriftDetector::log(std::string message) {
+void DriftDetector::log(const std::string& message) {
     Logger::getInstance().log("DriftDetector -> " + message);
 }
 

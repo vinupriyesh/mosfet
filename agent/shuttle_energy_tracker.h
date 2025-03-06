@@ -1,28 +1,39 @@
 #ifndef SHUTTLE_ENERGY_TRACKER_H
 #define SHUTTLE_ENERGY_TRACKER_H
 
+#include "game_env_config.h"
 #include "game_map.h"
 #include "opponent_tracker.h"
 #include "datastructures/respawn_registry.h"
 #include <unordered_set>
+#include <cmath>
+
+#include "datastructures/range.h"
 
 struct ShuttleEnergyChangeDistribution {
 
     int moveCost = 0;
     int tileEnergy = 0;
     int nebulaEnergyReduction = 0;
-    int meleeSap = 0;
-    int rangedDirectSap = 0;
-    int rangedIndirectSap = 0;
+    int meleeSapEnergy = 0;
+    int rangedDirectSapCount = 0;
+    int rangedIndirectSapCount = 0;
+    float rangedIndirectSapDropOffFactor = 0.0;
+    float meleeEnergyVoidFactor = 0.0;
 
     bool nebulaEnergyReductionFinalized = true;
     bool meleeEnergyVoidFactorFinalized = true;
 
     int computeEnergy(int previousEnergy) {
 
-        int energyBeforeTileInclusion = previousEnergy - moveCost - nebulaEnergyReduction - meleeSap - rangedDirectSap - rangedIndirectSap;
+        GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
 
-        if (energyBeforeTileInclusion < 0 && (meleeSap >0 || rangedDirectSap >0 || rangedIndirectSap >0)) {
+        int energyBeforeTileInclusion = previousEnergy - moveCost - nebulaEnergyReduction
+                                - static_cast<int>(std::floor(meleeSapEnergy * meleeEnergyVoidFactor)) 
+                                - rangedDirectSapCount * gameEnvConfig.unitSapCost 
+                                - rangedIndirectSapCount * static_cast<int>(std::floor(gameEnvConfig.unitSapCost * rangedIndirectSapDropOffFactor));
+
+        if (energyBeforeTileInclusion < 0 && (meleeSapEnergy >0 || rangedDirectSapCount >0 || rangedIndirectSapCount >0)) {
             // This is an attack, return if the shuttle is dead already
             return energyBeforeTileInclusion;
         }
@@ -39,16 +50,39 @@ struct ShuttleEnergyChangeDistribution {
         return moveCost + tileEnergy;
     }
 
+    Range inverseComputeMeleeDropOffEnergy(int previousEnergy, int currentEnergy) {
+
+        GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+
+        int rangedIndirectSapCostFloor = static_cast<int>(std::floor(gameEnvConfig.unitSapCost * rangedIndirectSapDropOffFactor));
+    
+        // Compute T:
+        int T = previousEnergy - moveCost - nebulaEnergyReduction 
+                - rangedDirectSapCount * gameEnvConfig.unitSapCost 
+                - rangedIndirectSapCount * rangedIndirectSapCostFloor;
+        
+        // Compute K:
+        int K = T - currentEnergy; // K must be an integer.
+        
+        // Calculate the lower and upper bounds for meleeSapEnergy using the interval
+        double lowerBound = K / meleeEnergyVoidFactor;
+        double upperBound = (K + 1) / meleeEnergyVoidFactor;
+
+        return Range(lowerBound, upperBound);
+    }
+
     std::string toString() {
         std::string result = "ShuttleEnergyChangeDistribution: ";
         result += "moveCost=" + std::to_string(moveCost) + ", ";
         result += "tileEnergy=" + std::to_string(tileEnergy) + ", ";
         result += "nebulaEnergyReduction=" + std::to_string(nebulaEnergyReduction) + ", ";
-        result += "meleeSap=" + std::to_string(meleeSap) + ", ";
-        result += "rangedDirectSap=" + std::to_string(rangedDirectSap) + ", ";
-        result += "rangedIndirectSap=" + std::to_string(rangedIndirectSap) + ", ";
-        result += "nebulaEnergyReductionFinalized=" + std::to_string(nebulaEnergyReductionFinalized) + ", ";
-        result += "meleeEnergyVoidFactorFinalized=" + std::to_string(meleeEnergyVoidFactorFinalized);
+        result += "meleeSap=" + std::to_string(meleeSapEnergy) + ", ";
+        result += "rangedDirectSap=" + std::to_string(rangedDirectSapCount) + ", ";
+        result += "rangedIndirectSap=" + std::to_string(rangedIndirectSapCount) + ", ";
+        result += "rangedIndirectSapDropOffFactor=" + std::to_string(rangedIndirectSapDropOffFactor) + ", ";
+        result += "meleeEnergyVoidFactor=" + std::to_string(meleeEnergyVoidFactor) + ", ";        
+        // result += "nebulaEnergyReductionFinalized=" + std::to_string(nebulaEnergyReductionFinalized) + ", ";
+        // result += "meleeEnergyVoidFactorFinalized=" + std::to_string(meleeEnergyVoidFactorFinalized);
         return result;
     }
 };
@@ -63,16 +97,26 @@ class ShuttleEnergyTracker {
     
         std::unordered_set<int> shuttlesThatSappedLastTurn;
 
-        void tryResolvingNebulaTileEnergyReduction(GameTile& currentTile, ShuttleData& shuttle, int energyChange);
+        std::vector<int> nebulaTileEnergyReduction;
+        std::vector<float> meleeSapEnergyVoidFactor;
+        std::vector<float> rangedIndirectSapEnergyDropoffFactor;
 
-        bool resolveMovementEnergyLoss(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
-        bool resolveMeleeSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
-        bool resolveRangedDirectSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
-        bool resolveRangedIndirectSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
+        // void tryResolvingNebulaTileEnergyReduction(GameTile& currentTile, ShuttleData& shuttle, int energyChange);
+
+        // bool resolveMovementEnergyLoss(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
+        // bool resolveMeleeSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
+        // bool resolveRangedDirectSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
+        // bool resolveRangedIndirectSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
+
+        Range getPossibleMeleeSappingEnergyNearby(ShuttleData& shuttle);
+        void getPossibleDirectRangedSappingUnitsNearby(ShuttleData& shuttle,
+            std::unordered_set<int>& opponentShuttlesDirect,
+            std::unordered_set<int>& opponentShuttlesIndirect);
+
+        bool attemptResolution(ShuttleData& shuttle);
         
     public:        
-        ShuttleEnergyTracker(GameMap& gameMap, OpponentTracker& opponentTracker, RespawnRegistry& respawnRegistry)
-            : gameMap(gameMap), opponentTracker(opponentTracker), respawnRegistry(respawnRegistry) {}
+        ShuttleEnergyTracker(GameMap& gameMap, OpponentTracker& opponentTracker, RespawnRegistry& respawnRegistry);
         
         void step();
         void updateShuttleActions(std::vector<std::vector<int>>& actions);

@@ -265,3 +265,26 @@ bool OpponentTracker::isOpponentOccupied(int x, int y){
 
     return false;
 }
+
+double OpponentTracker::expectationOfOpponentOccupancy(int x, int y) {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    auto probabilities = getOpponentPositionProbabilities();
+    double expectation = 0.0;
+    for (int s = 0; s<gameEnvConfig.maxUnits;s++) {
+        expectation += probabilities[s][x][y];        
+    }
+
+    return expectation;
+}
+
+
+int OpponentTracker::getAllPossibleEnergyAt(int x, int y) {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    auto energies = getOpponentMaxPossibleEnergies();
+    int expectation = 0.0;
+    for (int s = 0; s<gameEnvConfig.maxUnits;s++) {
+        expectation += energies[s][x][y];        
+    }
+
+    return expectation;
+}
