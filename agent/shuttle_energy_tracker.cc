@@ -137,17 +137,13 @@ void ShuttleEnergyTracker::step() {
 
         auto& shuttle = gameMap.shuttles[s];
 
-        if (!shuttle->visible) {
-            //TODO: invisible tiles ideally wont affect anything.  Verify if we need to add anything here
-            continue;
-        }
-
         if (shuttle->visible && shuttle->ghost || !shuttle->visible && shuttle->previouslyVisible) {
             respawnRegistry.pushPlayerUnit(s, state.currentMatchStep);
-        }
+        }        
 
         if (shuttle->energy == UNIT_SPAWN_ENERGY && shuttle->visible && shuttle->previouslyVisible && shuttle->getX() == gameEnvConfig.originX && shuttle->getY() == gameEnvConfig.originY
             && shuttle->getPreviousX() !=  gameEnvConfig.originX && shuttle->getPreviousY() !=  gameEnvConfig.originY && respawnRegistry.playerUnitRespawned != s) {
+            // This can be a false positive but extremely rare.
             log("Identified collision that happened at spawn for shuttle " + std::to_string(s));
             int actualUnitExpectedToSpawn = respawnRegistry.playerUnitRespawned;
             if (actualUnitExpectedToSpawn != -1) {
@@ -214,8 +210,6 @@ void ShuttleEnergyTracker::step() {
             }
 
         }
-        
-        
     }
 }
 

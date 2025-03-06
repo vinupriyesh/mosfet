@@ -1,9 +1,11 @@
 #include "agent_role.h"
+#include "config.h"
 
 HaloNodeExplorerAgentRole::HaloNodeExplorerAgentRole(ShuttleData& shuttle, GameMap& gameMap) : ExplorerAgentRole(shuttle, gameMap) {
     roleClassName = "HaloNodeExplorerAgentRole";
-    std::random_device rd;
-    gen = std::mt19937(rd()); // Initialize the random number generator 
+    // Instead of using std::random_device which is non-deterministic,
+    // use Config::seed or access the global seed value
+    gen = std::mt19937(Config::seed);
     dis = std::uniform_int_distribution<>(0, 4); // Initialize the distribution with the range
 }
 

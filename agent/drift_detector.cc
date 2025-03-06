@@ -211,9 +211,9 @@ void DriftDetector::estimateTileTypesforFinalizedDrift() {
 
         driftAwareTileType.emplace_back(currentTileTypes);
 
-        std::ostringstream oss;
-        oss << currentTileTypes;
-        log("Pointer added " + oss.str() + " allDriftTileTypeVectors=" + std::to_string(allDriftTileTypeVectors.size() - 1) + ", driftAwareTileType=" + std::to_string(driftAwareTileType.size() -1));
+        // std::ostringstream oss;
+        // oss << currentTileTypes;
+        // log("Pointer added " + oss.str() + " allDriftTileTypeVectors=" + std::to_string(allDriftTileTypeVectors.size() - 1) + ", driftAwareTileType=" + std::to_string(driftAwareTileType.size() -1));
     }
 }
 

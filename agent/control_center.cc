@@ -291,7 +291,7 @@ void ControlCenter::update(GameState& gameState) {
 
     log("Identify nebula tiles using the invisibility data");
 
-    if (state.currentStep > 1 && driftDetector->isDriftPossible(state.currentStep - 1) == TruthValue::FALSE) { // There is a bug in the environment, it doesn't show the nebula visibility mask properly if there was a drift the previous step! See seed 245923829
+    if (state.currentStep > 1 && driftDetector->isDriftPossible(state.currentStep) == TruthValue::FALSE && driftDetector->isDriftPossible(state.currentStep - 1) == TruthValue::FALSE) { // There is a bug in the environment, it doesn't show the nebula visibility mask properly if there was a drift the previous step! See seed 245923829
         for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
             if (shuttles[s]->isVisible()) {
                 auto& shuttle = shuttles[s]->getShuttleData();

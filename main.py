@@ -98,9 +98,9 @@ def agent(observation, configuration):
         except Exception as e2:
             print("ERR2:{}".format(repr(e2)), file=sys.stderr)
 
-        if verbose:
-            raise e        
-        return generate_random_action_string(N)
+        # if verbose:
+        raise e
+        # return generate_random_action_string(N)
 
 
 # Run the agent locally.  Kaggle will NOT call this, it will directly call the agent function.
