@@ -79,7 +79,9 @@ class GameTile {
         int manhattanToOpponentOrigin;
 
         std::vector<ShuttleData*> shuttles;
+        std::vector<ShuttleData*> ghostShuttles;
         std::vector<ShuttleData*> opponentShuttles;
+        std::vector<ShuttleData*> opponentGhostShuttles;
         
         GameTile(int x, int y) : x(x), y(y), visited(false), explored(false), haloTile(false), vantagePoint(false),
                  unexploredFrontier(false), relicExplorationFrontier1(false), relicExplorationFrontier2(false), relicExplorationFrontier3(false),
@@ -114,7 +116,9 @@ class GameTile {
         void setForcedRegularTile(bool forcedRegularTile) { this->forcedRegularTile = forcedRegularTile; };
         void setRelic(Relic* relic) { this->relic = relic; };
         void addShuttle(ShuttleData* shuttle);
+        void addGhostShuttle(ShuttleData* shuttle);
         void addOpponentShuttle(ShuttleData* shuttle);
+        void addOpponentGhostShuttle(ShuttleData* shuttle);
 
         std::vector<ShuttleData*>& getShuttles() { return shuttles; };
         void clearShuttle(ShuttleData *shuttle);

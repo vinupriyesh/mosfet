@@ -261,15 +261,23 @@ void ControlCenter::update(GameState& gameState) {
 
             currentTile.clearShuttles();
             for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
-                if (shuttles[s]->getShuttleData().getX() == i && shuttles[s]->getShuttleData().getY() == j && !shuttles[s]->isGhost()) {
-                    currentTile.addShuttle(&shuttles[s]->getShuttleData());
+                if (shuttles[s]->getShuttleData().getX() == i && shuttles[s]->getShuttleData().getY() == j ) {
+                    if (!shuttles[s]->isGhost()) {
+                        currentTile.addShuttle(&shuttles[s]->getShuttleData());
+                    } else {
+                        currentTile.addGhostShuttle(&shuttles[s]->getShuttleData());
+                    }
                 }
             }
 
             currentTile.clearOpponentShuttles();
             for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
-                if (opponentShuttles[s]->getShuttleData().getX() == i && opponentShuttles[s]->getShuttleData().getY() == j && !opponentShuttles[s]->isGhost()) {
-                    currentTile.addOpponentShuttle(&opponentShuttles[s]->getShuttleData());
+                if (opponentShuttles[s]->getShuttleData().getX() == i && opponentShuttles[s]->getShuttleData().getY() == j) {
+                    if (!opponentShuttles[s]->isGhost()) {
+                        currentTile.addOpponentShuttle(&opponentShuttles[s]->getShuttleData());
+                    } else {
+                        currentTile.addOpponentGhostShuttle(&opponentShuttles[s]->getShuttleData());
+                    }
                 }
             }
 

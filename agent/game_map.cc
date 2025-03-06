@@ -280,8 +280,17 @@ void GameTile::addShuttle(ShuttleData* shuttle)  {
     this->shuttles.push_back(shuttle);
 }
 
+void GameTile::addGhostShuttle(ShuttleData* shuttle)  {
+    log("Adding ghost shuttle at (" + std::to_string(x) + ", " + std::to_string(y) + "), id=" + std::to_string(shuttle->id));
+    this->ghostShuttles.push_back(shuttle);
+}
+
 void GameTile::addOpponentShuttle(ShuttleData* shuttle) {
     this->opponentShuttles.push_back(shuttle);
+}
+
+void GameTile::addOpponentGhostShuttle(ShuttleData* shuttle) {
+    this->opponentGhostShuttles.push_back(shuttle);
 }
 
 bool GameTile::isOccupied() {
@@ -319,6 +328,7 @@ void GameTile::clearShuttles() {
 
 void GameTile::clearOpponentShuttles() {
     this->opponentShuttles.clear();
+    this->opponentGhostShuttles.clear();
 }
 
 void GameTile::setExplored(bool explored, int time) {

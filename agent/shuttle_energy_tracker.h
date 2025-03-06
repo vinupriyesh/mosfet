@@ -8,67 +8,73 @@
 #include <unordered_set>
 #include <cmath>
 
-#include "datastructures/range.h"
-
 struct ShuttleEnergyChangeDistribution {
 
+    int unitStackCount = 1;
     int moveCost = 0;
     int tileEnergy = 0;
     int nebulaEnergyReduction = 0;
-    int meleeSapEnergy = 0;
+    std::vector<int> meleeSapEnergies;
     int rangedDirectSapCount = 0;
     int rangedIndirectSapCount = 0;
     float rangedIndirectSapDropOffFactor = 0.0;
     float meleeEnergyVoidFactor = 0.0;
 
-    bool nebulaEnergyReductionFinalized = true;
-    bool meleeEnergyVoidFactorFinalized = true;
+    bool accurateResults = true;
+
+    int computedMeleeSapEnergy = -5000;
+
+    int computeSapContributions() {
+        double result = 0;
+        for (int energy: meleeSapEnergies) {
+            if (energy > 0) {
+                // result += static_cast<int>(std::floor(energy * meleeEnergyVoidFactor));
+                result += energy * meleeEnergyVoidFactor;
+            }
+        }
+        
+        int floorResult = static_cast<int>(std::floor(result));
+
+        computedMeleeSapEnergy = floorResult;
+        return floorResult;        
+    }
+
+    bool isAttack(int meleeSapEnergy) {        
+        return meleeSapEnergy > 0 || rangedDirectSapCount > 0 || rangedIndirectSapCount > 0;
+    }
 
     int computeEnergy(int previousEnergy) {
 
         GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
 
-        int energyBeforeTileInclusion = previousEnergy - moveCost - nebulaEnergyReduction
-                                - static_cast<int>(std::floor(meleeSapEnergy * meleeEnergyVoidFactor)) 
+        int meleeSapEnergy = computeSapContributions();
+
+        int computedEnergy = previousEnergy - moveCost                                 
                                 - rangedDirectSapCount * gameEnvConfig.unitSapCost 
                                 - rangedIndirectSapCount * static_cast<int>(std::floor(gameEnvConfig.unitSapCost * rangedIndirectSapDropOffFactor));
 
-        if (energyBeforeTileInclusion < 0 && (meleeSapEnergy >0 || rangedDirectSapCount >0 || rangedIndirectSapCount >0)) {
-            // This is an attack, return if the shuttle is dead already
-            return energyBeforeTileInclusion;
+        // if (computedEnergy < 0 && isAttack(meleeSapEnergy)) {
+        //     // Unit is not alive anymore
+        //     return computedEnergy;
+        // }
+
+        computedEnergy -= meleeSapEnergy / unitStackCount;
+
+        int energyGain = tileEnergy - nebulaEnergyReduction;
+
+        if (computedEnergy < 0 && computedEnergy + energyGain < 0 && isAttack(meleeSapEnergy)) {
+            // This is an attack, so the energy can go to negative  
+            return computedEnergy;
         }
 
-        if (energyBeforeTileInclusion + tileEnergy < 0) {
-            // This tile was not dead during the attack.  So it cant die now
+        computedEnergy += energyGain;
+
+        if (computedEnergy < 0 && !isAttack(meleeSapEnergy)) {
+            // This is not an attack, so the energy can only go to 0
             return 0;
         }
 
-        return energyBeforeTileInclusion + tileEnergy;
-    }
-
-    int computeEnergyForNebulaResolution(int previousEnergy) {
-        return moveCost + tileEnergy;
-    }
-
-    Range inverseComputeMeleeDropOffEnergy(int previousEnergy, int currentEnergy) {
-
-        GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
-
-        int rangedIndirectSapCostFloor = static_cast<int>(std::floor(gameEnvConfig.unitSapCost * rangedIndirectSapDropOffFactor));
-    
-        // Compute T:
-        int T = previousEnergy - moveCost - nebulaEnergyReduction 
-                - rangedDirectSapCount * gameEnvConfig.unitSapCost 
-                - rangedIndirectSapCount * rangedIndirectSapCostFloor;
-        
-        // Compute K:
-        int K = T - currentEnergy; // K must be an integer.
-        
-        // Calculate the lower and upper bounds for meleeSapEnergy using the interval
-        double lowerBound = K / meleeEnergyVoidFactor;
-        double upperBound = (K + 1) / meleeEnergyVoidFactor;
-
-        return Range(lowerBound, upperBound);
+        return computedEnergy;
     }
 
     std::string toString() {
@@ -76,13 +82,13 @@ struct ShuttleEnergyChangeDistribution {
         result += "moveCost=" + std::to_string(moveCost) + ", ";
         result += "tileEnergy=" + std::to_string(tileEnergy) + ", ";
         result += "nebulaEnergyReduction=" + std::to_string(nebulaEnergyReduction) + ", ";
-        result += "meleeSap=" + std::to_string(meleeSapEnergy) + ", ";
+        result += "meleeSap=" + std::to_string(computedMeleeSapEnergy) + ", ";
+        result += "meleeSapCount=" + std::to_string(meleeSapEnergies.size()) + ", ";
         result += "rangedDirectSap=" + std::to_string(rangedDirectSapCount) + ", ";
         result += "rangedIndirectSap=" + std::to_string(rangedIndirectSapCount) + ", ";
         result += "rangedIndirectSapDropOffFactor=" + std::to_string(rangedIndirectSapDropOffFactor) + ", ";
         result += "meleeEnergyVoidFactor=" + std::to_string(meleeEnergyVoidFactor) + ", ";        
-        // result += "nebulaEnergyReductionFinalized=" + std::to_string(nebulaEnergyReductionFinalized) + ", ";
-        // result += "meleeEnergyVoidFactorFinalized=" + std::to_string(meleeEnergyVoidFactorFinalized);
+        result += "accurateResults=" + std::to_string(accurateResults);        
         return result;
     }
 };
@@ -101,14 +107,7 @@ class ShuttleEnergyTracker {
         std::vector<float> meleeSapEnergyVoidFactor;
         std::vector<float> rangedIndirectSapEnergyDropoffFactor;
 
-        // void tryResolvingNebulaTileEnergyReduction(GameTile& currentTile, ShuttleData& shuttle, int energyChange);
-
-        // bool resolveMovementEnergyLoss(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
-        // bool resolveMeleeSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
-        // bool resolveRangedDirectSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
-        // bool resolveRangedIndirectSap(ShuttleData& shuttle, ShuttleEnergyChangeDistribution& distribution);
-
-        Range getPossibleMeleeSappingEnergyNearby(ShuttleData& shuttle);
+        bool getPossibleMeleeSappingEnergyNearby(ShuttleData& shuttle, std::vector<int>& meleeSapEnergies);
         void getPossibleDirectRangedSappingUnitsNearby(ShuttleData& shuttle,
             std::unordered_set<int>& opponentShuttlesDirect,
             std::unordered_set<int>& opponentShuttlesIndirect);
