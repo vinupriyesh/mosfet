@@ -7,6 +7,7 @@
 #include "datastructures/respawn_registry.h"
 #include <unordered_set>
 #include <cmath>
+#include "constants.h"
 
 struct ShuttleEnergyChangeDistribution {
 
@@ -69,9 +70,13 @@ struct ShuttleEnergyChangeDistribution {
 
         computedEnergy += energyGain;
 
-        if (computedEnergy < 0 && !isAttack(meleeSapEnergy)) {
+        if (computedEnergy < 0) {
             // This is not an attack, so the energy can only go to 0
             return 0;
+        }
+
+        if (computedEnergy > MAX_ENERGY) {
+            return MAX_ENERGY;
         }
 
         return computedEnergy;
@@ -88,6 +93,7 @@ struct ShuttleEnergyChangeDistribution {
         result += "rangedIndirectSap=" + std::to_string(rangedIndirectSapCount) + ", ";
         result += "rangedIndirectSapDropOffFactor=" + std::to_string(rangedIndirectSapDropOffFactor) + ", ";
         result += "meleeEnergyVoidFactor=" + std::to_string(meleeEnergyVoidFactor) + ", ";        
+        result += "unitStackCount=" + std::to_string(unitStackCount) + ", ";
         result += "accurateResults=" + std::to_string(accurateResults);        
         return result;
     }
@@ -106,6 +112,11 @@ class ShuttleEnergyTracker {
         std::vector<int> nebulaTileEnergyReduction;
         std::vector<float> meleeSapEnergyVoidFactor;
         std::vector<float> rangedIndirectSapEnergyDropoffFactor;
+
+        std::unordered_map<int, std::vector<int>> confirmedCollisions;
+        std::unordered_map<int, std::vector<int>> possibleCollisions;
+
+        void prepareOpponentCollisionMap();
 
         bool getPossibleMeleeSappingEnergyNearby(ShuttleData& shuttle, std::vector<int>& meleeSapEnergies);
         void getPossibleDirectRangedSappingUnitsNearby(ShuttleData& shuttle,

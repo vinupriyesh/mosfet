@@ -46,6 +46,8 @@ class GameTile {
 
     private:    
         static void log(const std::string& message);
+        TileType typeImmediate;
+        TileType previousTypeImmediate;
         TileType type;
         TileType previousType;
         std::stack<TileType> previousTypes;
@@ -87,7 +89,8 @@ class GameTile {
                  unexploredFrontier(false), relicExplorationFrontier1(false), relicExplorationFrontier2(false), relicExplorationFrontier3(false),
                 forcedRegularTile(false), relic(nullptr), shuttles({}), opponentShuttles({{}}), type(TileType::UNKNOWN_TILE), previousType(TileType::UNKNOWN_TILE),
                 energy(-1), estimatedEnergy(-21), previousEnergy(-1), lastVisitedTime(-1), lastExploredTime(-1), lastEnergyUpdateTime(-1), previousEnergyUpdateTime(-1), visible(false),
-                previousTypes(), typeUpdateStep(-1), previousTypeUpdateStep(-1), previousTypeUpdateSteps(), manhattanFromOrigin(-1), manhattanToOpponentOrigin(-1) {};
+                previousTypes(), typeUpdateStep(-1), previousTypeUpdateStep(-1), previousTypeUpdateSteps(), manhattanFromOrigin(-1), manhattanToOpponentOrigin(-1),
+                 previousTypeImmediate(UNKNOWN_TILE), typeImmediate(UNKNOWN_TILE) {};
         int getId(int width);        
         bool isVisible() {return visible;};
         bool isVisited() { return visited; };
@@ -126,10 +129,12 @@ class GameTile {
         void clearOpponentShuttles();
 
         void setType(TileType tileType, int time, bool driftIdentified);
+        void setTypeImmediate(TileType tileType);
         TileType getType();
         std::stack<TileType>& getPreviousTypes();
         std::stack<int>& getPreviousTypeUpdateSteps();
         TileType getPreviousType();
+        TileType getPreviousTypeImmediate();
         int getTypeUpdateStep();
         int getPreviousTypeUpdateStep();
         void setEnergy(int energy, int time);

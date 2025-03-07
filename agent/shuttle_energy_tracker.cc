@@ -11,6 +11,46 @@ void ShuttleEnergyTracker::log(const std::string& message) {
     Logger::getInstance().log("ShuttleEnergyTracker -> " + message);
 }
 
+
+void ShuttleEnergyTracker::prepareOpponentCollisionMap() {
+    confirmedCollisions.clear();
+    possibleCollisions.clear();
+    for (ShuttleData* shuttle: gameMap.opponentShuttles) {
+        if (shuttle->previouslyVisible && !shuttle->visible && shuttle->previousEnergy >= 0) {
+            // This shuttle was previously visible and had energy, it should've only turned as a ghost now. This could be a collision or the shuttle went out of vision
+            bool couldHaveGoneOutOfVision = false;
+            std::vector<int> playerTileIds;
+            for (int i = 0; i < POSSIBLE_MOVE_SIZE; ++i) {
+                int x = shuttle->getPreviousX() + POSSIBLE_MOVES[i][0];
+                int y = shuttle->getPreviousY() + POSSIBLE_MOVES[i][1];
+
+                if (!gameMap.isValidTile(x, y)) {
+                    continue;
+                }
+
+                GameTile& tile = gameMap.getTile(x, y);
+
+                if (!tile.isVisible()) {
+                    couldHaveGoneOutOfVision = true;
+                    continue;
+                }
+
+                if (tile.isOccupied()) {
+                    playerTileIds.push_back(tile.getId(gameMap.width));
+                }
+            }
+
+            for (int tileId: playerTileIds) {
+                if (couldHaveGoneOutOfVision || playerTileIds.size() > 1) {
+                    possibleCollisions[tileId].push_back(shuttle->id);
+                } else {
+                    confirmedCollisions[tileId].push_back(shuttle->id);
+                }
+            }
+        }
+    }
+}
+
 bool ShuttleEnergyTracker::getPossibleMeleeSappingEnergyNearby(ShuttleData& shuttle, std::vector<int>& meleeSapEnergies) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
@@ -26,6 +66,7 @@ bool ShuttleEnergyTracker::getPossibleMeleeSappingEnergyNearby(ShuttleData& shut
 
         GameTile& tile = gameMap.getTile(x, y);
         bool opponentPossibleThisTile = opponentTracker.expectationOfOpponentOccupancy(x, y) > LOWEST_DOUBLE;
+        log("Opponent probability at " + std::to_string(x) + ", " + std::to_string(y) + " is " + std::to_string(opponentPossibleThisTile));
 
         if (!tile.isVisible() && opponentPossibleThisTile) {
             // This tile is invisible and there is a chance of opponent being there
@@ -61,6 +102,23 @@ bool ShuttleEnergyTracker::getPossibleMeleeSappingEnergyNearby(ShuttleData& shut
             }
         }
 
+        // Check for the confirmed dead tiles
+        if (confirmedCollisions.find(tile.getId(gameMap.width)) != confirmedCollisions.end()) {
+            for (int otherShuttleId : confirmedCollisions.at(tile.getId(gameMap.width))) {
+                auto& otherShuttle = gameMap.opponentShuttles[otherShuttleId];
+                netEnergy += otherShuttle->previousEnergy;
+                if (otherShuttle->hasMoved()) {
+                    netEnergy -= gameEnvConfig.unitMoveCost;
+                }
+            }
+        }
+
+        // Check for the possible dead tiles
+        if (possibleCollisions.find(tile.getId(gameMap.width)) != possibleCollisions.end()) {
+            log("Cant predict accurately as there could have been unconfirmed collition and death of opponent unit at tile - " + std::to_string(x) + ", " + std::to_string(y));
+            foundAccurateValues = false;
+        }
+
         if (netEnergy > 0) {
             meleeSapEnergies.push_back(netEnergy);
         }
@@ -76,6 +134,10 @@ void ShuttleEnergyTracker::getPossibleDirectRangedSappingUnitsNearby(ShuttleData
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
 
+    auto& probabilities = opponentTracker.getOpponentPreviousPositionProbabilities();
+
+    log("Computing sapping possibilities for shuttle - " + std::to_string(shuttle.id));
+
     for (int x = shuttle.getX() - gameEnvConfig.unitSapRange - 1; x <= shuttle.getX() + gameEnvConfig.unitSapRange + 1; ++x) {
         for (int y = shuttle.getY() - gameEnvConfig.unitSapRange - 1; y <= shuttle.getY() + gameEnvConfig.unitSapRange + 1; ++y) {
             if (!gameMap.isValidTile(x, y)) {
@@ -83,24 +145,26 @@ void ShuttleEnergyTracker::getPossibleDirectRangedSappingUnitsNearby(ShuttleData
             }
 
             // GameTile& tile = gameMap.getTile(x, y);
-            auto probabilities = opponentTracker.getOpponentPositionProbabilities();
 
             for (int s = 0; s<gameEnvConfig.maxUnits;s++) {
                 if (probabilities[s][x][y] > LOWEST_DOUBLE) {
-                    if (x != shuttle.getX() + gameEnvConfig.unitSapRange + 1 
-                        && x != shuttle.getX() - gameEnvConfig.unitSapRange - 1 
-                        && y != shuttle.getY() + gameEnvConfig.unitSapRange + 1 
-                        && y != shuttle.getY() - gameEnvConfig.unitSapRange - 1) {
+                    // if (x != shuttle.getX() + gameEnvConfig.unitSapRange + 1 
+                    //     && x != shuttle.getX() - gameEnvConfig.unitSapRange - 1 
+                    //     && y != shuttle.getY() + gameEnvConfig.unitSapRange + 1 
+                    //     && y != shuttle.getY() - gameEnvConfig.unitSapRange - 1) {
 
-                        opponentShuttlesDirect.insert(s);                        
-                    }
-
+                                                
+                    // }
+                    log("Adding " + std::to_string(s) + " to direct sapping set");
+                    opponentShuttlesDirect.insert(s);
                     opponentShuttlesIndirect.insert(s);
+                    
                 }
             }
             
         }
     }
+    log("After resolving direct sap for shuttle - " + std::to_string(shuttle.id) + " - Direct sap size - " + std::to_string(opponentShuttlesDirect.size()) + " - Indirect sap size - " + std::to_string(opponentShuttlesIndirect.size()));
 }
 
 bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
@@ -135,20 +199,29 @@ bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
     std::vector<int> nebulaEnergyReductionSet;
 
     if (gameMap.getEstimatedType(currentTile, state.currentStep - 1) == TileType::NEBULA) {
+        log("Shuttle was in nebula " + std::to_string(shuttle.id));
         nebulaEnergyReductionSet.assign(nebulaTileEnergyReduction.begin(), nebulaTileEnergyReduction.end());
     } else {
         nebulaEnergyReductionSet.push_back(0);        
     }
 
-    distribution.accurateResults = getPossibleMeleeSappingEnergyNearby(shuttle, distribution.meleeSapEnergies);
+    if (gameMap.getEstimatedType(currentTile, state.currentStep - 1) == TileType::UNKNOWN_TILE) {
+        log("Cant do accurate results, shuttle was in unknown tile " + std::to_string(shuttle.id));
+        distribution.accurateResults = false;
+    }
+
+    bool canPredictAccurateMeleeEnergy = getPossibleMeleeSappingEnergyNearby(shuttle, distribution.meleeSapEnergies);
+    if (!canPredictAccurateMeleeEnergy) {
+        distribution.accurateResults = false;
+    }
     std::unordered_set<int> directSappingOpponents;
     std::unordered_set<int> indirectSappingOpponents;    
     
     getPossibleDirectRangedSappingUnitsNearby(shuttle,
          directSappingOpponents, indirectSappingOpponents);
 
-    int directSappingOpponentsSize = directSappingOpponents.size();
-    int indirectSappingOpponentsSize = indirectSappingOpponents.size();
+    int directSappingOpponentsSize = directSappingOpponents.size() + 1;
+    int indirectSappingOpponentsSize = indirectSappingOpponents.size() + 1;
 
     std::vector<float> meleeSapEnergyVoidFactorSet = meleeSapEnergyVoidFactor;
     std::vector<float> rangedIndirectSapEnergyDropoffFactorSet = rangedIndirectSapEnergyDropoffFactor;
@@ -203,11 +276,12 @@ bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
                             log("Solution found -> " + distribution.toString());
                             numberOfSolutions++;
                         } else {
-                            if (state.currentStep == 192) {
-                                log("Shuttle resolution failed - " + std::to_string(shuttle.id));
-                                log("Solution not found -> " + distribution.toString());
-                                log("Energy difference -> " + std::to_string(shuttle.energy) + " vs " + std::to_string(energyAfterMovement));
-                            }
+                            // if (state.currentStep == 41 || state.currentStep == 61) {
+                            //     log("Shuttle resolution failed - " + std::to_string(shuttle.id));
+                            //     log("Nebula? " + std::to_string(currentTile.getPreviousTypeImmediate()) + " previousNebula? " + std::to_string(gameMap.getEstimatedType(currentTile, state.currentStep - 1)));
+                            //     log("Solution not found -> " + distribution.toString());
+                            //     log("Energy difference -> " + std::to_string(shuttle.energy) + " vs " + std::to_string(energyAfterMovement) + ", starting at " + std::to_string(shuttle.previousEnergy));
+                            // }
                         }
                     }
                 }
@@ -227,6 +301,8 @@ bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
 void ShuttleEnergyTracker::step() {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
+
+    prepareOpponentCollisionMap();
 
     for (int s = 0; s< gameEnvConfig.maxUnits;++s) {
 
@@ -281,30 +357,6 @@ void ShuttleEnergyTracker::step() {
             ShuttleEnergyChangeDistribution distribution;
 
             attemptResolution(*shuttle);
-
-            // // Check for movement
-            // bool resolved = resolveMovementEnergyLoss(*shuttle, distribution);            
-
-            // if (!resolved) {
-            //     log("Movement not sufficent to tally " + distribution.toString());                
-            //     resolved = resolveMeleeSap(*shuttle, distribution);                
-
-            //     if (!resolved) {
-            //         log("Melee sap not sufficient to tally " + distribution.toString());
-                    
-            //         resolved = resolveRangedDirectSap(*shuttle, distribution);
-            //         if (!resolved) {
-            //             log("Direct Sap not sufficient to tally " + distribution.toString());
-
-            //             resolved = resolveRangedIndirectSap(*shuttle, distribution);
-
-            //             if (!resolved) {
-            //                 log("Problem: Indirect sap not sufficient to tally " + distribution.toString());
-            //                 std::cerr<<"Problem: Unable to account for all the energy changes"<<std::endl;
-            //             }
-            //         }
-            //     }
-            // }
 
         }
     }

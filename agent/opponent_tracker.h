@@ -9,6 +9,9 @@ class OpponentTracker {
         GameMap& gameMap;
         RespawnRegistry& respawnRegistry;
 
+        std::vector<std::vector<std::vector<double>>>* opponentPreviousPositionProbabilities; // (16, 24, 24)
+        std::vector<std::vector<std::vector<int>>>* opponentPreviousMaxPossibleEnergies; // (16, 24, 24)
+
         std::vector<std::vector<std::vector<double>>>* opponentPositionProbabilities; // (16, 24, 24)
         std::vector<std::vector<std::vector<int>>>* opponentMaxPossibleEnergies; // (16, 24, 24)
 
@@ -24,6 +27,9 @@ class OpponentTracker {
 
         std::vector<std::vector<std::vector<double>>>& getOpponentPositionProbabilities();
         std::vector<std::vector<std::vector<int>>>& getOpponentMaxPossibleEnergies();
+
+        std::vector<std::vector<std::vector<double>>>& getOpponentPreviousPositionProbabilities();
+        std::vector<std::vector<std::vector<int>>>& getOpponentPreviousMaxPossibleEnergies();
 
         bool isOpponentOccupied(int x, int y);
         double expectationOfOpponentOccupancy(int x, int y);

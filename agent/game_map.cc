@@ -236,8 +236,9 @@ TileType GameMap::getEstimatedType(GameTile &tile, int step) const {
         // Fallback to the known value.  Likely the drift is not finalized!
         // The fallback doesn't consider previous steps more than 1.  the -1 previous lookup is needed for shuttle_energy_tracker.        
         if (step == derivedGameState.currentStep -1) {
-            return tile.getPreviousType();
+            return tile.getPreviousTypeImmediate();
         }
+        // log("Returning the latest tile type instead");
         return tile.getType();
     }
 
@@ -324,6 +325,7 @@ void GameTile::clearShuttle(ShuttleData* shuttle) {
 
 void GameTile::clearShuttles() {
     this->shuttles.clear();
+    this->ghostShuttles.clear();
 }
 
 void GameTile::clearOpponentShuttles() {
@@ -364,6 +366,12 @@ TileType GameTile::translateTileType(int tileTypeCode) {
     }
 }
 
+void GameTile::setTypeImmediate(TileType tileType) {    
+    previousTypeImmediate = typeImmediate;
+    typeImmediate = tileType;
+    // log("Immediate type previous set to " + std::to_string(previousTypeImmediate) + " for tile (" + std::to_string(x) + ", " + std::to_string(y) + ")");
+}
+
 void GameTile::setType(TileType tileType, int step, bool driftIdentified) {
     if (!driftIdentified && tileType != TileType::UNKNOWN_TILE && (previousTypes.empty() || previousTypes.top() != tileType)) {
         previousTypes.push(tileType);
@@ -383,6 +391,10 @@ TileType GameTile::getType() {
 
 std::stack<TileType>& GameTile::getPreviousTypes() {
     return previousTypes;
+}
+
+TileType GameTile::getPreviousTypeImmediate() {
+    return previousTypeImmediate;
 }
 
 std::stack<int>& GameTile::getPreviousTypeUpdateSteps() {

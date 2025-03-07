@@ -245,7 +245,11 @@ void ControlCenter::update(GameState& gameState) {
 
             currentTile.setVisible(gameState.obs.sensorMask[i][j] != 0);
 
-            auto tileType = GameTile::translateTileType(gameState.obs.mapFeatures.tileType[i][j]);            
+            auto tileType = GameTile::translateTileType(gameState.obs.mapFeatures.tileType[i][j]);
+
+            // Immediate will have the tile data as is, without any visibility gimmicks. Hacking this for now!
+            
+            currentTile.setTypeImmediate(tileType);
             
             if (gameState.obs.sensorMask[i][j] != 0) {
                 //Visible tile updates
@@ -477,11 +481,13 @@ void ControlCenter::update(GameState& gameState) {
         std::cerr<<"Problem: Team points delta < vantage points occupied"<<std::endl;
     }
 
-    log("Calculating previous step losses");
-    shuttleEnergyTracker->step();
-
     log("Tracking opponent units");
     opponentTracker->step();
+
+    log("Calculating previous step losses");
+    if (state.currentMatchStep > 0) {
+        shuttleEnergyTracker->step();
+    }
 
     log ("Computing battle points");
     battleEvaluator->clear();

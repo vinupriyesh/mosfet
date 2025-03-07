@@ -13,11 +13,27 @@ void OpponentTracker::log(const std::string& message) {
 }
 
 OpponentTracker::OpponentTracker(GameMap &gameMap, RespawnRegistry& respawnRegistry): gameMap(gameMap), respawnRegistry(respawnRegistry) {
+    opponentPreviousPositionProbabilities = nullptr;
+    opponentPreviousMaxPossibleEnergies = nullptr;
+    opponentPositionProbabilities = nullptr;
+    opponentMaxPossibleEnergies = nullptr;
     initArrays();
 }
 
 void OpponentTracker::initArrays() {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+
+    if (opponentPreviousPositionProbabilities != nullptr) {
+        delete opponentPreviousPositionProbabilities;
+    }
+
+    if (opponentPreviousMaxPossibleEnergies != nullptr) {
+        delete opponentPreviousMaxPossibleEnergies;
+    }
+
+    opponentPreviousPositionProbabilities = opponentPositionProbabilities;
+    opponentPreviousMaxPossibleEnergies = opponentMaxPossibleEnergies;
+
     opponentPositionProbabilities = new std::vector<std::vector<std::vector<double>>>(
         gameEnvConfig.maxUnits, std::vector<std::vector<double>>(gameMap.width, std::vector<double>(gameMap.height, 0.0))
     );
@@ -41,9 +57,6 @@ void OpponentTracker::step() {
     auto& opponentPositionProbabilitiesCopy = *opponentPositionProbabilities;
     auto& opponentMaxPossibleEnergiesCopy = *opponentMaxPossibleEnergies;
 
-    auto oldOpponentPositionProbabilities = opponentPositionProbabilities;
-    auto oldOpponentMaxPossibleEnergies = opponentMaxPossibleEnergies;
-
     initArrays();
 
     auto& opponentPositionProbabilitiesRef = *opponentPositionProbabilities;
@@ -59,7 +72,7 @@ void OpponentTracker::step() {
             opponentMaxPossibleEnergiesRef[s][shuttle->getX()][shuttle->getY()] = shuttle->energy;
             visibleOpponents.insert(s);
             log("shuttle " + std::to_string(s) + " was found visible with energy" + std::to_string(shuttle->energy));
-        } else if (respawnRegistry.getOpponentUnitSpawnStep(s) == state.currentStep) {
+        } else if (respawnRegistry.opponentUnitRespawned == s) {
             // Opponent has just spawned
             opponentMaxPossibleEnergiesRef[s][gameEnvConfig.opponentOriginX][gameEnvConfig.opponentOriginY] = 100;
             opponentPositionProbabilitiesRef[s][gameEnvConfig.opponentOriginX][gameEnvConfig.opponentOriginY] = 1.0;
@@ -165,9 +178,6 @@ void OpponentTracker::step() {
         }
     }
 
-    delete oldOpponentPositionProbabilities;
-    delete oldOpponentMaxPossibleEnergies;
-
     computeAtleastOneShuttleProbabilities();    
 
     auto end = std::chrono::high_resolution_clock::now();
@@ -251,6 +261,20 @@ std::vector<std::vector<std::vector<double>>>& OpponentTracker::getOpponentPosit
 
 std::vector<std::vector<std::vector<int>>>& OpponentTracker::getOpponentMaxPossibleEnergies() {
     return *opponentMaxPossibleEnergies;
+}
+
+std::vector<std::vector<std::vector<double>>>& OpponentTracker::getOpponentPreviousPositionProbabilities() {
+    if (opponentPreviousPositionProbabilities == nullptr) {
+        return getOpponentPositionProbabilities();
+    }
+    return *opponentPreviousPositionProbabilities;
+}
+
+std::vector<std::vector<std::vector<int>>>& OpponentTracker::getOpponentPreviousMaxPossibleEnergies() {
+    if (opponentPreviousMaxPossibleEnergies == nullptr) {
+        return getOpponentMaxPossibleEnergies();
+    }
+    return *opponentPreviousMaxPossibleEnergies;
 }
 
 

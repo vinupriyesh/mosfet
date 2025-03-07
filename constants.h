@@ -3,6 +3,7 @@
 
 #include <cstdint>
 const double LOWEST_DOUBLE = 1e-9;
+const double MAX_ENERGY = 400;
 
 const int UNIT_SPAWN_ENERGY = 100;
 

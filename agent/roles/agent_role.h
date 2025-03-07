@@ -59,7 +59,7 @@ class HaloNodeExplorerAgentRole: public ExplorerAgentRole {
     private:
         std::mt19937 gen; // Mersenne Twister random number generator 
         std::uniform_int_distribution<> dis; // Uniform distribution
-
+        int removeOutOfBounds(int moveId, int x, int y);
     public:
         using ExplorerAgentRole::ExplorerAgentRole;
         HaloNodeExplorerAgentRole(ShuttleData& shuttle, GameMap& gamemap);
