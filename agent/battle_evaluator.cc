@@ -93,9 +93,9 @@ void BattleEvaluator::computeOpponentBattlePoints(int x, int y) {
         for (int j = y-1; j <= y+1; ++j) {
             if (gameMap.isValidTile(i, j)) {
                 auto& tile = gameMap.getTile(i, j);
-                if (isNearPlayerShuttle(tile)) {
-                    continue;
-                }
+                // if (isNearPlayerShuttle(tile)) {
+                //     continue;
+                // }
                 int sapCost = gameEnvConfig.unitSapCost * gameMap.derivedGameState.unitSapDropOffFactor;
                 if (i == x and j == y) {
                     sapCost = gameEnvConfig.unitSapCost;
@@ -129,6 +129,44 @@ void BattleEvaluator::clear() {
     gameMap.getOpponentBattlePoints().clear();
 }
 
+
+void BattleEvaluator::computeCrashCollisionPossibilities() {
+    log("Computing collision possibilities");
+
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    DerivedGameState& state = gameMap.derivedGameState;
+    crashCollisionPossibilities.clear();
+
+    for (int s = 0; s < gameEnvConfig.maxUnits; s++) {
+        auto& shuttle = gameMap.shuttles[s];
+
+        if (shuttle->energy < gameEnvConfig.unitMoveCost || !shuttle->visible) {
+            // This shuttle doesn't have enough energy to move.  No point in SOS
+            return;
+        }
+
+        GameTile& shuttleTile = gameMap.getTile(shuttle->getX(), shuttle->getY());
+        int playerEnergy = shuttle->energy - gameEnvConfig.unitMoveCost;
+        
+        for (int pmi = 0; pmi < POSSIBLE_NEIGHBORS_SIZE; pmi++) {
+            int xNext = POSSIBLE_NEIGHBORS[pmi][0] + shuttleTile.x;
+            int yNext = POSSIBLE_NEIGHBORS[pmi][1] + shuttleTile.y;
+    
+            if (!gameMap.isValidTile(xNext, yNext)) {
+                continue;                
+            }
+
+            auto& tile = gameMap.getTile(xNext, yNext);
+            
+            int cumulativeOpponentEnergy = tile.getCumulativeOpponentEnergy();
+
+            if (tile.isOpponentOccupied() && cumulativeOpponentEnergy < playerEnergy) {
+                crashCollisionPossibilities[tile.getId(gameMap.width)] = {cumulativeOpponentEnergy, tile.opponentShuttles.size(), shuttle->id}; 
+            }
+        }
+    }
+}
+
 void BattleEvaluator::announceCollision(int shuttleId) {
     
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
@@ -136,7 +174,7 @@ void BattleEvaluator::announceCollision(int shuttleId) {
 
     auto& shuttle = gameMap.shuttles[shuttleId];
 
-    if (shuttle->energy < gameEnvConfig.unitMoveCost) {
+    if (shuttle->energy < gameEnvConfig.unitMoveCost || !shuttle->visible) {
         // This shuttle doesn't have enough energy to move.  No point in SOS
         return;
     }

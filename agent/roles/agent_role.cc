@@ -2,7 +2,7 @@
 #include "agent_role.h"
 
 
-void AgentRole::log(std::string message) {    
+void AgentRole::log(const std::string& message) {    
     Logger::getInstance().log(roleClassName + "-" + std::to_string(shuttle.id) + " -> " + message);
 }
 

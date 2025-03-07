@@ -16,7 +16,7 @@ class AgentRole {
         ShuttleData& shuttle;
         Pathing* leastEnergyPathing;
 
-        void log(std::string message);
+        void log(const std::string& message);
         
     public:
         void setLeastEnergyPathing(Pathing *leastEnergyPathing);

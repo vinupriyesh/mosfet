@@ -5,7 +5,6 @@
 #include <tuple>
 #include <cmath>
 #include "game_env_config.h"
-#include "constants.h"
 
 void GameMap::log(const std::string& message) {
     Logger::getInstance().log("GameMap -> " + message);

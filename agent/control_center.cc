@@ -48,7 +48,7 @@ void ControlCenter::init(GameState& gameState) {
     energyEstimator = new EnergyEstimator(*gameMap);
     opponentTracker = new OpponentTracker(*gameMap, respawnRegistry);
     battleEvaluator = new BattleEvaluator(*gameMap, *opponentTracker);
-    planner = new Planner(shuttles, *gameMap, *opponentTracker);
+    planner = new Planner(shuttles, *gameMap, *opponentTracker, *battleEvaluator);
     shuttleEnergyTracker = new ShuttleEnergyTracker(*gameMap, *opponentTracker, respawnRegistry);
 
     visualizerClientPtr = new VisualizerClient(*gameMap, shuttles, opponentShuttles, relics, *opponentTracker);
@@ -492,6 +492,7 @@ void ControlCenter::update(GameState& gameState) {
     log ("Computing battle points");
     battleEvaluator->clear();
     battleEvaluator->announceSOSSingals();
+    battleEvaluator->computeCrashCollisionPossibilities();
     for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
             battleEvaluator->computeTeamBattlePoints(i, j);

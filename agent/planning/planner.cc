@@ -37,6 +37,7 @@ void Planner::populateJobs(JobBoard& jobBoard) {
                 jobBoard.addJob(navigatorJob);
             }
 
+            // Defend by Sap
             if (gameMap.getOpponentBattlePoints().find(currentTileId) != gameMap.getOpponentBattlePoints().end()) {
                 auto& battlePoint = gameMap.getOpponentBattlePoints()[currentTileId];
                 if (battlePoint.second > 0 || battlePoint.first > gameEnvConfig.unitSapCost/4) {
@@ -54,6 +55,20 @@ void Planner::populateJobs(JobBoard& jobBoard) {
                         }
                     }
                 }
+            }
+
+            // Defend by Collision
+            if (battleEvaluator.crashCollisionPossibilities.find(currentTileId) != battleEvaluator.crashCollisionPossibilities.end()) {
+                auto& crashCollision = battleEvaluator.crashCollisionPossibilities[currentTileId];
+               
+                DefenderJob* job = new DefenderJob(jobIdCounter++, x, y);
+                log("Created Defender by collision job at " + std::to_string(x) + ", " + std::to_string(y));
+                jobBoard.addJob(job);
+                job->opponentEneryLoss = std::get<0>(crashCollision);
+                job->kills = std::get<1>(crashCollision);                
+                job->allOpponentPositions.push_back(std::make_pair(x, y));
+                job->defendByCollision = true;
+                job->preferredShuttle = std::get<2>(crashCollision);
             }
 
             if (currentTile.isUnExploredFrontier()) {
