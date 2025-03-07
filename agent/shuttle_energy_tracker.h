@@ -90,7 +90,7 @@ struct ShuttleEnergyChangeDistribution {
         result += "meleeSap=" + std::to_string(computedMeleeSapEnergy) + ", ";
         result += "meleeSapCount=" + std::to_string(meleeSapEnergies.size()) + ", ";
         result += "rangedDirectSap=" + std::to_string(rangedDirectSapCount) + ", ";
-        result += "rangedIndirectSap=" + std::to_string(rangedIndirectSapCount) + ", ";
+        result += "rangedIndirectSapCount=" + std::to_string(rangedIndirectSapCount) + ", ";
         result += "rangedIndirectSapDropOffFactor=" + std::to_string(rangedIndirectSapDropOffFactor) + ", ";
         result += "meleeEnergyVoidFactor=" + std::to_string(meleeEnergyVoidFactor) + ", ";        
         result += "unitStackCount=" + std::to_string(unitStackCount) + ", ";
@@ -103,6 +103,9 @@ class ShuttleEnergyTracker {
 
     private:
         static void log(const std::string& message);
+        template<typename T>
+        std::string vectorToString(const std::vector<T>& vec, const std::string& name);
+
         GameMap& gameMap;
         OpponentTracker& opponentTracker;
         RespawnRegistry& respawnRegistry;
@@ -125,6 +128,12 @@ class ShuttleEnergyTracker {
 
         bool attemptResolution(ShuttleData& shuttle);
         
+        int energyLostInMovements;
+        int energyLostInEnergyFields;
+        int energyLostInRangedSap;
+        int energyLostInMeleeSap;
+        int energyLostInNebula;
+
     public:        
         ShuttleEnergyTracker(GameMap& gameMap, OpponentTracker& opponentTracker, RespawnRegistry& respawnRegistry);
         

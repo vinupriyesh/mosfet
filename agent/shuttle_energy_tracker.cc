@@ -11,6 +11,18 @@ void ShuttleEnergyTracker::log(const std::string& message) {
     Logger::getInstance().log("ShuttleEnergyTracker -> " + message);
 }
 
+template<typename T>
+std::string ShuttleEnergyTracker::vectorToString(const std::vector<T>& vec, const std::string& name) {
+    std::string result = name + " values: [";
+    for (size_t i = 0; i < vec.size(); ++i) {
+        result += std::to_string(vec[i]);
+        if (i < vec.size() - 1) {
+            result += ", ";
+        }
+    }
+    result += "]";
+    return result;
+}
 
 void ShuttleEnergyTracker::prepareOpponentCollisionMap() {
     confirmedCollisions.clear();
@@ -155,7 +167,7 @@ void ShuttleEnergyTracker::getPossibleDirectRangedSappingUnitsNearby(ShuttleData
 
                                                 
                     // }
-                    log("Adding " + std::to_string(s) + " to direct sapping set");
+                    // log("Adding " + std::to_string(s) + " to direct sapping set");
                     opponentShuttlesDirect.insert(s);
                     opponentShuttlesIndirect.insert(s);
                     
@@ -168,6 +180,7 @@ void ShuttleEnergyTracker::getPossibleDirectRangedSappingUnitsNearby(ShuttleData
 }
 
 bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
+    log("Attempting to resolve energy for " + std::to_string(shuttle.id));
 
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
@@ -245,6 +258,10 @@ bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
     log("drop off factor size -> " + std::to_string(rangedIndirectSapEnergyDropoffFactorSet.size()) + ", " + std::to_string(meleeSapEnergyVoidFactorSet.size()));
     int numberOfSolutions = 0;
 
+    std::unordered_set<int> possibleNebulaEnergyReduction;
+    std::unordered_set<float> possibleMeleeSapEnergyVoidFactor;
+    std::unordered_set<float> possibleRangedIndirectSapEnergyDropoffFactor;
+
     for (int nebulaEnergyReduction: nebulaEnergyReductionSet) {
         distribution.nebulaEnergyReduction = nebulaEnergyReduction;        
 
@@ -272,9 +289,28 @@ bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
                         int energyAfterMovement = distribution.computeEnergy(shuttle.previousEnergy);
 
                         if (energyAfterMovement == shuttle.energy) {
+
+                            if (!resolved) {
+                                //Add metrics from 1st solution.  It doesn't matter if there could be multiple possibilities!
+                                energyLostInMovements += distribution.moveCost;
+                                energyLostInEnergyFields += distribution.tileEnergy;
+                                energyLostInRangedSap += distribution.rangedDirectSapCount + distribution.rangedIndirectSapCount;
+                                energyLostInMeleeSap += distribution.computedMeleeSapEnergy;
+                                energyLostInNebula += distribution.nebulaEnergyReduction;
+                            }
                             resolved = true;
                             log("Solution found -> " + distribution.toString());
                             numberOfSolutions++;
+
+                            if (gameMap.getEstimatedType(currentTile, state.currentStep - 1) == TileType::NEBULA) {
+                                possibleNebulaEnergyReduction.insert(distribution.nebulaEnergyReduction);
+                            }
+                            if (distribution.computedMeleeSapEnergy > 0) {
+                                possibleMeleeSapEnergyVoidFactor.insert(distribution.meleeEnergyVoidFactor);
+                            }
+                            if (distribution.rangedIndirectSapCount > 0 && distribution.rangedIndirectSapDropOffFactor < 1.0) { // 1.0 cannot be identified this way
+                                possibleRangedIndirectSapEnergyDropoffFactor.insert(distribution.rangedIndirectSapDropOffFactor);
+                            }
                         } else {
                             // if (state.currentStep == 41 || state.currentStep == 61) {
                             //     log("Shuttle resolution failed - " + std::to_string(shuttle.id));
@@ -289,16 +325,106 @@ bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
         }
     }
 
-    if (!resolved && distribution.accurateResults) {
-        log("Problem: Unable to account for all the energy changes for shuttle" + std::to_string(shuttle.id));
-        std::cerr<<"Problem: Unable to account for all the energy changes"<<std::endl;
+    if (resolved && distribution.accurateResults ) {       
+        if (!possibleNebulaEnergyReduction.empty()) {
+            std::unordered_set<int> toBePruned;
+            
+            for (int value : nebulaTileEnergyReduction) {
+                if (possibleNebulaEnergyReduction.find(value) == possibleNebulaEnergyReduction.end()) {
+                    toBePruned.insert(value);
+                }
+            }
+            
+            nebulaTileEnergyReduction.erase(std::remove_if(nebulaTileEnergyReduction.begin(), nebulaTileEnergyReduction.end(), [&toBePruned](int x) {
+                return toBePruned.find(x) != toBePruned.end();
+            }), nebulaTileEnergyReduction.end());
+            
+            if (nebulaTileEnergyReduction.empty()) {
+                log("Problem: Identified wrong value for nebula energy reduction");
+                std::cerr<<"Problem: Identified wrong value for nebula energy reduction"<<std::endl;
+            }
+
+            if (nebulaTileEnergyReduction.size() == 1) {                
+                state.nebulaTileEnergyReduction = nebulaTileEnergyReduction[0];
+                state.nebulaTileEnergyReductionSet = true;
+                log("Resolved nebula energy reduction to " + std::to_string(state.nebulaTileEnergyReduction));
+            } else {
+                log("Current nebula energy reduction values -> " + vectorToString(nebulaTileEnergyReduction, "nebulaTileEnergyReduction"));
+            }
+        }
+        
+        
+        if (!possibleMeleeSapEnergyVoidFactor.empty()) {
+            std::unordered_set<float> toBePruned;
+            for (float factor : meleeSapEnergyVoidFactor) {
+                if (possibleMeleeSapEnergyVoidFactor.find(factor) == possibleMeleeSapEnergyVoidFactor.end()) {
+                    toBePruned.insert(factor);
+                }
+            }
+
+            meleeSapEnergyVoidFactor.erase(std::remove_if(meleeSapEnergyVoidFactor.begin(), meleeSapEnergyVoidFactor.end(), [&toBePruned](float x) {
+                return toBePruned.find(x) != toBePruned.end();
+            }), meleeSapEnergyVoidFactor.end());
+
+            if (meleeSapEnergyVoidFactor.empty()) {
+                log("Problem: Identified wrong value for melee void factor");
+                std::cerr<<"Problem: Identified wrong value for melee void factor"<<std::endl;
+            }
+
+            if (meleeSapEnergyVoidFactor.size() == 1) {
+                state.unitSapDropOffFactor = meleeSapEnergyVoidFactor[0];
+                state.unitSapDropOffFactorSet = true;
+                log("Resolved meleeSapEnergyVoidFactor to " + std::to_string(state.unitSapDropOffFactor));
+            } else {
+                log("Current meleeSapEnergyVoidFactor values -> " + vectorToString(meleeSapEnergyVoidFactor, "meleeSapEnergyVoidFactor"));
+            }
+        }
+        
+        if (!possibleRangedIndirectSapEnergyDropoffFactor.empty()) {
+            std::unordered_set<float> toBePruned;
+            for (float factor : rangedIndirectSapEnergyDropoffFactor) {
+                if (possibleRangedIndirectSapEnergyDropoffFactor.find(factor) == possibleRangedIndirectSapEnergyDropoffFactor.end()) { // 1.0 cannot be identified by this method
+                    toBePruned.insert(factor);
+                }
+            }
+            rangedIndirectSapEnergyDropoffFactor.erase(std::remove_if(rangedIndirectSapEnergyDropoffFactor.begin(), rangedIndirectSapEnergyDropoffFactor.end(), [&toBePruned](float x) {
+                return toBePruned.find(x) != toBePruned.end();
+            }), rangedIndirectSapEnergyDropoffFactor.end());
+            
+            
+            if (rangedIndirectSapEnergyDropoffFactor.empty()) {
+                log("Problem: Identified wrong value for rangedIndirectSapEnergyDropoffFactor");
+                std::cerr<<"Problem: Identified wrong value for rangedIndirectSapEnergyDropoffFactor"<<std::endl;
+            }
+
+            if (rangedIndirectSapEnergyDropoffFactor.size() == 1) {
+                state.unitEnergyVoidFactor = rangedIndirectSapEnergyDropoffFactor[0];
+                state.unitEnergyVoidFactorSet = true;
+                log("Resolved rangedIndirectSapEnergyDropoffFactor to " + std::to_string(state.unitEnergyVoidFactor));
+            } else {
+                log("Current rangedIndirectSapEnergyDropoffFactor values -> " + vectorToString(rangedIndirectSapEnergyDropoffFactor, "rangedIndirectSapEnergyDropoffFactor"));
+            }
+        }
     }
+
+    // if (!resolved && distribution.accurateResults) {
+    //     log("Problem: Unable to account for all the energy changes for shuttle" + std::to_string(shuttle.id));
+    //     std::cerr<<"Problem: Unable to account for all the energy changes"<<std::endl;
+    // }
 
     log("Number of solutions found -> " + std::to_string(numberOfSolutions));
     return resolved;
 }
 
 void ShuttleEnergyTracker::step() {
+    auto start = std::chrono::high_resolution_clock::now();
+
+    energyLostInMovements = 0;
+    energyLostInEnergyFields = 0;
+    energyLostInRangedSap = 0;
+    energyLostInMeleeSap = 0;
+    energyLostInNebula = 0;
+
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
 
@@ -360,6 +486,16 @@ void ShuttleEnergyTracker::step() {
 
         }
     }
+
+    Metrics::getInstance().add("movement_loss", energyLostInMovements);
+    Metrics::getInstance().add("energy_fields", energyLostInEnergyFields);
+    Metrics::getInstance().add("sap_loss", energyLostInRangedSap);
+    Metrics::getInstance().add("melee_loss", energyLostInMeleeSap);
+    Metrics::getInstance().add("nebula_loss", energyLostInNebula);
+
+    auto end = std::chrono::high_resolution_clock::now();
+    auto duration = std::chrono::duration_cast<std::chrono::milliseconds>(end - start);
+    Metrics::getInstance().add("shuttle_energy_tracking", duration.count());
 }
 
 void ShuttleEnergyTracker::updateShuttleActions(std::vector<std::vector<int>>& actions) {

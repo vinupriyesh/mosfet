@@ -86,6 +86,14 @@ def prepare_charts(df):
     plot(df, images, "opponentPoints")
     # plot(df, "energy")
 
+    # Energy Details
+    images = create_heading("Energy Details", json_data)
+    plot(df, images, "movement_loss", "points")
+    plot(df, images, "energy_fields", "points")
+    plot(df, images, "sap_loss", "points")
+    plot(df, images, "melee_loss", "points")
+    plot(df, images, "nebula_loss", "points")
+
     # Relic exploration
     images = create_heading("Relic Exploration", json_data)
     plot(df, images, "constraint_set_size", "size")    
@@ -102,7 +110,8 @@ def prepare_charts(df):
 
     # Timing
     images = create_heading("Timing", json_data)
-    plot(df, images, "visualizer_overhead", "ms")
+    plot(df, images, "shuttle_energy_tracking", "ms")
+    plot(df, images, "visualizer_overhead", "ms")    
     # plot(df, images, "act_duration", "ms")
     plot(df, images, "update_duration", "ms")
     plot(df, images, "plan_duration", "ms")
