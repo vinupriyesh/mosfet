@@ -141,8 +141,9 @@ void BattleEvaluator::computeCrashCollisionPossibilities() {
         auto& shuttle = gameMap.shuttles[s];
 
         if (shuttle->energy < gameEnvConfig.unitMoveCost || !shuttle->visible) {
-            // This shuttle doesn't have enough energy to move.  No point in SOS
-            return;
+            // This shuttle doesn't have enough energy to move.
+            log("Shuttle " + std::to_string(shuttle->id) + " doesn't have enough energy to move.");
+            continue;
         }
 
         GameTile& shuttleTile = gameMap.getTile(shuttle->getX(), shuttle->getY());
@@ -161,6 +162,8 @@ void BattleEvaluator::computeCrashCollisionPossibilities() {
             int cumulativeOpponentEnergy = tile.getCumulativeOpponentEnergy();
 
             if (tile.isOpponentOccupied() && cumulativeOpponentEnergy < playerEnergy) {
+                log("This tile " + std::to_string(xNext) + ", " + std::to_string(yNext) + " can be crashed by shuttle " + std::to_string(shuttle->id) + 
+             " it can kill " + std::to_string(tile.opponentShuttles.size()) + " and opponent energy is " + std::to_string(cumulativeOpponentEnergy));
                 crashCollisionPossibilities[tile.getId(gameMap.width)] = {cumulativeOpponentEnergy, tile.opponentShuttles.size(), shuttle->id}; 
             }
         }

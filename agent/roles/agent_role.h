@@ -8,6 +8,7 @@
 #include "agent/planning/jobs.h"
 
 #include <random>
+#include "config.h"
 
 class AgentRole {
     protected:
@@ -57,8 +58,8 @@ class RelicMiningNavigatorAgentRole: public NavigatorAgentRole {
 
 class HaloNodeExplorerAgentRole: public ExplorerAgentRole {
     private:
-        std::mt19937 gen; // Mersenne Twister random number generator 
-        std::uniform_int_distribution<> dis; // Uniform distribution
+        std::mt19937 gen = std::mt19937(Config::seed);
+        std::uniform_int_distribution<> dis;
         int removeOutOfBounds(int moveId, int x, int y);
     public:
         using ExplorerAgentRole::ExplorerAgentRole;
@@ -85,8 +86,8 @@ class TrailblazerAgentRole: public NavigatorAgentRole {
 
 class RandomAgentRole: public AgentRole {
     private:
-        std::mt19937 gen; // Mersenne Twister random number generator 
-        std::uniform_int_distribution<> dis; // Uniform distribution
+        std::mt19937 gen = std::mt19937(Config::seed);
+        std::uniform_int_distribution<> dis; 
     public:
         using AgentRole::AgentRole;
         RandomAgentRole(ShuttleData& shuttle, GameMap& gamemap);

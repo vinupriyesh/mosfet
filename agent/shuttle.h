@@ -17,8 +17,8 @@ private:
     ShuttleData shuttleData;            
     GameMap& gameMap;
 
-    std::mt19937 gen; // Mersenne Twister random number generator 
-    std::uniform_int_distribution<> dis; // Uniform distribution
+    std::mt19937 gen = std::mt19937(Config::seed);
+    std::uniform_int_distribution<> dis;
 
     std::map<std::string, AgentRole*> agentRoles;
 
