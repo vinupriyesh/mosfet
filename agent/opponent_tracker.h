@@ -23,6 +23,7 @@ class OpponentTracker {
         void computeAtleastOneShuttleProbabilities();
     public:
         OpponentTracker(GameMap& gameMap, RespawnRegistry& respawnRegistry);
+        void clear();
         void step();
 
         std::vector<std::vector<std::vector<double>>>& getOpponentPositionProbabilities();

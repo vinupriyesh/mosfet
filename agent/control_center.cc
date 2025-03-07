@@ -484,6 +484,10 @@ void ControlCenter::update(GameState& gameState) {
     log("Tracking opponent units");
     opponentTracker->step();
 
+    if (state.currentMatchStep == 0) {
+        opponentTracker->clear();
+    }
+
     log("Calculating previous step losses");
     if (state.currentMatchStep > 1) {
         shuttleEnergyTracker->step();

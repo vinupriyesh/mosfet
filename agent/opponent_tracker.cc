@@ -47,6 +47,29 @@ void OpponentTracker::initArrays() {
     );
 }
 
+void OpponentTracker::clear() {
+    // This is supposed to be called every match start
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+
+    for (int i = 0; i < gameEnvConfig.maxUnits; i++) {
+        for (int x = 0; x < gameMap.width; x++) {
+            for (int y = 0; y < gameMap.height; y++) {
+                (*opponentPreviousPositionProbabilities)[i][x][y] = 0.0;
+                (*opponentPreviousMaxPossibleEnergies)[i][x][y] = 0;
+                (*opponentPositionProbabilities)[i][x][y] = 0.0;
+                (*opponentMaxPossibleEnergies)[i][x][y] = 0;
+            }
+        }
+    }
+    
+    
+    for (int x = 0; x < gameMap.width; x++) {
+        for (int y = 0; y < gameMap.height; y++) {
+            (*atleastOneShuttleProbabilities)[x][y] = 0.0;
+        }
+    }
+}
+
 void OpponentTracker::step() {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
@@ -226,7 +249,7 @@ void OpponentTracker::computeAtleastOneShuttleProbabilities() {
 
     int outstandingPoints = opponentTeamPointsDelta - opponentConfirmedPoints;
 
-    if (outstandingPoints < 0) {
+    if (outstandingPoints < 0 && gameMap.derivedGameState.currentMatchStep > 0) {
         log("Problem: opponent outstanding points negative " + std::to_string(opponentTeamPointsDelta) + ", " + std::to_string(opponentConfirmedPoints));
         std::cerr<<"Problem: opponent outstanding points negative "<<std::endl;
     }
