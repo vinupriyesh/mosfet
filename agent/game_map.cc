@@ -163,23 +163,6 @@ bool GameMap::isValidTile(int x, int y){
     return x >= 0 && x < width && y >= 0 && y < height;
 }
 
-int GameMap::getCumulativeOpponentMeleeSappingPowerAt(int x, int y, float unitEnergyVoidFactor) {
-    double cumulativeSappingPower = 0.0;
-    for (int pmi = 0; pmi < POSSIBLE_NEIGHBORS_SIZE; pmi++) {
-        int xNext = POSSIBLE_NEIGHBORS[pmi][0] + x;
-        int yNext = POSSIBLE_NEIGHBORS[pmi][1] + y;
-
-        if (isValidTile(xNext, yNext)) {
-            GameTile& nextTile = getTile(xNext, yNext);
-
-            double sappingPower = nextTile.getCumulativeOpponentEnergy() * unitEnergyVoidFactor;
-            cumulativeSappingPower += sappingPower;
-        }
-    }
-
-    return std::floor(cumulativeSappingPower);
-}
-
 GameTile& GameMap::getTile(int x, int y){
     if (x < 0 || x >= width || y < 0 || y >= height) {
         throw std::out_of_range("Tile coordinates out of range - " + std::to_string(x) + ", " + std::to_string(y));
@@ -229,6 +212,33 @@ GameTile &GameMap::getTile(GameTile &fromTile, Direction direction) {
 
     return this->getTile(x, y);    
     
+}
+
+GameTile &GameMap::getTileFromActionId(int actionId, int x, int y) {
+    int newX = x;
+    int newY = y;
+    switch (actionId) {
+        case 1: // UP
+            newY = y - 1;
+            break;
+        case 2: // RIGHT
+            newX = x + 1;
+            break;
+        case 3: // DOWN
+            newY = y + 1;
+            break;
+        case 4: // LEFT
+            newX = x - 1;
+            break;
+        default:
+            break;
+    }
+
+    if (isValidTile(newX, newY)) {
+        return getTile(newX, newY);
+    } 
+
+    return getTile(x, y);
 }
 
 TileType GameMap::getEstimatedType(GameTile &tile, int step) const {
@@ -305,9 +315,7 @@ bool GameTile::isOpponentOccupied() {
 int GameTile::getCumulativeOpponentEnergy() {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     int shuttleEnergy = 0;
-    for (auto& shuttle : opponentShuttles) {
-        //TODO: using naive shuttle-> energy is not going to work.  We need to use the energy of previous step!
-        // shuttleEnergy += shuttle->energy + gameEnvConfig.unitMoveCost - getLastKnownEnergy();
+    for (auto& shuttle : opponentShuttles) {       
         shuttleEnergy += shuttle->energy;
     }
     return shuttleEnergy;

@@ -248,14 +248,13 @@ class GameMap {
         void exploreTile(GameTile &tile, int currentStep);
         bool isValidTile(int x, int y);
         GameTile& getTile(int x, int y);
+        GameTile& getTileFromActionId(int actionId, int x, int y);
         GameTile& getRolledOverTile(int x, int y);
         GameTile& getMirroredTile(int x, int y);
 
         GameTile& getTile(GameTile &fromTile, Direction direction);
 
         TileType getEstimatedType(GameTile& tile, int step) const;
-
-        int getCumulativeOpponentMeleeSappingPowerAt(int x, int y, float unitEnergyVoidFactor);
 
         std::tuple<bool, GameTile&> isMovable(GameTile& fromTile, Direction direction);
 

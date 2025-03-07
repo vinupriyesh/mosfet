@@ -485,12 +485,13 @@ void ControlCenter::update(GameState& gameState) {
     opponentTracker->step();
 
     log("Calculating previous step losses");
-    if (state.currentMatchStep > 0) {
+    if (state.currentMatchStep > 1) {
         shuttleEnergyTracker->step();
     }
 
     log ("Computing battle points");
     battleEvaluator->clear();
+    battleEvaluator->announceSOSSingals();
     for (int i = 0; i < gameEnvConfig.mapHeight; ++i) {
         for (int j = 0; j < gameEnvConfig.mapWidth; ++j) {
             battleEvaluator->computeTeamBattlePoints(i, j);

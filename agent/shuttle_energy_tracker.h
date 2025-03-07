@@ -119,7 +119,10 @@ class ShuttleEnergyTracker {
         std::unordered_map<int, std::vector<int>> confirmedCollisions;
         std::unordered_map<int, std::vector<int>> possibleCollisions;
 
+        std::unordered_set<int> playerCollisions;
+
         void prepareOpponentCollisionMap();
+        void preparePlayerCollisions();
 
         bool getPossibleMeleeSappingEnergyNearby(ShuttleData& shuttle, std::vector<int>& meleeSapEnergies);
         void getPossibleDirectRangedSappingUnitsNearby(ShuttleData& shuttle,

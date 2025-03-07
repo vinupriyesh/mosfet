@@ -24,6 +24,20 @@ std::string ShuttleEnergyTracker::vectorToString(const std::vector<T>& vec, cons
     return result;
 }
 
+void ShuttleEnergyTracker::preparePlayerCollisions() {
+    playerCollisions.clear();
+    int totalEnergyLost = 0;
+    for (ShuttleData* shuttle: gameMap.shuttles) {
+        if (shuttle->previouslyVisible && !shuttle->visible && shuttle->previousEnergy >= 0) {
+            log("Shuttle " + std::to_string(shuttle->id) + " was visible last turn and is not visible this turn, previous energy = " + std::to_string(shuttle->previousEnergy));
+            playerCollisions.insert(shuttle->id);
+            totalEnergyLost += shuttle->previousEnergy;
+        }
+    }
+
+    Metrics::getInstance().add("energy_lost_in_collision", totalEnergyLost);
+}
+
 void ShuttleEnergyTracker::prepareOpponentCollisionMap() {
     confirmedCollisions.clear();
     possibleCollisions.clear();
@@ -428,6 +442,7 @@ void ShuttleEnergyTracker::step() {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
     DerivedGameState& state = gameMap.derivedGameState;
 
+    preparePlayerCollisions();
     prepareOpponentCollisionMap();
 
     for (int s = 0; s< gameEnvConfig.maxUnits;++s) {

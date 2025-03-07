@@ -20,6 +20,9 @@ class BattleEvaluator {
         void computeTeamBattlePoints(int x, int y);
         void computeOpponentBattlePoints(int x, int y);
 
+        void announceSOSSingals();
+        void announceCollision(int shuttleId);
+
         void clear();
 };
 

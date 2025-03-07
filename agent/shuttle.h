@@ -40,7 +40,7 @@ public:
 
     void computePath();    
 
-    void surveyJobBoard(JobBoard& jobBoard);
+    void surveyJobBoard(JobBoard& jobBoard);    
 
     ShuttleData& getShuttleData();
 

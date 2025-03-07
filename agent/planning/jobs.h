@@ -86,10 +86,11 @@ struct DefenderJob : Job {
 //----------------------------------------------
 
 enum JobApplicationStatus : std::uint8_t {
-    APPLIED,
-    ACCEPTED,
-    SHUTTLE_BUSY,
-    TARGET_BUSY
+    APPLIED, // Default, new application status
+    RISKY, // If the job fails SOS check
+    ACCEPTED, // If the job is accepted
+    SHUTTLE_BUSY, // If the shuttle is busy doing other work
+    TARGET_BUSY // If the target is busy
 };
 
 enum JobApplicationAdditionalDetailsKey : std::uint8_t {
@@ -130,6 +131,7 @@ class JobBoard {
 private:
     std::vector<Job*> jobs;
     std::vector<JobApplication> jobApplications;
+    std::vector<JobApplication> declinedJobApplications;
     std::map<int, std::vector<JobApplication>> jobApplicationsByShuttleId;
     std::map<int, std::vector<JobApplication>> jobApplicationsByJobId;
     std::map<JobType, std::unordered_set<int>> jobTypeToJobIdMap;
@@ -137,10 +139,14 @@ private:
     std::unordered_set<int> jobDeletionExclusions;
     void log(const std::string& message);
 
+    bool isApplicationRiskFree(JobApplication& jobApplication);
+
     void sortJobApplicationsStrategy0(GameMap& gameMap);
     void sortJobApplicationsStrategy1(GameMap& gameMap);
+
+    GameMap& gameMap;
 public:
-    JobBoard();
+    JobBoard(GameMap& gameMap);
 
     void addJob(Job* job);
     std::vector<Job*>& getJobs();
@@ -149,6 +155,7 @@ public:
     JobApplication& applyForJob(Job* job, ShuttleData* shuttleData, std::vector<int>&& bestPlan);
     void sortJobApplications(GameMap& gameMap);
     std::vector<JobApplication>& getJobApplications();
+    std::vector<JobApplication>& getDecliendJobApplications();
     void addJobDeletionExclusion(int jobId);
     ~JobBoard();
 };

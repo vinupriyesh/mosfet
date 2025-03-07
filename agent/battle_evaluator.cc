@@ -1,9 +1,11 @@
 #include "battle_evaluator.h"
+#include "agent/shuttle_data.h"
 #include "logger.h"
 
 #include <algorithm>
 #include "game_env_config.h"
 #include "constants.h"
+#include "metrics.h"
 
 void BattleEvaluator::log(const std::string& message) {
     Logger::getInstance().log("BattleEvaluator -> " + message);
@@ -125,4 +127,96 @@ void BattleEvaluator::computeOpponentBattlePoints(int x, int y) {
 void BattleEvaluator::clear() {
     gameMap.getTeamBattlePoints().clear();
     gameMap.getOpponentBattlePoints().clear();
+}
+
+void BattleEvaluator::announceCollision(int shuttleId) {
+    
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    DerivedGameState& state = gameMap.derivedGameState;
+
+    auto& shuttle = gameMap.shuttles[shuttleId];
+
+    if (shuttle->energy < gameEnvConfig.unitMoveCost) {
+        // This shuttle doesn't have enough energy to move.  No point in SOS
+        return;
+    }
+
+    GameTile& shuttleTile = gameMap.getTile(shuttle->getX(), shuttle->getY());
+
+    bool directCollisionRiskDetected = false;
+    int highestCumulativeOpponentEnergy = 0;
+
+    for (int i = 0; i < POSSIBLE_NEIGHBORS_SIZE; i ++) {
+        int x = shuttle->getX() + POSSIBLE_NEIGHBORS[i][0];
+        int y = shuttle->getY() + POSSIBLE_NEIGHBORS[i][1];
+
+        if (!gameMap.isValidTile(x, y)) {
+            continue;
+        }
+
+        int energy = shuttle->energy;
+        if (x != shuttle->getX() || y != shuttle->getY()) {
+            energy -= gameEnvConfig.unitMoveCost;
+        }
+
+        GameTile& tile = gameMap.getTile(x, y);
+
+        int cumulativeOpponentEnergy = tile.getCumulativeOpponentEnergy();
+
+        if (cumulativeOpponentEnergy > highestCumulativeOpponentEnergy) {
+            highestCumulativeOpponentEnergy = cumulativeOpponentEnergy;
+        }
+        
+        if (tile.isOpponentOccupied() && cumulativeOpponentEnergy >= energy) {
+            log("Direct collision detected for shuttle " + std::to_string(shuttleId) + " at " + std::to_string(x) + ", " + std::to_string(y));
+            shuttle->collisionRisks.emplace_back(tile.getId(gameMap.width), true);
+            directCollisionRiskDetected = true;
+        }
+
+        for (int j = 0; j < POSSIBLE_NEIGHBORS_SIZE; j++) {
+            int xNext = x + POSSIBLE_NEIGHBORS[j][0];
+            int yNext = y + POSSIBLE_NEIGHBORS[j][1];
+
+            if (xNext == shuttle->getX() && yNext == shuttle->getY()) {
+                continue;
+            }
+
+            if (!gameMap.isValidTile(xNext, yNext)) {
+                continue;
+            }
+
+            GameTile& nextTile = gameMap.getTile(xNext, yNext);
+
+            if (nextTile.isOpponentOccupied() && nextTile.getCumulativeOpponentEnergy() - gameEnvConfig.unitMoveCost >= energy) {
+                log("Indirect collision detected for shuttle " + std::to_string(shuttleId) + " at " + std::to_string(xNext) + ", " + std::to_string(yNext));
+                shuttle->collisionRisks.emplace_back(tile.getId(gameMap.width), false);
+                directCollisionRiskDetected = true;
+            }
+        }
+    }
+
+    if (directCollisionRiskDetected && highestCumulativeOpponentEnergy - gameEnvConfig.unitMoveCost >= shuttle->energy) {
+        // Even if this shuttle stays here, it can be colloided by the opponent.  It has more energy to move and colloid
+        shuttle->collisionRisks.emplace_back(shuttleTile.getId(gameMap.width), false);
+    }
+}
+
+
+void BattleEvaluator::announceSOSSingals() {
+    log("Inside announcing SOS signals");
+
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    DerivedGameState& state = gameMap.derivedGameState;
+
+    int totalSoSIssued = 0;
+
+    for (int s = 0; s < gameEnvConfig.maxUnits; s++) {
+        auto& shuttle = gameMap.shuttles[s];
+        shuttle->collisionRisks.clear();
+
+        announceCollision(s);
+        totalSoSIssued += shuttle->collisionRisks.size();
+    }
+
+    Metrics::getInstance().add("total_sos_issued", totalSoSIssued);
 }

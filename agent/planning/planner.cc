@@ -80,7 +80,7 @@ void Planner::plan() {
 
     log("Planning now");
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
-    JobBoard jobBoard;  
+    JobBoard jobBoard(gameMap);  
 
     populateJobs(jobBoard);
 
@@ -93,6 +93,7 @@ void Planner::plan() {
     }
 
     Metrics::getInstance().add("job_applications", jobBoard.getJobApplications().size());
+    Metrics::getInstance().add("declined_job_applications", jobBoard.getDecliendJobApplications().size());
     
     jobBoard.sortJobApplications(gameMap);
 

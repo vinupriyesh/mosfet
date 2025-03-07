@@ -10,6 +10,11 @@ enum ShuttleType : std::uint8_t {
     OPPONENT
 };
 
+struct CollisionRisk {
+    int targetTileId = -1;
+    bool direct = false;
+};
+
 struct ShuttleData {
     int id;
     int energy;
@@ -20,6 +25,8 @@ struct ShuttleData {
     bool previouslyVisible;
     bool ghost;
     ShuttleType type;
+
+    std::vector<CollisionRisk> collisionRisks;
 
     std::vector<int> previousPosition = {-1, -1};
     std::vector<int> position = {-1, -1};

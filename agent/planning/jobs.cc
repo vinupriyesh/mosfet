@@ -2,6 +2,7 @@
 
 #include <string>
 #include <sstream>
+#include "agent/game_map.h"
 #include "config.h"
 
 // **Job class implementations**
@@ -140,8 +141,8 @@ void JobApplication::setStatus(JobApplicationStatus status) {
 
 // **JobBoard implementations**
 
-JobBoard::JobBoard()
-    : jobs(), jobApplications(), jobApplicationsByShuttleId(), jobApplicationsByJobId(), jobTypeToJobIdMap() {}
+JobBoard::JobBoard(GameMap& gameMap)
+    : gameMap(gameMap), jobs(), jobApplications(), jobApplicationsByShuttleId(), jobApplicationsByJobId(), jobTypeToJobIdMap() {}
 
 void JobBoard::addJob(Job* job) {
     jobs.push_back(job);
@@ -159,13 +160,42 @@ std::vector<JobApplication> JobBoard::getJobApplicationsForId(int jobId) {
     return jobApplicationsByJobId[jobId];
 }
 
+bool JobBoard::isApplicationRiskFree(JobApplication& jobApplication) {
+    ShuttleData* shuttleData = jobApplication.shuttleData;
+    std::vector<int>& bestPlan = jobApplication.bestPlan;
+
+    if (shuttleData->collisionRisks.size() == 0) {
+        return true;
+    }
+
+    auto& tile = gameMap.getTileFromActionId(bestPlan[0], shuttleData->getX(), shuttleData->getY());
+    int tileId = tile.getId(gameMap.width);
+
+    for (const auto& risk : shuttleData->collisionRisks) {
+        if (risk.targetTileId == tileId) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
 JobApplication& JobBoard::applyForJob(Job* job, ShuttleData* shuttleData, std::vector<int>&& bestPlan) {
     int id = jobApplications.size();
     JobApplication jobApplication(id, shuttleData, job, std::move(bestPlan));
+
+    if (!isApplicationRiskFree(jobApplication)) {
+        jobApplication.setStatus(JobApplicationStatus::RISKY);
+        declinedJobApplications.push_back(jobApplication);
+        return declinedJobApplications.back();
+    }
+
+    // APPLIED
     jobApplications.push_back(jobApplication);
     jobApplicationsByShuttleId[shuttleData->id].push_back(jobApplication);
     jobApplicationsByJobId[job->id].push_back(jobApplication);
     jobTypeToJobIdMap[job->jobType].insert(job->id);
+    
     // log("Application received for job " + job->to_string() + " from shuttle " + shuttleData->to_string());
     return jobApplications.back();
 }
@@ -233,6 +263,10 @@ std::vector<JobApplication>& JobBoard::getJobApplications() {
     return jobApplications;
 }
 
+std::vector<JobApplication>& JobBoard::getDecliendJobApplications() {
+    return declinedJobApplications;
+}
+
 void JobBoard::log(const std::string& message) {
     Logger::getInstance().log("JobBoard -> " + message);
 }
@@ -250,4 +284,5 @@ JobBoard::~JobBoard() {
     jobApplicationsByShuttleId.clear();
     jobApplicationsByJobId.clear();
     jobTypeToJobIdMap.clear();
+    declinedJobApplications.clear();
 }
