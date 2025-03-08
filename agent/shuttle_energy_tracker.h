@@ -52,7 +52,7 @@ struct ShuttleEnergyChangeDistribution {
 
         int computedEnergy = previousEnergy - moveCost                                 
                                 - rangedDirectSapCount * gameEnvConfig.unitSapCost 
-                                - rangedIndirectSapCount * static_cast<int>(std::floor(gameEnvConfig.unitSapCost * rangedIndirectSapDropOffFactor));
+                                - static_cast<int>(std::floor(rangedIndirectSapCount * gameEnvConfig.unitSapCost * rangedIndirectSapDropOffFactor));
 
         // if (computedEnergy < 0 && isAttack(meleeSapEnergy)) {
         //     // Unit is not alive anymore
@@ -110,7 +110,7 @@ class ShuttleEnergyTracker {
         OpponentTracker& opponentTracker;
         RespawnRegistry& respawnRegistry;
     
-        std::unordered_set<int> shuttlesThatSappedLastTurn;
+        std::unordered_map<int, GameTile*> shuttlesThatSappedLastTurn;
 
         std::vector<int> nebulaTileEnergyReduction;
         std::vector<float> meleeSapEnergyVoidFactor;
@@ -130,6 +130,8 @@ class ShuttleEnergyTracker {
             std::unordered_set<int>& opponentShuttlesIndirect);
 
         bool attemptResolution(ShuttleData& shuttle);
+
+        void collectInformationFromPreviousSap();
         
         int energyLostInMovements;
         int energyLostInEnergyFields;

@@ -394,10 +394,10 @@ bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
             }
         }
         
-        if (!possibleRangedIndirectSapEnergyDropoffFactor.empty()) {
+        if (!possibleRangedIndirectSapEnergyDropoffFactor.empty() && numberOfSolutions == 1) {
             std::unordered_set<float> toBePruned;
             for (float factor : rangedIndirectSapEnergyDropoffFactor) {
-                if (possibleRangedIndirectSapEnergyDropoffFactor.find(factor) == possibleRangedIndirectSapEnergyDropoffFactor.end()) { // 1.0 cannot be identified by this method
+                if (possibleRangedIndirectSapEnergyDropoffFactor.find(factor) == possibleRangedIndirectSapEnergyDropoffFactor.end()) { 
                     toBePruned.insert(factor);
                 }
             }
@@ -421,13 +421,25 @@ bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
         }
     }
 
-    // if (!resolved && distribution.accurateResults) {
-    //     log("Problem: Unable to account for all the energy changes for shuttle" + std::to_string(shuttle.id));
-    //     std::cerr<<"Problem: Unable to account for all the energy changes"<<std::endl;
-    // }
+    if (!resolved && distribution.accurateResults) {
+        log("Problem: Unable to account for all the energy changes for shuttle" + std::to_string(shuttle.id));
+        std::cerr<<"Problem: Unable to account for all the energy changes"<<std::endl;
+    }
 
     log("Number of solutions found -> " + std::to_string(numberOfSolutions));
     return resolved;
+}
+
+void ShuttleEnergyTracker::collectInformationFromPreviousSap() {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    DerivedGameState& state = gameMap.derivedGameState;
+
+    for (auto it = shuttlesThatSappedLastTurn.begin(); it != shuttlesThatSappedLastTurn.end(); ++it) {
+        auto& shuttle = gameMap.shuttles[it->first];
+        auto& tile = it->second;
+
+        // TODO: Identify the 1.0 drop off factor
+    }
 }
 
 void ShuttleEnergyTracker::step() {
@@ -449,23 +461,30 @@ void ShuttleEnergyTracker::step() {
 
         auto& shuttle = gameMap.shuttles[s];
 
+        // Registering dead units
         if (shuttle->visible && shuttle->ghost || !shuttle->visible && shuttle->previouslyVisible) {
             respawnRegistry.pushPlayerUnit(s, state.currentMatchStep);
         }        
 
+        // Respawn collision units
         if (shuttle->energy == UNIT_SPAWN_ENERGY && shuttle->visible && shuttle->previouslyVisible && shuttle->getX() == gameEnvConfig.originX && shuttle->getY() == gameEnvConfig.originY
-            && shuttle->getPreviousX() !=  gameEnvConfig.originX && shuttle->getPreviousY() !=  gameEnvConfig.originY && respawnRegistry.playerUnitRespawned != s) {
+            && (shuttle->getPreviousX() !=  gameEnvConfig.originX || shuttle->getPreviousY() !=  gameEnvConfig.originY)) {
             // This can be a false positive but extremely rare.
             log("Identified collision that happened at spawn for shuttle " + std::to_string(s));
-            int actualUnitExpectedToSpawn = respawnRegistry.playerUnitRespawned;
-            if (actualUnitExpectedToSpawn != -1) {
-                respawnRegistry.pushPlayerUnit(actualUnitExpectedToSpawn, state.currentMatchStep);
-            }
 
-            respawnRegistry.playerUnitRespawned = s;
+            if (respawnRegistry.playerUnitRespawned != s) {                
+                int actualUnitExpectedToSpawn = respawnRegistry.playerUnitRespawned;
+                if (actualUnitExpectedToSpawn != -1) {
+                    log("Bumping unit to next slot as we had a collition at spawn for shuttle " + std::to_string(s) + " and expected to spawn " + std::to_string(actualUnitExpectedToSpawn));
+                    respawnRegistry.pushPlayerUnit(actualUnitExpectedToSpawn, state.currentMatchStep);
+                }
+
+                respawnRegistry.playerUnitRespawned = s;
+            }
         }
-        
     }
+
+    collectInformationFromPreviousSap();
 
     for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
         auto& shuttle = gameMap.shuttles[s];        
@@ -476,6 +495,8 @@ void ShuttleEnergyTracker::step() {
         }
         
         if (respawnRegistry.playerUnitRespawned == s) {
+            log("Shuttle " + std::to_string(s) + " just spawned");
+
             if (shuttle->energy != UNIT_SPAWN_ENERGY) {
                 log("Problem:  Unit " + std::to_string(s) +" just spawned but energy mismatch - " + std::to_string(shuttle->energy));
                 std::cerr<<"Problem:  Unit just spawned but energy mismatch"<<std::endl;
@@ -514,19 +535,19 @@ void ShuttleEnergyTracker::step() {
 }
 
 void ShuttleEnergyTracker::updateShuttleActions(std::vector<std::vector<int>>& actions) {
-    shuttlesThatSappedLastTurn.clear();
+    shuttlesThatSappedLastTurn.clear();    
 
-    for (int s = 0; s < actions.size(); ++s) {
+    for (int s = 0; s < actions.size(); ++s) {        
         if (actions[s][0] == 5) {
-            shuttlesThatSappedLastTurn.insert(s);
+            ShuttleData* shuttle = gameMap.shuttles[s];
+            GameTile& tile = gameMap.getTile(actions[s][1] + shuttle->getX(), actions[s][2] + shuttle->getY());
+            shuttlesThatSappedLastTurn[s] = &tile;
         }
     }
-
 }
 
 ShuttleEnergyTracker::ShuttleEnergyTracker(GameMap& gameMap, OpponentTracker& opponentTracker, RespawnRegistry& respawnRegistry)
             : gameMap(gameMap), opponentTracker(opponentTracker), respawnRegistry(respawnRegistry) {
-
 
     nebulaTileEnergyReduction = std::vector<int>(std::begin(POSSIBLE_NEBULA_ENERGY_REDUCTION_VALUES), std::end(POSSIBLE_NEBULA_ENERGY_REDUCTION_VALUES));
     meleeSapEnergyVoidFactor = std::vector<float>(std::begin(POSSIBLE_UNIT_ENERGY_VOID_FACTOR_VALUES), std::end(POSSIBLE_UNIT_ENERGY_VOID_FACTOR_VALUES));
