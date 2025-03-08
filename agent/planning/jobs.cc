@@ -32,6 +32,9 @@ Job::Job(int id, JobType jobType, int targetX, int targetY)
         case TRAILBLAZER_NAVIGATOR:
             priority = PRIORITY_TRAILBLAZER_NAVIGATOR;
             break;
+        case RECHARGE:
+            priority = PRIORITY_RECHARGE;
+            break;
         default:
             priority = PRIORITY_RANDOM;
             break;
@@ -58,6 +61,8 @@ std::string Job::getJobTypeString(JobType jobType) {
 }
 
 // **Derived job constructors**
+RechargeJob::RechargeJob(int id)
+    : Job(id, RECHARGE){}
 
 RelicMinerJob::RelicMinerJob(int id, int vantagePointX, int vantagePointY)
     : Job(id, RELIC_MINER, vantagePointX, vantagePointY) {}
@@ -249,7 +254,7 @@ void JobBoard::sortJobApplicationsStrategy0(GameMap& gameMap) {
         
         if (a.job->jobType == JobType::DEFENDER || b.job->jobType == JobType::DEFENDER) { //Defenders always gets priority
             return a.priority > b.priority;
-        } else if (std::abs(aManhattanFromShuttle - bManhattanFromShuttle) <= Config::prioritizationTolerance) {  //A AND B are almost closer
+        } else if (a.job->jobType == JobType::RECHARGE || b.job->jobType == JobType::RECHARGE || std::abs(aManhattanFromShuttle - bManhattanFromShuttle) <= Config::prioritizationTolerance) {  //A AND B are almost closer or one of them is recharge
             return a.priority > b.priority;        
         } else {
             return aManhattanFromShuttle < bManhattanFromShuttle;

@@ -86,6 +86,15 @@ void Planner::populateJobs(JobBoard& jobBoard) {
         }
     }
 
+    //TODO:  Temporarily creating a recharge job for each shuttle
+    for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
+        RechargeJob* rechargeJob = new RechargeJob(jobIdCounter++);        
+        rechargeJob->preferredShuttle = i;
+
+        log("Created Recharge job for shuttle " + std::to_string(i));
+        jobBoard.addJob(rechargeJob);        
+    }
+
 
     Metrics::getInstance().add("jobs_created", jobIdCounter);
 }

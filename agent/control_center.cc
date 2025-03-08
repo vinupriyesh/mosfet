@@ -7,6 +7,7 @@
 #include "config.h"
 #include "agent/planning/planner.h"
 #include "game_env_config.h"
+#include "metrics.h"
 #include "symmetry_util.h"
 
 void ControlCenter::log(const std::string& message) {
@@ -126,6 +127,7 @@ void ControlCenter::update(GameState& gameState) {
     log("Exploring all units");
     // Exploring all units (cost 16)
     // REQUIREMENTS: NONE
+    int stuckShuttleCount = 0;
     for (int i = 0; i < gameEnvConfig.maxUnits; ++i) {
 
         // log("OldTile positions for unit " + std::to_string(i) + " - " + std::to_string(oldX) + ", " + std::to_string(oldY));
@@ -153,7 +155,13 @@ void ControlCenter::update(GameState& gameState) {
         if (opponentShuttles[i]->isVisible() && opponentShuttles[i]->isGhost()) {
             respawnRegistry.pushOpponentUnit(i, state.currentMatchStep);
         }
+
+        if (shuttles[i]->isVisible() && !shuttles[i]->isGhost() && shuttles[i]->getShuttleData().energy < gameEnvConfig.unitMoveCost) {
+            stuckShuttleCount++;
+        }
     }
+
+    Metrics::getInstance().add("stuck_shuttles", stuckShuttleCount);
 
     log("Exploring all relics");
     // Exploring all relics (cost 8)

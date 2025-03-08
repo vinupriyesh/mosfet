@@ -28,6 +28,14 @@ class AgentRole {
         virtual ~AgentRole() = default;
 };
 
+class RechargeAgentRole : public AgentRole {
+    public:
+        using AgentRole::AgentRole;
+        RechargeAgentRole(ShuttleData& shuttle, GameMap& gamemap);
+
+        void surveyJobBoard(JobBoard& jobBoard) override;
+};
+
 class ExplorerAgentRole : public AgentRole {
     public:
         using AgentRole::AgentRole;

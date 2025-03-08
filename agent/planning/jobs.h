@@ -11,12 +11,13 @@
 
 
 // Priority constants
-const int PRIORITY_DEFENDER = 6;
-const int PRIORITY_RELIC_MINER = 5;
-const int PRIORITY_RELIC_MINING_NAVIGATOR = 4;
-const int PRIORITY_HALO_NODE_EXPLORER = 3;
-const int PRIORITY_HALO_NODE_NAVIGATOR = 2;
-const int PRIORITY_TRAILBLAZER_NAVIGATOR = 1;
+const int PRIORITY_DEFENDER = 7;
+const int PRIORITY_RELIC_MINER = 6;
+const int PRIORITY_RELIC_MINING_NAVIGATOR = 5;
+const int PRIORITY_HALO_NODE_EXPLORER = 4;
+const int PRIORITY_HALO_NODE_NAVIGATOR = 3;
+const int PRIORITY_TRAILBLAZER_NAVIGATOR = 2;
+const int PRIORITY_RECHARGE = 1;
 const int PRIORITY_RANDOM = 0;
 
 const int JOB_PRIORITY_MULTIPLIER = 1000;
@@ -28,14 +29,15 @@ enum JobType : std::uint8_t {
     TRAILBLAZER_NAVIGATOR,
     RELIC_MINING_NAVIGATOR,
     HALO_NODE_NAVIGATOR,
+    RECHARGE
 };
 
 struct Job {
     int id;
     JobType jobType;
-    int priority;
-    int targetX;
-    int targetY;
+    int priority = 0;
+    int targetX = 0;
+    int targetY= 0;
 
     Job(int id, JobType jobType);
     Job(int id, JobType jobType, int targetX, int targetY);
@@ -52,6 +54,12 @@ struct Job {
 };
 
 // Derived job structures
+struct RechargeJob : Job {
+    RechargeJob(int id); // TODO: better to have some points identified as rechargable and let the shuttle decide which one to choose
+
+    int preferredShuttle = -1;
+};
+
 struct RelicMinerJob : Job {
     RelicMinerJob(int id, int vantagePointX, int vantagePointY);
 };

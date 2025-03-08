@@ -118,6 +118,9 @@ Shuttle::Shuttle(int id, ShuttleType type, GameMap& gameMap)
     // Random
     agentRoles["RandomAgentRole"] = new RandomAgentRole(shuttleData, gameMap);
 
+    // Recharge
+    agentRoles["RechargeAgentRole"] = new RechargeAgentRole(shuttleData, gameMap);
+
     // Sappers
     agentRoles["DefenderAgentRole"] = new DefenderAgentRole(shuttleData, gameMap);
 
@@ -148,6 +151,7 @@ std::vector<int> Shuttle::act() {
 
     if (bestPlan.size() == 0) {
         log("Unable to prepare a plan");
+        Metrics::getInstance().add("shuttles_without_action", 1);
         // std::cerr<<"Unable to prepare a plan"<<std::endl;
         return {0, 0, 0};
     }

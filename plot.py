@@ -94,10 +94,11 @@ def prepare_charts(df):
     plot(df, images, "sap_loss", "points")
     plot(df, images, "melee_loss", "points")
     plot(df, images, "nebula_loss", "points")
+    plot(df, images, "stuck_shuttles", "count")
 
     # Battle information
     images = create_heading("Battle information", json_data)
-    plot(df, images, "total_sos_issued", "points")    
+    plot(df, images, "total_sos_issued", "points")
 
     # Relic exploration
     images = create_heading("Relic Exploration", json_data)
@@ -113,6 +114,7 @@ def prepare_charts(df):
     plot(df, images, "jobs_created", "count")
     plot(df, images, "job_applications", "count")
     plot(df, images, "declined_job_applications", "count")
+    plot(df, images, "shuttles_without_action", "count", sum_values=True)
 
     # Timing
     images = create_heading("Timing", json_data)
