@@ -226,7 +226,14 @@ void JobBoard::sortJobApplicationsStrategy1(GameMap& gameMap) {
         GameTile& aTile = gameMap.getTile(a.job->targetX, a.job->targetY);
         GameTile& bTile = gameMap.getTile(b.job->targetX, b.job->targetY);
         
-        if (a.job->jobType == JobType::DEFENDER || b.job->jobType == JobType::DEFENDER) { //Defenders always gets priority
+        if (a.job->jobType == JobType::DEFENDER && b.job->jobType != JobType::DEFENDER) { 
+            // A is a defender, prioritize it
+            return true;
+        } else if (a.job->jobType != JobType::DEFENDER && b.job->jobType == JobType::DEFENDER) {
+            // B is a defender, prioritize it
+            return false;
+        } else if (a.job->jobType == JobType::RECHARGE || b.job->jobType == JobType::RECHARGE) {
+            // A or B is recharge, do not give manhattan priority to them
             return a.priority > b.priority;
         } else if (std::abs(aTile.manhattanFromOrigin - bTile.manhattanFromOrigin) <= Config::prioritizationTolerance) {  //A AND B are almost closer
             return a.priority > b.priority;        

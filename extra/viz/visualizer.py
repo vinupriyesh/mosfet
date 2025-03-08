@@ -111,6 +111,7 @@ class Visualizer:
         self.backward_key_held = False
 
         self.opponent_tracker_selected = False
+        self.atleast_one_shuttle_selected = False
         self.shuttle_toggle_state = [True] * 16
 
         self.asteroid_images = {}
@@ -146,11 +147,22 @@ class Visualizer:
                 rect = pygame.Rect(x, y, self.cell_size, self.cell_size)
                 if self.opponent_tracker_selected:
                     self.draw_opponent_tracker_probabilities(x // self.cell_size, y // self.cell_size, rect)
+                elif self.atleast_one_shuttle_selected:
+                    self.draw_atleast_one_shuttle_probabilities(x // self.cell_size, y // self.cell_size, rect)
                 else:
                     self.draw_energy(idx, rect)
                 self.draw_field_of_view(idx, rect)
                 pygame.draw.rect(self.screen, light_grey, rect, 1)
                 idx += 1
+
+    def draw_atleast_one_shuttle_probabilities(self, x, y, rect):
+        prob_value = self.game_state.atleast_one_shuttle_data[x][y]
+        # print(f"Prob value at {x}, {y} is {prob_value}")
+        color = get_heatmap_color(prob_value)
+        # Create a temporary surface with per-pixel alpha
+        temp_surface = pygame.Surface((self.cell_size, self.cell_size), pygame.SRCALPHA)
+        pygame.draw.rect(temp_surface, color, temp_surface.get_rect())
+        self.screen.blit(temp_surface, rect.topleft)
 
     def draw_opponent_tracker_probabilities(self, x, y, rect):
         prob_value = self.game_state.selected_tracker_data[x][y]
@@ -326,19 +338,32 @@ class Visualizer:
         self.screen.blit(halo_surface, (x * self.cell_size, y * self.cell_size))
 
     def draw_tool_bar(self):
+        def get_x_y(row, column):
+            lx = (self.grid_width + column) * self.cell_size + bottom_dialog_padding
+            ly = row * self.cell_size + bottom_dialog_padding
+            return lx, ly
         pygame.draw.rect(self.screen, very_light_grey, self.bottom_dialog_rect)
         pygame.draw.rect(self.screen, very_light_grey, self.right_dialog_rect)
 
         # Toggle opponent trackers
-        x = self.grid_width * self.cell_size + bottom_dialog_padding
-        y = bottom_dialog_padding
+        x, y = get_x_y(0, 0)
         if self.opponent_tracker_selected:
             self.screen.blit(self.button1_on_image, (x, y))
             self.draw_opponent_tracker_drilldown_tool_bar()
         else:
             self.screen.blit(self.button1_off_image, (x, y))
-        
+
         self.paint_label_on_toggle_button(x, y, "OT")
+        
+        x, y = get_x_y(0, 1)
+        if self.atleast_one_shuttle_selected and not self.opponent_tracker_selected:
+            self.screen.blit(self.button1_on_image, (x, y))
+        elif not self.opponent_tracker_selected:
+            self.screen.blit(self.button1_off_image, (x, y))
+
+        if not self.opponent_tracker_selected:            
+            self.paint_label_on_toggle_button(x, y, "A1")
+
 
     def draw_opponent_tracker_drilldown_tool_bar(self):
         x = (self.grid_width + 1) * self.cell_size + bottom_dialog_padding
@@ -374,7 +399,12 @@ class Visualizer:
                                           True, black)
         self.screen.blit(text_surface, (self.bottom_dialog_rect.x + 5, self.bottom_dialog_rect.y + 5))
 
-        line_2_text = f'({self.mouse_pos_x}, {self.mouse_pos_y}), energy: {self.get_energy(self.mouse_pos_x, self.mouse_pos_y)} | prob: {self.game_state.selected_tracker_data[self.mouse_pos_x][self.mouse_pos_y]}'
+        prob_display = self.game_state.selected_tracker_data[self.mouse_pos_x][self.mouse_pos_y]
+
+        if self.atleast_one_shuttle_selected:
+            prob_display = self.game_state.atleast_one_shuttle_data[self.mouse_pos_x][self.mouse_pos_y]
+
+        line_2_text = f'({self.mouse_pos_x}, {self.mouse_pos_y}), energy: {self.get_energy(self.mouse_pos_x, self.mouse_pos_y)} | prob: {prob_display:.5f}'
         if self.selected_shuttle_id != -1:
             if self.selected_shuttle_team == 0:
                 energy_value = self.game_state.blue_shuttles_energy[self.selected_shuttle_id]
@@ -435,11 +465,16 @@ class Visualizer:
         # Opponent tracker toggler
         if grid_x == 24 and grid_y == 0:
             self.opponent_tracker_selected = not self.opponent_tracker_selected
+            self.atleast_one_shuttle_selected = False
             if self.opponent_tracker_selected:
                 self.game_state.update_opponent_tracker_data(self.shuttle_toggle_state)
 
         elif self.opponent_tracker_selected and grid_x > 23:
             self.handle_tracker_toggle_switches(grid_x, grid_y)
+        
+        elif grid_x == 25 and grid_y == 0 and not self.opponent_tracker_selected:
+            self.atleast_one_shuttle_selected = not self.atleast_one_shuttle_selected
+            self.opponent_tracker_selected = False
     
     def handle_tracker_toggle_switches(self, x, y):
 

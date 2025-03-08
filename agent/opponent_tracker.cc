@@ -42,6 +42,8 @@ void OpponentTracker::initArrays() {
         gameEnvConfig.maxUnits, std::vector<std::vector<int>>(gameMap.width, std::vector<int>(gameMap.height, 0))
     );
 
+    delete atleastOneShuttleProbabilities;
+
     atleastOneShuttleProbabilities = new std::vector<std::vector<double>>(
         gameMap.width, std::vector<double>(gameMap.height, 0.0)
     );
@@ -124,8 +126,14 @@ void OpponentTracker::step() {
             for (int y = 0; y < gameEnvConfig.mapWidth; ++y) {
                 GameTile& tile = gameMap.getTile(x, y);
 
-                if (std::abs(opponentPositionProbabilitiesCopy[s][x][y] - 0) < LOWEST_DOUBLE && tile.getLastKnownEnergy() <= 0) {
+                if (std::abs(opponentPositionProbabilitiesCopy[s][x][y] - 0) < LOWEST_DOUBLE) {
                     // This shuttle has not reached this tile yet even in the previous step.  No point in going further
+                    continue;
+                }
+
+                if (opponentMaxPossibleEnergiesCopy[s][x][y] < 0) {
+                    // If this shuttle was present in this tile (x, y) it should've been dead by now.  
+                    lostProbabilityForShuttle += opponentPositionProbabilitiesCopy[s][x][y];
                     continue;
                 }
                 
@@ -155,13 +163,25 @@ void OpponentTracker::step() {
                     int newEnergy = opponentMaxPossibleEnergiesCopy[s][x][y] + nextTile.getLastKnownEnergy();
 
                     if (x != xNext || y != yNext) {
-                        newEnergy = opponentMaxPossibleEnergiesCopy[s][x][y] - gameEnvConfig.unitMoveCost;
+                        newEnergy -= gameEnvConfig.unitMoveCost;
                         
                         if (newEnergy < 0) {
                             // This shuttle cannot move anymore
                             lostProbabilityForShuttle += opponentPositionProbabilitiesCopy[s][x][y] / 5.0;
                             continue;
                         }
+                    }                    
+
+                    if (gameMap.getEstimatedType(nextTile, state.currentStep) == TileType::NEBULA && state.nebulaTileEnergyReductionSet) {
+                        newEnergy -= state.nebulaTileEnergyReduction;
+                    }
+
+                    if (newEnergy > MAX_ENERGY) {
+                        newEnergy = MAX_ENERGY;
+                    }
+
+                    if (newEnergy < 0) {                        
+                        newEnergy = 0;
                     }
                                                 
                     opponentMaxPossibleEnergiesRef[s][xNext][yNext] = std::max(opponentMaxPossibleEnergiesRef[s][xNext][yNext], newEnergy);
@@ -224,7 +244,7 @@ void OpponentTracker::computeAtleastOneShuttleProbabilities() {
         for (int y = 0; y < gameEnvConfig.mapWidth; ++y) {
             double pNotShuttle = 1.0;
             for (int s = 0; s < gameEnvConfig.maxUnits; ++s) {
-                pNotShuttle *= positionProbabilities[s][x][y];
+                pNotShuttle *= (1.0 - positionProbabilities[s][x][y]);
             }
             atleastOneShuttleProbabilitiesRef[x][y] = 1.0 - pNotShuttle;
 
@@ -247,26 +267,37 @@ void OpponentTracker::computeAtleastOneShuttleProbabilities() {
 
     int opponentTeamPointsDelta = gameMap.derivedGameState.opponentTeamPointsDelta;
 
-    int outstandingPoints = opponentTeamPointsDelta - opponentConfirmedPoints;
+    if (opponentTeamPointsDelta > 0 && opponentOpportunities + opponentExploiting > 0) {
 
-    if (outstandingPoints < 0 && gameMap.derivedGameState.currentMatchStep > 0) {
-        log("Problem: opponent outstanding points negative " + std::to_string(opponentTeamPointsDelta) + ", " + std::to_string(opponentConfirmedPoints));
-        std::cerr<<"Problem: opponent outstanding points negative "<<std::endl;
-    }
+        int outstandingPoints = opponentTeamPointsDelta - opponentConfirmedPoints;
 
-    double probabilityDistribution = static_cast<double>(outstandingPoints) / static_cast<double>(opponentOpportunities);
+        if (outstandingPoints < 0 && gameMap.derivedGameState.currentMatchStep > 0) {
+            log("Problem: opponent outstanding points negative " + std::to_string(opponentTeamPointsDelta) + ", " + std::to_string(opponentConfirmedPoints));
+            std::cerr<<"Problem: opponent outstanding points negative "<<std::endl;
+        }
 
-    if (probabilityDistribution < 1.0 + LOWEST_DOUBLE && probabilityDistribution > 1.0 - LOWEST_DOUBLE) {
-        log("Voila! can snipe the opponent now");
-    }    
+        double probabilityDistribution = static_cast<double>(outstandingPoints) / static_cast<double>(opponentOpportunities  + opponentExploiting - opponentConfirmedPoints);
 
-    if (gameMap.derivedGameState.isThereAHuntForRelic()) {
-        for (int tileId : opponentOpportunitiesTiles) {
-            int x, y;
-            symmetry_utils::toXY(tileId, x, y);
+        if (probabilityDistribution > 1.0) {
+            log("Problem: probability distribution is greater than 1.0 " + std::to_string(probabilityDistribution));
+            std::cerr<<"Problem: probability distribution is greater than 1.0 "<<std::endl;
+        }
 
-            //TODO: Back-propagate this probability to the positionProbabilities
-            atleastOneShuttleProbabilitiesRef[x][y] = probabilityDistribution;
+        if (probabilityDistribution < 1.0 + LOWEST_DOUBLE && probabilityDistribution > 1.0 - LOWEST_DOUBLE) {
+            log("Voila! can snipe the opponent now");
+        }    
+
+        if (!gameMap.derivedGameState.isThereAHuntForRelic()) {
+            for (int tileId : opponentOpportunitiesTiles) {
+                int x, y;
+                symmetry_utils::toXY(tileId, x, y);
+                
+                if (atleastOneShuttleProbabilitiesRef[x][y] < probabilityDistribution) {
+                    //TODO: Back-propagate this probability to the positionProbabilities
+                    atleastOneShuttleProbabilitiesRef[x][y] = probabilityDistribution;
+                }
+                log("Forcing atleast one shuttle probability at " + std::to_string(x) + ", " + std::to_string(y) + " to " + std::to_string(probabilityDistribution));
+            }
         }
     }
 }
@@ -298,6 +329,10 @@ std::vector<std::vector<std::vector<int>>>& OpponentTracker::getOpponentPrevious
         return getOpponentMaxPossibleEnergies();
     }
     return *opponentPreviousMaxPossibleEnergies;
+}
+
+std::vector<std::vector<double>>& OpponentTracker::getAtleastOneShuttleProbabilities() {
+    return *atleastOneShuttleProbabilities;
 }
 
 

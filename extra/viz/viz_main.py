@@ -48,11 +48,37 @@ class ReplayHandler:
         self.file = file
         self.data = self.load_data()["data"]
         self.tracker_data = self.load_opponent_tracker_data()
+        self.atleast_one_shuttle_data = self.load_atleast_one_shuttle_data()
         self.current_frame = 0
 
     def load_data(self):
         with open(self.file, 'r') as f:
             data = json.load(f)
+        return data
+    
+    def load_atleast_one_shuttle_data(self):
+        if "custom_replay_0.json" in self.file:
+            filename = self.file.replace("custom_replay_0.json", "atleast_one_shuttle_0.bin")
+        else:
+            filename = self.file.replace("custom_replay_1.json", "atleast_one_shuttle_1.bin")
+
+        data = []
+        with open(filename, "rb") as file:
+            while True:
+                # Read the index (first dimension)
+                index_data = file.read(8)
+                if not index_data:  # End of file
+                    break
+                index = struct.unpack("Q", index_data)[0]
+
+                # Read dimensions of the 2D array
+                dim1 = struct.unpack("Q", file.read(8))[0]
+                matrix = []
+                for _ in range(dim1):
+                    dim2 = struct.unpack("Q", file.read(8))[0]
+                    row = struct.unpack(f"{dim2}d", file.read(dim2 * 8))
+                    matrix.append(row)
+                data.append(matrix)
         return data
     
     def load_opponent_tracker_data(self):
@@ -104,7 +130,7 @@ class ReplayHandler:
         
     
     def update_state_and_display(self):
-        game_state.update_state(self.data[self.current_frame], self.tracker_data[self.current_frame], visualizer.shuttle_toggle_state)
+        game_state.update_state(self.data[self.current_frame], self.tracker_data[self.current_frame], self.atleast_one_shuttle_data[self.current_frame], visualizer.shuttle_toggle_state)
         visualizer.update_display()
 
 def run_server(port):

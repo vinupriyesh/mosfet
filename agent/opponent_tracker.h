@@ -32,6 +32,8 @@ class OpponentTracker {
         std::vector<std::vector<std::vector<double>>>& getOpponentPreviousPositionProbabilities();
         std::vector<std::vector<std::vector<int>>>& getOpponentPreviousMaxPossibleEnergies();
 
+        std::vector<std::vector<double>>& getAtleastOneShuttleProbabilities();
+
         bool isOpponentOccupied(int x, int y);
         double expectationOfOpponentOccupancy(int x, int y);
 

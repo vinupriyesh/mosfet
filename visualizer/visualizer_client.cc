@@ -46,6 +46,28 @@ void saveToFile(const std::vector<std::vector<std::vector<double>>>& data, const
     file.close();
 }
 
+void saveToFile(const std::vector<std::vector<double>>& data, const std::string& filename, size_t index) {    
+    std::ofstream file(filename, std::ios::binary | std::ios::app); // Open in append mode
+    if (!file) {
+        std::cerr << "Error opening file for writing.\n";
+        return;
+    }
+
+    // Write the current index for the 3D array (first dimension)
+    file.write(reinterpret_cast<const char*>(&index), sizeof(index));
+
+    // Write dimensions of the current 2D array
+    size_t dim1 = data.size();
+    file.write(reinterpret_cast<const char*>(&dim1), sizeof(dim1));
+    for (const auto& row : data) {
+        size_t dim2 = row.size();
+        file.write(reinterpret_cast<const char*>(&dim2), sizeof(dim2));
+        file.write(reinterpret_cast<const char*>(row.data()), dim2 * sizeof(double));
+    }
+
+    file.close();
+}
+
 void VisualizerClient::log(const std::string& message) {
     Logger::getInstance().log("VisualizerClient -> " + message);
 }
@@ -207,6 +229,7 @@ int VisualizerClient::sendGameData(const std::vector<std::vector<int>>& actions)
     }
 
     saveToFile(opponentTracker.getOpponentPositionProbabilities(), "output/opponent_tracker_"  + std::to_string(teamId) + ".bin", currentInsertIndex++);
+    saveToFile(opponentTracker.getAtleastOneShuttleProbabilities(), "output/atleast_one_shuttle_"  + std::to_string(teamId) + ".bin", currentInsertIndex++);
 
     if (livePlayEnabled) {
         uploadData(data);

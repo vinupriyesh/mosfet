@@ -31,9 +31,10 @@ class GameState:
         self.unit_sensor_range = 0        
 
         self.tracker_data = []
+        self.atleast_one_shuttle_data = []
         self.selected_tracker_data = [[0 for _ in range(self.grid_size[0])] for _ in range(self.grid_size[1])]
 
-    def update_state(self, data, tracker_data, shuttle_toggle_state):
+    def update_state(self, data, tracker_data, atleast_one_shuttle_data, shuttle_toggle_state):
         if 'step' not in data:
             self.clear()
             return
@@ -64,6 +65,7 @@ class GameState:
         self.red_shuttles_energy = data.get('red_shuttles_energy', [])
 
         self.tracker_data = tracker_data
+        self.atleast_one_shuttle_data = atleast_one_shuttle_data
         self.update_opponent_tracker_data(shuttle_toggle_state)
 
     def update_opponent_tracker_data(self, shuttle_toggle_state):

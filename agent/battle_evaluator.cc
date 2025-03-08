@@ -62,40 +62,20 @@ std::vector<int> BattleEvaluator::getOpponentsAt(int x, int y) {
     return shuttles;
 }
 
-bool BattleEvaluator::isNearPlayerShuttle(GameTile& tile) {
-    
-    for (int pmi = 0; pmi < POSSIBLE_NEIGHBORS_SIZE; pmi++) {
-        int xNext = POSSIBLE_NEIGHBORS[pmi][0] + tile.x;
-        int yNext = POSSIBLE_NEIGHBORS[pmi][1] + tile.y;
-
-        if (gameMap.isValidTile(xNext, yNext)) {
-            auto& tile = gameMap.getTile(xNext, yNext);
-
-            if (tile.isOccupied()) {
-                return true;
-            }
-        }
-    }
-    
-    return false;
-}
-
 void BattleEvaluator::computeOpponentBattlePoints(int x, int y) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
 
     auto& energies = opponentTracker.getOpponentMaxPossibleEnergies();
 
     int tileId = gameMap.getTile(x, y).getId(gameMap.width);
-    int energyDiff = -gameEnvConfig.unitSapCost; //TODO: Remove this, we need to attack from multiple shuttles
+    int energyDiff = 0;
     int kills = 0;
     bool rangedSapPossible = false;
     for (int i = x-1; i <= x+1; ++i) {
         for (int j = y-1; j <= y+1; ++j) {
             if (gameMap.isValidTile(i, j)) {
                 auto& tile = gameMap.getTile(i, j);
-                // if (isNearPlayerShuttle(tile)) {
-                //     continue;
-                // }
+                
                 int sapCost = gameEnvConfig.unitSapCost * gameMap.derivedGameState.unitSapDropOffFactor;
                 if (i == x and j == y) {
                     sapCost = gameEnvConfig.unitSapCost;

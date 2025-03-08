@@ -17,6 +17,8 @@ files=(
     "output/custom_replay_1.json"
     "output/opponent_tracker_0.bin"
     "output/opponent_tracker_1.bin"
+    "output/atleast_one_shuttle_0.bin"
+    "output/atleast_one_shuttle_1.bin"
     "test.log"
     "metrics.csv"
     "replay.html"
