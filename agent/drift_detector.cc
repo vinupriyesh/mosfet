@@ -302,6 +302,12 @@ void DriftDetector::reportNebulaDrift(GameTile& gameTile) {
         log("Drift finalized = " + std::to_string(finalSpeed));
         driftFinalized = true;
         estimateTileTypesforFinalizedDrift();
+
+        auto& details = Metrics::getInstance().details;
+        if (details.nebulaTileDriftSpeedIdentifiedStep < 0) {
+            details.nebulaTileDriftSpeed = finalSpeed;
+            details.nebulaTileDriftSpeedIdentifiedStep = gameMap.derivedGameState.currentStep;
+        }
     }
 
     if (outstandingPossibilities == 0) {

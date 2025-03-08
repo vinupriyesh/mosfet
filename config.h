@@ -8,6 +8,7 @@ class Config {
 public:
     static bool enableLogging;
     static bool enableMetrics;
+    static bool enableMetricDetails;
     static bool livePlayPlayer0;
     static bool livePlayPlayer1;
     static bool recordPlayer0;

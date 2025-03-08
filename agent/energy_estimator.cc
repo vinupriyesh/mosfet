@@ -8,7 +8,7 @@ const int MIN_ENERGY = -20;
 const int MAX_ENERGY = 20;
 const int POSSIBLE_ENERGY_DRIFT_SPEEDS[] = {1, 2, 3, 4, 5};  //Representing as x100 to avoid floating point precision inside map
 
-void EnergyEstimator::log(std::string message) {
+void EnergyEstimator::log(const std::string& message) {
     Logger::getInstance().log("EnergyEstimator -> " + message);
 }
 
@@ -223,8 +223,13 @@ void EnergyEstimator::reportEnergyDrift(GameTile &tile) {
             if (driftSpeedToStatusMap[speed] == EnergyDriftStatus::UNKNOWN_ENERGY_DRIFT) {
                 driftSpeedToStatusMap[speed] = EnergyDriftStatus::FOUND_ENERGY_DRIFT;
                 log("Energy drift found at speed " + std::to_string(speed));
+                finalEnergyDriftSpeed = speed;
 
-                finalEnergyDriftSpeed = speed;                
+                auto& details = Metrics::getInstance().details;
+                if (details.energyNodeDriftIdnetifiedStep < 0) {
+                    details.energyNodeDriftIdnetifiedStep = gameMap.derivedGameState.currentStep;
+                }
+
                 break;
             }
         }
@@ -272,6 +277,12 @@ void EnergyEstimator::updateEnergyNodes() {
         updateEstimatedEnergies();
         delete energyValuesBuffer;
         energyValuesBuffer = nullptr;
+
+        auto& details = Metrics::getInstance().details;
+        if (details.energyNodeIdentifiedStep < 0) {
+            details.energyNodeIdentifiedStep = gameMap.derivedGameState.currentStep;
+        }
+
     } else {
         log("Energy node not found, this is rare");
         clearEstimatedEnergies();

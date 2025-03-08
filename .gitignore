@@ -58,4 +58,6 @@ valgrind_report*
 DEBUG
 
 metrics.csv
+metric_details_0.csv
+metric_details_1.csv
 dashboard.html

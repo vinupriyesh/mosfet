@@ -362,6 +362,13 @@ bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
                 state.nebulaTileEnergyReduction = nebulaTileEnergyReduction[0];
                 state.nebulaTileEnergyReductionSet = true;
                 log("Resolved nebula energy reduction to " + std::to_string(state.nebulaTileEnergyReduction));
+
+                auto& details = Metrics::getInstance().details;
+                if (details.nebulaTileEnergyReductionIdentifiedStep < 0) {
+                    details.nebulaTileEnergyReduction = state.nebulaTileEnergyReduction;
+                    details.nebulaTileEnergyReductionIdentifiedStep = state.currentStep;
+                }
+                
             } else {
                 log("Current nebula energy reduction values -> " + vectorToString(nebulaTileEnergyReduction, "nebulaTileEnergyReduction"));
             }
@@ -386,9 +393,17 @@ bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
             }
 
             if (meleeSapEnergyVoidFactor.size() == 1) {
-                state.unitSapDropOffFactor = meleeSapEnergyVoidFactor[0];
-                state.unitSapDropOffFactorSet = true;
-                log("Resolved meleeSapEnergyVoidFactor to " + std::to_string(state.unitSapDropOffFactor));
+
+                state.unitEnergyVoidFactor = meleeSapEnergyVoidFactor[0];
+                state.unitEnergyVoidFactorSet = true;                
+                log("Resolved unitEnergyVoidFactor to " + std::to_string(state.unitEnergyVoidFactor));
+
+                auto& details = Metrics::getInstance().details;
+                if (details.unitEnergyVoidFactorIdentifiedStep < 0) {
+                    details.unitEnergyVoidFactor = state.unitEnergyVoidFactor;
+                    details.unitEnergyVoidFactorIdentifiedStep = state.currentStep;
+                }
+                                
             } else {
                 log("Current meleeSapEnergyVoidFactor values -> " + vectorToString(meleeSapEnergyVoidFactor, "meleeSapEnergyVoidFactor"));
             }
@@ -412,9 +427,16 @@ bool ShuttleEnergyTracker::attemptResolution(ShuttleData& shuttle) {
             }
 
             if (rangedIndirectSapEnergyDropoffFactor.size() == 1) {
-                state.unitEnergyVoidFactor = rangedIndirectSapEnergyDropoffFactor[0];
-                state.unitEnergyVoidFactorSet = true;
-                log("Resolved rangedIndirectSapEnergyDropoffFactor to " + std::to_string(state.unitEnergyVoidFactor));
+                state.unitSapDropOffFactor = rangedIndirectSapEnergyDropoffFactor[0];
+                state.unitSapDropOffFactorSet = true;
+
+                log("Resolved unitSapDropOffFactor to " + std::to_string(state.unitSapDropOffFactor));
+
+                auto& details = Metrics::getInstance().details;
+                if (details.unitSapDropOffFactorIdentifiedStep < 0) {
+                    details.unitSapDropOffFactor = state.unitSapDropOffFactor;
+                    details.unitSapDropOffFactorIdentifiedStep = state.currentStep;
+                }
             } else {
                 log("Current rangedIndirectSapEnergyDropoffFactor values -> " + vectorToString(rangedIndirectSapEnergyDropoffFactor, "rangedIndirectSapEnergyDropoffFactor"));
             }

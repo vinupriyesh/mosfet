@@ -105,6 +105,14 @@ void ControlCenter::update(GameState& gameState) {
             respawnRegistry.pushPlayerUnit(i, state.currentMatchStep);
             respawnRegistry.pushOpponentUnit(i, state.currentMatchStep);
         }
+
+        if (state.currentMatch == 0) {
+            auto& details = Metrics::getInstance().details;
+            details.unitMoveCost = gameEnvConfig.unitMoveCost;
+            details.unitSapCost = gameEnvConfig.unitSapCost;
+            details.unitSapRange = gameEnvConfig.unitSapRange;
+            details.unitSensorRange = gameEnvConfig.unitSensorRange;
+        }
     }
 
     respawnRegistry.step(state.currentMatchStep);
@@ -168,6 +176,16 @@ void ControlCenter::update(GameState& gameState) {
             relic->addDiscoveryId(i);
             relicDiscoveryKey[i] = positionId;
             state.setRelicDiscoveryStatus(RelicDiscoveryStatus::FOUND);
+
+            auto& details = Metrics::getInstance().details;
+            details.relicsCount += 1;
+            if (state.currentMatch == 0) {
+                details.relicDiscoveryStepRound1 = state.currentStep;
+            } else if (state.currentMatch == 1) {
+                details.relicDiscoveryStepRound2 = state.currentStep;
+            } else if (state.currentMatch == 2) {
+                details.relicDiscoveryStepRound3 = state.currentStep;
+            }
 
             log("Relic " + std::to_string(positionId) + " found at " + std::to_string(relic->position[0]) + ", " + std::to_string(relic->position[1]));
             gameMap->addRelic(relic, state.currentStep, forcedHaloTileIds);

@@ -5,6 +5,7 @@
 
 bool Config::enableLogging = false;
 bool Config::enableMetrics = false;
+bool Config::enableMetricDetails = false;
 bool Config::livePlayPlayer0 = false;
 bool Config::livePlayPlayer1 = false;
 bool Config::recordPlayer0 = false;
@@ -40,6 +41,7 @@ void Config::parseConfig(const std::string& filename) {
 
     enableLogging = (configMap["enable_logging"] == "true");
     enableMetrics = (configMap["enable_metrics"] == "true");
+    enableMetricDetails = (configMap["enable_metric_details"] == "true");
     livePlayPlayer0 = (configMap["live_play_player0"] == "true");
     livePlayPlayer1 = (configMap["live_play_player1"] == "true");
     recordPlayer0 = (configMap["record_player0"] == "true");

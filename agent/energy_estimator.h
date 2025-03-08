@@ -4,7 +4,7 @@
 #include "agent/game_map.h"
 #include <unordered_set>
 
-enum EnergyDriftStatus {
+enum EnergyDriftStatus : std::uint8_t {
     UNKNOWN_ENERGY_DRIFT,
     NO_ENERGY_DRIFT,
     FOUND_ENERGY_DRIFT
@@ -30,7 +30,7 @@ class EnergyEstimator {
             // {1, 4, 0, 0}
         };
 
-        static void log(std::string message);
+        static void log(const std::string& message);
 
         void getPossibleDrifts(int step, std::unordered_set<int> &possibleDrifts);
 

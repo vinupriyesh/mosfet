@@ -4,6 +4,7 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 
+#include "game_env_config.h"
 #include "logger.h"
 #include "metrics.h"
 #include "parser.h"
@@ -46,6 +47,16 @@ void process(std::string& input, int counter) {
 
     if (Metrics::getInstance().isMetricEnabled()) {
         emit_memory_usage_metric();
+    }
+
+    if (cc->gameMap->derivedGameState.currentStep == 504) {
+        log("All done, have a nice day");        
+        if (Config::enableMetricDetails) {
+            Metrics::getInstance().details.wins = cc->gameMap->derivedGameState.teamWins;
+            Metrics::getInstance().details.losses = cc->gameMap->derivedGameState.opponentWins;
+            Metrics::getInstance().details.gameWon = cc->gameMap->derivedGameState.teamWins > cc->gameMap->derivedGameState.opponentWins ? 1 : 0;
+            Metrics::getInstance().saveMetricDetails("metric_details_" + std::to_string(GameEnvConfig::getInstance().teamId) + ".csv");
+        }
     }
 
     auto end = std::chrono::high_resolution_clock::now();
