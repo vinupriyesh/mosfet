@@ -370,3 +370,16 @@ int OpponentTracker::getAllPossibleEnergyAt(int x, int y) {
 
     return expectation;
 }
+
+int OpponentTracker::getCountLessThanEnergyAt(int x, int y, int energy) {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    auto energies = getOpponentMaxPossibleEnergies();
+    int expectation = 0.0;
+    for (int s = 0; s<gameEnvConfig.maxUnits;s++) {
+        if (energies[s][x][y] < energy) {
+            expectation++;
+        }
+    }
+
+    return expectation;
+}

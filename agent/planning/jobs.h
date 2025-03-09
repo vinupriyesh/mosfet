@@ -89,6 +89,7 @@ struct DefenderJob : Job {
     std::vector<std::pair<int, int>> allOpponentPositions;
     int kills;
     int opponentEneryLoss;
+    bool isRelicMiningOpponent = false;
     bool defendByCollision = false;
     int preferredShuttle = -1;
 };

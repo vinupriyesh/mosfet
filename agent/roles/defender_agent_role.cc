@@ -39,7 +39,11 @@ void DefenderAgentRole::surveyJobBoard(JobBoard& jobBoard) {
                 std::vector<int> bestPlan = {5, std::get<0>(relativePosition), std::get<1>(relativePosition)};
                 log("Attacking tile - " + std::to_string(defenderJob->targetX) + ", " + std::to_string(defenderJob->targetY));
                 JobApplication* jobApplication = &jobBoard.applyForJob(job, &shuttle, std::move(bestPlan));
-                jobApplication->setPriority(defenderJob->kills * 100 + defenderJob->opponentEneryLoss); 
+                if (defenderJob->isRelicMiningOpponent) {
+                    jobApplication->setPriority( defenderJob->kills * 100 + defenderJob->opponentEneryLoss + 1000);
+                } else {
+                    jobApplication->setPriority(defenderJob->kills * 100 + defenderJob->opponentEneryLoss);
+                }
             }            
         }
     }

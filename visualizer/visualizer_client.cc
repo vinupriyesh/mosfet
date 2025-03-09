@@ -20,6 +20,32 @@ struct FileCloser {
     }
 };
 
+void saveToFile(const std::vector<std::vector<std::vector<int>>>& data, const std::string& filename, size_t index) {    
+    std::ofstream file(filename, std::ios::binary | std::ios::app); // Open in append mode
+    if (!file) {
+        std::cerr << "Error opening file for writing.\n";
+        return;
+    }
+
+    // Write the current index for the 4D array (first dimension)
+    file.write(reinterpret_cast<const char*>(&index), sizeof(index));
+
+    // Write dimensions of the current 3D array
+    size_t dim1 = data.size();
+    file.write(reinterpret_cast<const char*>(&dim1), sizeof(dim1));
+    for (const auto& matrix : data) {
+        size_t dim2 = matrix.size();
+        file.write(reinterpret_cast<const char*>(&dim2), sizeof(dim2));
+        for (const auto& row : matrix) {
+            size_t dim3 = row.size();
+            file.write(reinterpret_cast<const char*>(&dim3), sizeof(dim3));
+            file.write(reinterpret_cast<const char*>(row.data()), dim3 * sizeof(double));
+        }
+    }
+
+    file.close();
+}
+
 void saveToFile(const std::vector<std::vector<std::vector<double>>>& data, const std::string& filename, size_t index) {    
     std::ofstream file(filename, std::ios::binary | std::ios::app); // Open in append mode
     if (!file) {
@@ -228,8 +254,10 @@ int VisualizerClient::sendGameData(const std::vector<std::vector<int>>& actions)
         log_file << data << "," << std::endl;
     }
 
-    saveToFile(opponentTracker.getOpponentPositionProbabilities(), "output/opponent_tracker_"  + std::to_string(teamId) + ".bin", currentInsertIndex++);
-    saveToFile(opponentTracker.getAtleastOneShuttleProbabilities(), "output/atleast_one_shuttle_"  + std::to_string(teamId) + ".bin", currentInsertIndex++);
+    saveToFile(opponentTracker.getOpponentPositionProbabilities(), "output/opponent_tracker_"  + std::to_string(teamId) + ".bin", currentInsertIndex);
+    saveToFile(opponentTracker.getOpponentMaxPossibleEnergies(), "output/opponent_energy_"  + std::to_string(teamId) + ".bin", currentInsertIndex);
+    saveToFile(opponentTracker.getAtleastOneShuttleProbabilities(), "output/atleast_one_shuttle_"  + std::to_string(teamId) + ".bin", currentInsertIndex);
+    currentInsertIndex++;
 
     if (livePlayEnabled) {
         uploadData(data);

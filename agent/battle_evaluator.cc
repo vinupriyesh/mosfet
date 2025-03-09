@@ -64,13 +64,17 @@ std::vector<int> BattleEvaluator::getOpponentsAt(int x, int y) {
 
 void BattleEvaluator::computeOpponentBattlePoints(int x, int y) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
-
+ 
     auto& energies = opponentTracker.getOpponentMaxPossibleEnergies();
+    auto& probabilities = opponentTracker.getAtleastOneShuttleProbabilities();
 
     int tileId = gameMap.getTile(x, y).getId(gameMap.width);
-    int energyDiff = 0;
-    int kills = 0;
+    
     bool rangedSapPossible = false;
+
+    TileEvaluation tileEvaluation;
+    tileEvaluation.tileId = tileId;
+
     for (int i = x-1; i <= x+1; ++i) {
         for (int j = y-1; j <= y+1; ++j) {
             if (gameMap.isValidTile(i, j)) {
@@ -80,33 +84,41 @@ void BattleEvaluator::computeOpponentBattlePoints(int x, int y) {
                 if (i == x and j == y) {
                     sapCost = gameEnvConfig.unitSapCost;
                 }
-                                
-                for (auto& shuttleId : getOpponentsAt(i, j)) {
 
-                    int maxPossibleEnergy = energies[shuttleId][i][j];
-
-                    energyDiff += std::min(maxPossibleEnergy, sapCost);
-                    if (maxPossibleEnergy < sapCost) {
-                        // This shuttle is going
-                        kills++;
-                    }
-                    if (!rangedSapPossible) {
-                        rangedSapPossible = true;
-                    }
+                if (probabilities[i][j] >= 1.0 - LOWEST_DOUBLE) {
+                    // This tile is occupied by the opponent
+                    tileEvaluation.possibleCumulativeOpponentEnergy = std::min(opponentTracker.getAllPossibleEnergyAt(i, j), sapCost);
+                    tileEvaluation.isRelicMiningOpponent = tile.isVantagePoint();
+                    tileEvaluation.possibleKills = opponentTracker.getCountLessThanEnergyAt(i, j, sapCost);
+                    rangedSapPossible = true;
                 }
+                                
+                // for (auto& shuttleId : getOpponentsAt(i, j)) {
+
+                //     int maxPossibleEnergy = energies[shuttleId][i][j];
+
+                //     energyDiff += std::min(maxPossibleEnergy, sapCost);
+                //     if (maxPossibleEnergy < sapCost) {
+                //         // This shuttle is going
+                //         kills++;
+                //     }
+                //     if (!rangedSapPossible) {
+                //         rangedSapPossible = true;
+                //     }
+                // }
             }
         }
     }
     
     if (rangedSapPossible) {
-        log("If we sap at " + std::to_string(x) + ", " + std::to_string(y) + " then energy diff will be " + std::to_string(energyDiff) + " and " + std::to_string(kills) + " lost units.");
-        gameMap.getOpponentBattlePoints()[tileId] = std::make_pair(energyDiff, kills); 
+        log("Tile evaluation - " + tileEvaluation.toString());
+        opponentBattlePoints[tileId] = tileEvaluation; 
     }
 }
 
 void BattleEvaluator::clear() {
     gameMap.getTeamBattlePoints().clear();
-    gameMap.getOpponentBattlePoints().clear();
+    opponentBattlePoints.clear();
 }
 
 

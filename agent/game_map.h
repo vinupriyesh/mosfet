@@ -230,7 +230,7 @@ class GameMap {
         static void log(const std::string& message);
         std::vector<std::vector<GameTile>> map;
         std::vector< std::vector<std::vector<TileType>>* > driftAwareTileType; //<stepId, y, x>
-        std::map<int, std::pair<int, int>> opponentBattlePoints; //<tileId, <energyDiff, kills>> +ve energyDiff means we lose less energy than opponent
+        // std::map<int, std::pair<int, int>> opponentBattlePoints; //<tileId, <energyDiff, kills>> +ve energyDiff means we lose less energy than opponent
         std::map<int, std::pair<int, int>> teamBattlePoints; //<tileId, <energyDiff, kills>> +ve energyDiff means we lose less energy than opponent
     public:
         
@@ -260,7 +260,7 @@ class GameMap {
 
         void getAllOpponentsInRadius(int radius, int x, int y, std::vector<ShuttleData*>& opponents);
         std::vector< std::vector<std::vector<TileType>>* >& getDriftAwareTileType() {return driftAwareTileType;};
-        std::map<int, std::pair<int, int>>& getOpponentBattlePoints() {return opponentBattlePoints;};
+        // std::map<int, std::pair<int, int>>& getOpponentBattlePoints() {return opponentBattlePoints;};
         std::map<int, std::pair<int, int>>& getTeamBattlePoints() {return teamBattlePoints;};
         void setRelicExplorationFrontier(GameTile &tile, int match, int cutoffTime);
 };

@@ -38,14 +38,15 @@ void Planner::populateJobs(JobBoard& jobBoard) {
             }
 
             // Defend by Sap
-            if (gameMap.getOpponentBattlePoints().find(currentTileId) != gameMap.getOpponentBattlePoints().end()) {
-                auto& battlePoint = gameMap.getOpponentBattlePoints()[currentTileId];
-                if (battlePoint.second > 0 || battlePoint.first > gameEnvConfig.unitSapCost/4) {
+            if (battleEvaluator.opponentBattlePoints.find(currentTileId) != battleEvaluator.opponentBattlePoints.end()) {
+                auto& battlePoint =battleEvaluator.opponentBattlePoints[currentTileId];
+                if (battlePoint.possibleKills > 0 || battlePoint.possibleCumulativeOpponentEnergy > gameEnvConfig.unitSapCost || battlePoint.isRelicMiningOpponent) {
                     DefenderJob* job = new DefenderJob(jobIdCounter++, x, y);
                     log("Created Defender job at " + std::to_string(x) + ", " + std::to_string(y));
                     jobBoard.addJob(job);
-                    job->kills = battlePoint.second;
-                    job->opponentEneryLoss = battlePoint.first;
+                    job->kills = battlePoint.possibleKills;
+                    job->opponentEneryLoss = battlePoint.possibleCumulativeOpponentEnergy;
+                    job->isRelicMiningOpponent = battlePoint.isRelicMiningOpponent;
                     
                     for (int x = job->targetX - 1; x <= job->targetX + 1; ++x) {
                         for (int y = job->targetY - 1; y <= job->targetY + 1; ++y) {
