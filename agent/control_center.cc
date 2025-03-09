@@ -358,7 +358,7 @@ void ControlCenter::update(GameState& gameState) {
                 GameTile& currentTile = gameMap->getTile(i, j);
                 for (int k = 0; k < 3; ++k) {
                     if (state.relicDiscoveryStatus[k] == RelicDiscoveryStatus::SEARCHING) {
-                        int cutoffTime = 101 * k + 50;
+                        int cutoffTime = 101 * k + state.relicDiscoveryCutoffMatchStep[k];
                         if (currentTile.getLastExploredTime() < cutoffTime) {
                             //Assess for Frontier set here!
                             gameMap->setRelicExplorationFrontier(currentTile, k, cutoffTime);

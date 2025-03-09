@@ -197,6 +197,7 @@ struct DerivedGameState {
         bool nebulaTileEnergyReductionSet = false;
 
         std::vector<RelicDiscoveryStatus> relicDiscoveryStatus;
+        std::vector<int> relicDiscoveryCutoffMatchStep = {50, 50, 50};
 
         inline bool isThereAHuntForRelic() {
             for (int i = currentMatch; i >= 0 ; i--) {

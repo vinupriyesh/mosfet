@@ -279,8 +279,17 @@ void OpponentTracker::computeAtleastOneShuttleProbabilities() {
         double probabilityDistribution = static_cast<double>(outstandingPoints) / static_cast<double>(opponentOpportunities  + opponentExploiting - opponentConfirmedPoints);
 
         if (probabilityDistribution > 1.0) {
-            log("Problem: probability distribution is greater than 1.0 " + std::to_string(probabilityDistribution));
-            std::cerr<<"Problem: probability distribution is greater than 1.0 "<<std::endl;
+
+            if (!gameMap.derivedGameState.isThereAHuntForRelic()) {
+                log("Problem: probability distribution is greater than 1.0 " + std::to_string(probabilityDistribution));
+                std::cerr<<"Problem: probability distribution is greater than 1.0 "<<std::endl;
+            } else {
+                auto& state = gameMap.derivedGameState;
+                if (state.currentMatch < 3 && state.currentMatchStep < state.relicDiscoveryCutoffMatchStep[state.currentMatch]) {
+                    log("Opponent has found the relic, we have not, " + std::to_string(state.relicDiscoveryCutoffMatchStep[state.currentMatch]));
+                    state.relicDiscoveryCutoffMatchStep[state.currentMatch] = state.currentMatchStep;
+                }
+            }
         }
 
         if (probabilityDistribution < 1.0 + LOWEST_DOUBLE && probabilityDistribution > 1.0 - LOWEST_DOUBLE) {
