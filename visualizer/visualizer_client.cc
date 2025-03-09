@@ -39,7 +39,7 @@ void saveToFile(const std::vector<std::vector<std::vector<int>>>& data, const st
         for (const auto& row : matrix) {
             size_t dim3 = row.size();
             file.write(reinterpret_cast<const char*>(&dim3), sizeof(dim3));
-            file.write(reinterpret_cast<const char*>(row.data()), dim3 * sizeof(double));
+            file.write(reinterpret_cast<const char*>(row.data()), dim3 * sizeof(int));
         }
     }
 

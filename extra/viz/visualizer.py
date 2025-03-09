@@ -404,7 +404,7 @@ class Visualizer:
         if self.atleast_one_shuttle_selected:
             prob_display = self.game_state.atleast_one_shuttle_data[self.mouse_pos_x][self.mouse_pos_y]
 
-        line_2_text = f'({self.mouse_pos_x}, {self.mouse_pos_y}), energy: {self.get_energy(self.mouse_pos_x, self.mouse_pos_y)} | prob: {prob_display:.5f}'
+        line_2_text = f'({self.mouse_pos_x}, {self.mouse_pos_y}), energy: {self.get_energy(self.mouse_pos_x, self.mouse_pos_y)} | prob: {prob_display:.5f} , est-energy: {self.game_state.selected_energy_data[self.mouse_pos_x][self.mouse_pos_y]}'
         if self.selected_shuttle_id != -1:
             if self.selected_shuttle_team == 0:
                 energy_value = self.game_state.blue_shuttles_energy[self.selected_shuttle_id]

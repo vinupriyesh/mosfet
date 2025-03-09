@@ -461,6 +461,19 @@ void ShuttleEnergyTracker::collectInformationFromPreviousSap() {
         auto& tile = it->second;
 
         // TODO: Identify the 1.0 drop off factor
+        opponentTracker.reduceEnergyOfAllShuttles(*tile, gameEnvConfig.unitSapCost);
+
+        for (int i = 0; i < POSSIBLE_MOVE_SIZE; i++) {
+            int x = shuttle->getX() + POSSIBLE_MOVES[i][0];
+            int y = shuttle->getY() + POSSIBLE_MOVES[i][1];
+
+            if (!gameMap.isValidTile(x, y)) {
+                continue;
+            }
+
+            GameTile& nearbyTile = gameMap.getTile(x, y);
+            opponentTracker.reduceEnergyOfAllShuttles(nearbyTile, gameEnvConfig.unitSapCost * state.unitSapDropOffFactor);
+        }
     }
 }
 

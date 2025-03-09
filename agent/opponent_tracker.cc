@@ -382,13 +382,22 @@ int OpponentTracker::getAllPossibleEnergyAt(int x, int y) {
 
 int OpponentTracker::getCountLessThanEnergyAt(int x, int y, int energy) {
     GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
-    auto energies = getOpponentMaxPossibleEnergies();
+    auto& energies = getOpponentMaxPossibleEnergies();
+    auto& probabilities = getOpponentPositionProbabilities();
     int expectation = 0.0;
     for (int s = 0; s<gameEnvConfig.maxUnits;s++) {
-        if (energies[s][x][y] < energy) {
+        if (energies[s][x][y] < energy && probabilities[s][x][y] > LOWEST_DOUBLE) {
             expectation++;
         }
     }
 
     return expectation;
+}
+
+void OpponentTracker::reduceEnergyOfAllShuttles(GameTile& tile, int energy) {
+    GameEnvConfig& gameEnvConfig = GameEnvConfig::getInstance();
+    auto& energies = *opponentMaxPossibleEnergies;
+    for (int s = 0; s<gameEnvConfig.maxUnits;s++) {        
+        energies[s][tile.x][tile.y] -= energy;
+    }
 }

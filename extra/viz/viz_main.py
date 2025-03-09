@@ -48,6 +48,7 @@ class ReplayHandler:
         self.file = file
         self.data = self.load_data()["data"]
         self.tracker_data = self.load_opponent_tracker_data()
+        self.energy_data = self.load_opponent_energy_data()
         self.atleast_one_shuttle_data = self.load_atleast_one_shuttle_data()
         self.current_frame = 0
 
@@ -109,6 +110,36 @@ class ReplayHandler:
                     matrix.append(sub_matrix)
                 data.append(matrix)
         return data
+    
+    def load_opponent_energy_data(self):
+        if "custom_replay_0.json" in self.file:
+            filename = self.file.replace("custom_replay_0.json", "opponent_energy_0.bin")
+        else:
+            filename = self.file.replace("custom_replay_1.json", "opponent_energy_1.bin")
+
+        data = []
+        with open(filename, "rb") as file:
+            while True:
+                # Read the index (first dimension)
+                index_data = file.read(8)
+                if not index_data:  # End of file
+                    break
+                index = struct.unpack("Q", index_data)[0]
+
+                # Read dimensions of the 3D array
+                dim1 = struct.unpack("Q", file.read(8))[0]
+                matrix = []
+                for _ in range(dim1):
+                    dim2 = struct.unpack("Q", file.read(8))[0]
+                    sub_matrix = []
+                    for _ in range(dim2):
+                        dim3 = struct.unpack("Q", file.read(8))[0]
+                        # Changed from 'd' (double) to 'q' (signed long long)
+                        row = struct.unpack(f"{dim3}i", file.read(dim3 * 4))
+                        sub_matrix.append(row)
+                    matrix.append(sub_matrix)
+                data.append(matrix)
+        return data
 
     def forward(self, increment=1):
         if self.current_frame < len(self.data) - increment - 1:            
@@ -130,7 +161,7 @@ class ReplayHandler:
         
     
     def update_state_and_display(self):
-        game_state.update_state(self.data[self.current_frame], self.tracker_data[self.current_frame], self.atleast_one_shuttle_data[self.current_frame], visualizer.shuttle_toggle_state)
+        game_state.update_state(self.data[self.current_frame], self.tracker_data[self.current_frame], self.energy_data[self.current_frame], self.atleast_one_shuttle_data[self.current_frame], visualizer.shuttle_toggle_state)
         visualizer.update_display()
 
 def run_server(port):

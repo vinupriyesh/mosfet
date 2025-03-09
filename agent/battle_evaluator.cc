@@ -87,6 +87,7 @@ void BattleEvaluator::computeOpponentBattlePoints(int x, int y) {
 
                 if (probabilities[i][j] >= 1.0 - LOWEST_DOUBLE) {
                     // This tile is occupied by the opponent
+                    // log("Opponent is occupying " + std::to_string(i) + ", " + std::to_string(j) + "with energy " + std::to_string(opponentTracker.getAllPossibleEnergyAt(i, j)));
                     tileEvaluation.possibleCumulativeOpponentEnergy = std::min(opponentTracker.getAllPossibleEnergyAt(i, j), sapCost);
                     tileEvaluation.isRelicMiningOpponent = tile.isVantagePoint();
                     tileEvaluation.possibleKills = opponentTracker.getCountLessThanEnergyAt(i, j, sapCost);

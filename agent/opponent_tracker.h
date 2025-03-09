@@ -39,6 +39,7 @@ class OpponentTracker {
 
         int getAllPossibleEnergyAt(int x, int y);
         int getCountLessThanEnergyAt(int x, int y, int energy);
+        void reduceEnergyOfAllShuttles(GameTile& tile, int energy);
 
         ~OpponentTracker();
 };
